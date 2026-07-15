@@ -1,4 +1,5 @@
 node_modules/
+build/chunks/
 build/shot-*.png
 *.log
 .DS_Store
