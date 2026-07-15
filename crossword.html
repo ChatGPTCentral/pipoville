@@ -433,6 +433,16 @@ let cur={r:0,c:0,dir:"across"};
 let started=false,timer=0,timerId=null,solved=false;
 let acrossList=[],downList=[];
 
+/* ---- storage shim (falls back to memory if localStorage is blocked) ---- */
+const store=(function(){
+  let ok=false,mem={};
+  try{const t="__aixw_probe";localStorage.setItem(t,"1");localStorage.removeItem(t);ok=true;}catch(e){ok=false;}
+  return {
+    get(k){try{return ok?localStorage.getItem(k):(k in mem?mem[k]:null);}catch(e){return k in mem?mem[k]:null;}},
+    set(k,v){try{if(ok)localStorage.setItem(k,v);else mem[k]=v;}catch(e){mem[k]=v;}}
+  };
+})();
+
 /* ---- persistence ---- */
 const LSK=p=>`aixw:${p.difficulty}:${p.seed}`;
 function saveProgress(){
@@ -441,11 +451,11 @@ function saveProgress(){
   for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++){
     const cc=cell[r][c]; if(cc&&cc.input)inp[K(r,c)]={v:cc.input,rv:cc.revealed?1:0};
   }
-  try{localStorage.setItem(LSK(P),JSON.stringify({inp,timer,solved}));}catch(e){}
+  try{store.set(LSK(P),JSON.stringify({inp,timer,solved}));}catch(e){}
 }
 function loadProgress(){
   try{
-    const raw=localStorage.getItem(LSK(P)); if(!raw)return;
+    const raw=store.get(LSK(P)); if(!raw)return;
     const d=JSON.parse(raw);
     if(d.inp)for(const k in d.inp){const[r,c]=k.split(",").map(Number);const cc=cell[r][c];
       if(cc){cc.input=d.inp[k].v;cc.revealed=!!d.inp[k].rv;paintLetter(cc);}}
@@ -456,14 +466,14 @@ function loadProgress(){
 
 /* ---- seed helpers ---- */
 function currentSeeds(){
-  try{return JSON.parse(localStorage.getItem("aixw:seeds")||"{}");}catch(e){return {};}
+  try{return JSON.parse(store.get("aixw:seeds")||"{}");}catch(e){return {};}
 }
 function seedFor(diff){
   const s=currentSeeds();
-  if(s[diff]==null){s[diff]=daySeed();localStorage.setItem("aixw:seeds",JSON.stringify(s));}
+  if(s[diff]==null){s[diff]=daySeed();store.set("aixw:seeds",JSON.stringify(s));}
   return s[diff];
 }
-function setSeed(diff,val){const s=currentSeeds();s[diff]=val;localStorage.setItem("aixw:seeds",JSON.stringify(s));}
+function setSeed(diff,val){const s=currentSeeds();s[diff]=val;store.set("aixw:seeds",JSON.stringify(s));}
 function daySeed(){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
 
 /* ---- build & render ---- */
@@ -764,7 +774,7 @@ menuSheet.addEventListener("click",e=>{if(e.target===menuSheet)menuSheet.classLi
 
 /* help */
 $("btnHelp").addEventListener("click",()=>$("helpModal").classList.add("on"));
-$("helpClose").addEventListener("click",()=>{$("helpModal").classList.remove("on");localStorage.setItem("aixw:seen","1");});
+$("helpClose").addEventListener("click",()=>{$("helpModal").classList.remove("on");store.set("aixw:seen","1");});
 
 /* win */
 $("winNext").addEventListener("click",()=>{$("winModal").classList.remove("on");const ns=(seedFor(difficulty)+1)>>>0;setSeed(difficulty,ns);newPuzzle(difficulty,ns);});
@@ -774,7 +784,7 @@ $("winClose").addEventListener("click",()=>$("winModal").classList.remove("on"))
 buildKeyboard();
 newPuzzle("easy",seedFor("easy"));
 $("diffPill").className="pill easy";
-if(!localStorage.getItem("aixw:seen"))$("helpModal").classList.add("on");
+if(!store.get("aixw:seen"))$("helpModal").classList.add("on");
 // keep grid sized after fonts load
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitGrid);
 setTimeout(fitGrid,300);
