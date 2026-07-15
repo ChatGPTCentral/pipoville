@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>AI Central — AI Vocabulary Crossword</title>
+<meta name="description" content="A New York Times–style crossword for learning AI vocabulary, built for mobile by AI Central.">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23111'/%3E%3Crect x='6' y='6' width='9' height='9' fill='%23FED600'/%3E%3Crect x='17' y='17' width='9' height='9' fill='%23FED600'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E7E4DE; --ink:#141414; --paper:#FFFDFA; --accent:#FED600;
+  --hl:#FFF0A6; --cur:#FED600; --block:#141414; --line:#141414;
+  --muted:#6B665E; --bad:#E5484D; --good:#2F9E44; --key:#FFFFFF; --keyb:#C9C4BB;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  -webkit-text-size-adjust:100%;touch-action:manipulation}
+button{font-family:inherit;cursor:pointer}
+
+#app{display:flex;flex-direction:column;height:100%;max-width:640px;margin:0 auto;
+  background:var(--bg);position:relative}
+
+/* Header */
+header{background:var(--ink);color:var(--paper);padding:calc(8px + var(--safe-top)) 14px 8px;
+  display:flex;align-items:center;gap:10px;flex:0 0 auto;box-shadow:0 2px 10px rgba(0,0,0,.18);
+  border-bottom:2px solid var(--accent);z-index:5}
+.brand{display:flex;align-items:center;gap:8px;font-family:'Montserrat',sans-serif;font-weight:800;
+  letter-spacing:.02em;font-size:14px;line-height:1}
+.brand .dot{width:11px;height:11px;background:var(--accent);display:inline-block;flex:0 0 auto}
+.brand small{display:block;font-family:'Inter';font-weight:500;font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:#B9B4AC;margin-top:3px}
+.h-spacer{flex:1}
+#timer{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;color:var(--accent);
+  background:#232323;padding:5px 9px;border-radius:6px;min-width:52px;text-align:center}
+.icon-btn{background:transparent;border:1.4px solid #3a3a3a;color:var(--paper);border-radius:7px;
+  width:34px;height:34px;display:grid;place-items:center;font-size:16px;padding:0}
+.icon-btn:active{background:#2a2a2a}
+
+/* Sub bar */
+.subbar{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:7px 12px;
+  background:var(--bg);border-bottom:1px solid rgba(20,20,20,.10)}
+.pill{font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  padding:4px 9px;border-radius:999px;background:var(--ink);color:var(--paper)}
+.pill.easy{background:#1f7a3a}.pill.hard{background:#8a1f1f}
+.seg{display:inline-flex;background:#d9d5cd;border-radius:999px;padding:2px;gap:2px}
+.seg button{border:none;background:transparent;color:var(--muted);font-size:11.5px;font-weight:700;
+  padding:5px 11px;border-radius:999px;letter-spacing:.02em}
+.seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.subbar .h-spacer{flex:1}
+.txt-btn{background:transparent;border:none;color:var(--ink);font-size:12.5px;font-weight:600;
+  padding:5px 7px;border-radius:6px;text-decoration:underline;text-underline-offset:2px}
+.txt-btn:active{background:rgba(0,0,0,.06)}
+
+/* Grid */
+#gridWrap{flex:1 1 auto;display:flex;align-items:center;justify-content:center;min-height:0;
+  padding:10px;overflow:hidden}
+#grid{display:grid;gap:2px;background:var(--line);border:2px solid var(--line);border-radius:3px;
+  box-shadow:0 6px 22px rgba(0,0,0,.16)}
+.cell{position:relative;background:var(--paper);display:flex;align-items:center;justify-content:center;
+  font-weight:600;color:var(--ink);user-select:none;overflow:hidden}
+.cell.block{background:var(--block)}
+.cell.hl{background:var(--hl)}
+.cell.cur{background:var(--cur)}
+.cell .num{position:absolute;top:1px;left:2px;font-size:9px;font-weight:600;color:#555;line-height:1;
+  font-family:'Inter'}
+.cell.cur .num,.cell.hl .num{color:#3a3200}
+.cell .ltr{font-family:'Montserrat',sans-serif;font-weight:700;line-height:1}
+.cell.bad .ltr{color:var(--bad)}
+.cell.good .ltr{color:var(--good)}
+.cell.reveal .ltr{color:#7a5c00}
+.cell.pop{animation:pop .18s ease}
+@keyframes pop{0%{transform:scale(.7)}100%{transform:scale(1)}}
+
+/* Clue bar */
+#clueBar{flex:0 0 auto;display:flex;align-items:stretch;gap:0;background:var(--accent);
+  color:var(--ink);min-height:48px}
+#clueBar .nav{width:42px;flex:0 0 auto;display:grid;place-items:center;font-size:20px;font-weight:800;
+  border:none;background:transparent;color:var(--ink)}
+#clueBar .nav:active{background:rgba(0,0,0,.10)}
+#clueText{flex:1;display:flex;flex-direction:column;justify-content:center;padding:6px 6px;min-width:0}
+#clueLabel{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.72}
+#clueMain{font-size:14.5px;font-weight:600;line-height:1.2;overflow:hidden;display:-webkit-box;
+  -webkit-line-clamp:2;-webkit-box-orient:vertical}
+
+/* Keyboard */
+#kb{flex:0 0 auto;background:#d5d1c9;padding:6px 4px calc(6px + var(--safe-bot));display:flex;
+  flex-direction:column;gap:6px;user-select:none}
+.kbrow{display:flex;gap:5px;justify-content:center}
+.key{flex:1;max-width:38px;height:46px;border:none;border-radius:6px;background:var(--key);
+  color:var(--ink);font-size:17px;font-weight:600;box-shadow:0 1.5px 0 rgba(0,0,0,.28);
+  display:grid;place-items:center;font-family:'Inter'}
+.key:active{background:#e6e2da;transform:translateY(1px);box-shadow:0 .5px 0 rgba(0,0,0,.28)}
+.key.wide{flex:1.6;max-width:64px;font-size:13px;font-weight:700;background:var(--keyb)}
+
+/* Toolbar (below keyboard hidden; using menu instead) */
+
+/* Menus / modals */
+.sheet-bg{position:fixed;inset:0;background:rgba(20,18,14,.55);z-index:40;display:none;
+  align-items:flex-end;justify-content:center}
+.sheet-bg.on{display:flex}
+.sheet{background:var(--paper);width:100%;max-width:640px;border-radius:16px 16px 0 0;padding:8px 0 max(14px,var(--safe-bot));
+  box-shadow:0 -8px 30px rgba(0,0,0,.3);animation:up .22s ease}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:translateY(0);opacity:1}}
+.sheet h3{margin:6px 18px 4px;font-family:'Montserrat';font-size:15px}
+.sheet .grip{width:40px;height:4px;background:#cfcabf;border-radius:999px;margin:6px auto 8px}
+.sheet button.row{display:flex;width:100%;align-items:center;gap:12px;background:transparent;border:none;
+  padding:14px 20px;font-size:15px;font-weight:500;color:var(--ink);text-align:left;border-top:1px solid #efece5}
+.sheet button.row:active{background:#f2efe8}
+.sheet button.row .ic{width:24px;text-align:center;font-size:17px}
+.sheet button.row small{display:block;color:var(--muted);font-weight:400;font-size:12px;margin-top:1px}
+
+/* Center modal (win / help) */
+.modal-bg{position:fixed;inset:0;background:rgba(20,18,14,.6);z-index:50;display:none;
+  align-items:center;justify-content:center;padding:22px}
+.modal-bg.on{display:flex}
+.modal{background:var(--paper);width:100%;max-width:400px;border-radius:16px;padding:26px 22px;
+  box-shadow:0 14px 50px rgba(0,0,0,.4);text-align:center;animation:up .25s ease;max-height:86vh;overflow:auto}
+.modal .badge{width:64px;height:64px;border-radius:16px;background:var(--accent);margin:0 auto 14px;
+  display:grid;place-items:center;font-size:32px;box-shadow:0 6px 16px rgba(254,214,0,.5)}
+.modal h2{font-family:'Montserrat';font-size:22px;margin:0 0 6px}
+.modal p{color:var(--muted);font-size:14px;line-height:1.5;margin:6px 0}
+.modal .stat{display:flex;justify-content:center;gap:26px;margin:16px 0 6px}
+.modal .stat div{font-family:'Montserrat';font-size:24px;font-weight:800}
+.modal .stat span{display:block;font-family:'Inter';font-size:10.5px;font-weight:600;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-top:2px}
+.modal .actions{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+.btn{border:none;border-radius:9px;padding:13px;font-size:15px;font-weight:700;font-family:'Inter'}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.accent{background:var(--accent);color:var(--ink)}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid #cfcabf}
+.modal .help-list{text-align:left;font-size:13.5px;color:var(--ink);line-height:1.55;margin:4px 0}
+.modal .help-list b{font-weight:700}
+.modal .learn{text-align:left;background:#faf7f0;border:1px solid #eee6d6;border-radius:10px;
+  padding:12px 14px;margin-top:8px;max-height:200px;overflow:auto}
+.modal .learn div{font-size:13px;padding:4px 0;border-top:1px solid #eee6d6}
+.modal .learn div:first-child{border-top:none}
+.modal .learn b{font-family:'Montserrat';color:var(--ink)}
+.toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-bot));transform:translateX(-50%);
+  background:var(--ink);color:var(--paper);padding:10px 16px;border-radius:999px;font-size:13px;
+  font-weight:600;z-index:60;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span class="brand"><span class="dot"></span><span>AI CENTRAL<small>AI Crossword</small></span></span>
+    <span class="h-spacer"></span>
+    <span id="timer">0:00</span>
+    <button class="icon-btn" id="btnHelp" aria-label="How to play">?</button>
+    <button class="icon-btn" id="btnMenu" aria-label="Menu">⋯</button>
+  </header>
+
+  <div class="subbar">
+    <span class="pill" id="diffPill">EASY</span>
+    <span class="seg" id="diffSeg">
+      <button data-d="easy" class="on">Easy</button>
+      <button data-d="hard">Hard</button>
+    </span>
+    <span class="h-spacer"></span>
+    <button class="txt-btn" id="btnNew">New puzzle</button>
+  </div>
+
+  <div id="gridWrap"><div id="grid"></div></div>
+
+  <div id="clueBar">
+    <button class="nav" id="cluePrev" aria-label="Previous clue">‹</button>
+    <div id="clueText">
+      <div id="clueLabel">ACROSS</div>
+      <div id="clueMain">Loading…</div>
+    </div>
+    <button class="nav" id="clueNext" aria-label="Next clue">›</button>
+  </div>
+
+  <div id="kb"></div>
+</div>
+
+<!-- Menu sheet -->
+<div class="sheet-bg" id="menuSheet">
+  <div class="sheet">
+    <div class="grip"></div>
+    <h3>Puzzle tools</h3>
+    <button class="row" data-act="check-word"><span class="ic">✓</span><span>Check word<small>Mark wrong letters in this word</small></span></button>
+    <button class="row" data-act="check-puzzle"><span class="ic">✔︎</span><span>Check whole puzzle<small>Highlight every incorrect letter</small></span></button>
+    <button class="row" data-act="reveal-letter"><span class="ic">💡</span><span>Reveal letter<small>Fill in the current square</small></span></button>
+    <button class="row" data-act="reveal-word"><span class="ic">🔦</span><span>Reveal word<small>Fill in the whole answer</small></span></button>
+    <button class="row" data-act="clear"><span class="ic">↺</span><span>Clear puzzle<small>Erase all your letters</small></span></button>
+  </div>
+</div>
+
+<!-- Help modal -->
+<div class="modal-bg" id="helpModal">
+  <div class="modal">
+    <div class="badge">🧩</div>
+    <h2>AI Crossword</h2>
+    <p>Learn the language of artificial intelligence, one clue at a time.</p>
+    <div class="help-list">
+      <p>• <b>Tap a square</b> to start; tap again to switch between across and down.</p>
+      <p>• <b>Type</b> with the on-screen keyboard (or your keyboard on a computer).</p>
+      <p>• Use the <b>‹ ›</b> arrows to jump between clues.</p>
+      <p>• Stuck? Open the <b>⋯ menu</b> to check or reveal.</p>
+      <p>• Solve it all to see the <b>glossary</b> of every word you learned.</p>
+    </div>
+    <div class="actions"><button class="btn accent" id="helpClose">Start solving</button></div>
+  </div>
+</div>
+
+<!-- Win modal -->
+<div class="modal-bg" id="winModal">
+  <div class="modal">
+    <div class="badge">🎉</div>
+    <h2 id="winTitle">Solved!</h2>
+    <p id="winSub">You completed the AI vocabulary crossword.</p>
+    <div class="stat">
+      <div id="winTime">0:00<span>Time</span></div>
+      <div id="winWords">0<span>Words</span></div>
+    </div>
+    <div class="learn" id="winGlossary"></div>
+    <div class="actions">
+      <button class="btn primary" id="winNext">Play a new puzzle</button>
+      <button class="btn ghost" id="winClose">Admire the grid</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   AI Central — AI Vocabulary Crossword
+   Self-contained. No external JS. Generates a fresh interlocking
+   crossword from a curated AI word bank each time you play.
+   ============================================================ */
+
+/* ---------- Word bank (clean, teachable clues) ---------- */
+const WORDBANK = [
+  // ---- EASY: high-frequency, everyday AI terms ----
+  {w:"MODEL", c:"Trained system that turns inputs into predictions", l:"easy"},
+  {w:"TOKEN", c:"Chunk of text a language model reads at a time", l:"easy"},
+  {w:"PROMPT", c:"The instruction you type to an AI", l:"easy"},
+  {w:"CHATBOT", c:"Conversational program you message with", l:"easy"},
+  {w:"AGENT", c:"AI that takes actions to reach a goal", l:"easy"},
+  {w:"ROBOT", c:"Machine that senses and acts in the world", l:"easy"},
+  {w:"DATASET", c:"Collection of examples used to train a model", l:"easy"},
+  {w:"DATA", c:"The raw material AI learns from", l:"easy"},
+  {w:"LABEL", c:"The correct answer attached to a training example", l:"easy"},
+  {w:"NEURAL", c:"Kind of network loosely inspired by the brain", l:"easy"},
+  {w:"LAYER", c:"One stacked stage of neurons in a network", l:"easy"},
+  {w:"VISION", c:"AI field for understanding images", l:"easy"},
+  {w:"SPEECH", c:"Spoken audio AI converts to or from text", l:"easy"},
+  {w:"IMAGE", c:"Picture a generative model can create", l:"easy"},
+  {w:"BIAS", c:"Unfair skew in a model's outputs or data", l:"easy"},
+  {w:"EPOCH", c:"One full pass through the training data", l:"easy"},
+  {w:"VECTOR", c:"Ordered list of numbers representing meaning", l:"easy"},
+  {w:"WEIGHTS", c:"Numbers a network tunes as it learns", l:"easy"},
+  {w:"OUTPUT", c:"What the model gives back to you", l:"easy"},
+  {w:"CHATGPT", c:"OpenAI's popular conversational assistant", l:"easy"},
+  {w:"CLAUDE", c:"Anthropic's AI assistant", l:"easy"},
+  {w:"GEMINI", c:"Google's family of AI models", l:"easy"},
+  {w:"OPENAI", c:"Company that makes ChatGPT", l:"easy"},
+  {w:"NEURON", c:"Single computing unit in a network", l:"easy"},
+
+  // ---- HARD: deeper machine-learning vocabulary ----
+  {w:"TENSOR", c:"Multi-dimensional array at deep learning's core", l:"hard"},
+  {w:"GRADIENT", c:"Slope used to nudge weights during training", l:"hard"},
+  {w:"OVERFIT", c:"When a model memorizes instead of generalizing", l:"hard"},
+  {w:"INFERENCE", c:"Running a trained model to get an answer", l:"hard"},
+  {w:"TRAINING", c:"Teaching a model by showing it examples", l:"hard"},
+  {w:"FEATURE", c:"An individual measurable input to a model", l:"hard"},
+  {w:"ATTENTION", c:"Mechanism that weighs which tokens matter", l:"hard"},
+  {w:"EMBEDDING", c:"Dense vector that captures a word's meaning", l:"hard"},
+  {w:"ALIGNMENT", c:"Making AI goals match human values", l:"hard"},
+  {w:"FINETUNE", c:"Adapt a pretrained model to a new task", l:"hard"},
+  {w:"DIFFUSION", c:"Image model that denoises random static", l:"hard"},
+  {w:"LATENT", c:"Hidden, compressed internal representation", l:"hard"},
+  {w:"SOFTMAX", c:"Function turning scores into probabilities", l:"hard"},
+  {w:"DROPOUT", c:"Trick that randomly disables neurons to curb overfitting", l:"hard"},
+  {w:"CORPUS", c:"Large body of text used for training", l:"hard"},
+  {w:"PARAMETER", c:"A single learned value inside a model", l:"hard"},
+  {w:"BENCHMARK", c:"Standard test for comparing models", l:"hard"},
+  {w:"CONTEXT", c:"The span of tokens a model can consider at once", l:"hard"},
+  {w:"CLUSTER", c:"Group of similar data points found by a model", l:"hard"},
+  {w:"ACCURACY", c:"Share of predictions a model gets right", l:"hard"},
+  {w:"GUARDRAIL", c:"Safety limit placed on AI behavior", l:"hard"},
+  {w:"REASONING", c:"Step-by-step thinking an advanced model shows", l:"hard"},
+  {w:"LLAMA", c:"Meta's open-weight model family", l:"hard"},
+  {w:"HALLUCINATE", c:"To confidently make something up (of an AI)", l:"hard"},
+  {w:"GENERATIVE", c:"Type of AI that creates new content", l:"hard"},
+  {w:"TRANSFORMER", c:"Architecture behind modern language models", l:"hard"},
+  {w:"MULTIMODAL", c:"Handling text, images and audio together", l:"hard"},
+  {w:"SUPERVISED", c:"Learning from labeled examples", l:"hard"},
+  {w:"QUANTIZE", c:"Shrink a model by lowering numeric precision", l:"hard"},
+  {w:"PRETRAIN", c:"Initial broad training before specialization", l:"hard"},
+  {w:"RELU", c:"Activation: the max of zero and the input", l:"hard"},
+  {w:"SIGMOID", c:"S-shaped activation squashing values to 0–1", l:"hard"}
+];
+
+/* ---------- Seeded RNG ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const K=(r,c)=>r+","+c;
+
+/* ---------- Generator (validated: never yields illegal runs) ---------- */
+function tryGenerate(bank,target,seed){
+  const rng=mulberry32(seed);
+  let pool=bank.slice();
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));const t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  pool.sort((a,b)=>b.w.length-a.w.length);
+  const grid={},placements=[];
+  const cellAt=(r,c)=>grid[K(r,c)];
+  function canPlace(word,r,c,dir){
+    const dr=dir==="down"?1:0,dc=dir==="across"?1:0;
+    if(cellAt(r-dr,c-dc))return false;
+    if(cellAt(r+dr*word.length,c+dc*word.length))return false;
+    let crosses=0;
+    for(let i=0;i<word.length;i++){
+      const rr=r+dr*i,cc=c+dc*i,ex=cellAt(rr,cc);
+      if(ex){if(ex!==word[i])return false;crosses++;}
+      else if(dir==="across"){if(cellAt(rr-1,cc)||cellAt(rr+1,cc))return false;}
+      else{if(cellAt(rr,cc-1)||cellAt(rr,cc+1))return false;}
+    }
+    return crosses;
+  }
+  function apply(entry,r,c,dir){
+    const w=entry.w,dr=dir==="down"?1:0,dc=dir==="across"?1:0;
+    for(let i=0;i<w.length;i++)grid[K(r+dr*i,c+dc*i)]=w[i];
+    placements.push({word:w,clue:entry.c,row:r,col:c,dir:dir});
+  }
+  let bb={minR:0,minC:0,maxR:0,maxC:0};
+  const first=pool.shift();
+  apply(first,0,0,"across"); bb.maxC=first.w.length-1;
+  function expandCost(word,r,c,dir){
+    const dr=dir==="down"?1:0,dc=dir==="across"?1:0;
+    const er=r+dr*(word.length-1),ec=c+dc*(word.length-1);
+    const nMinR=Math.min(bb.minR,r),nMaxR=Math.max(bb.maxR,er);
+    const nMinC=Math.min(bb.minC,c),nMaxC=Math.max(bb.maxC,ec);
+    const oldA=(bb.maxR-bb.minR+1)*(bb.maxC-bb.minC+1);
+    const newA=(nMaxR-nMinR+1)*(nMaxC-nMinC+1);
+    return {cost:newA-oldA,nMinR,nMaxR,nMinC,nMaxC};
+  }
+  let remaining=pool.slice(),progress=true;
+  while(progress&&placements.length<target){
+    progress=false;const still=[];
+    for(const cand of remaining){
+      if(placements.length>=target){still.push(cand);continue;}
+      const word=cand.w;let best=null;
+      for(let i=0;i<word.length;i++)for(const p of placements){
+        const pw=p.word;
+        for(let j=0;j<pw.length;j++){
+          if(pw[j]!==word[i])continue;
+          let r,c,dir;
+          if(p.dir==="across"){dir="down";r=p.row-i;c=p.col+j;}
+          else{dir="across";r=p.row+j;c=p.col-i;}
+          const x=canPlace(word,r,c,dir);
+          if(x===false||x<1)continue;
+          const ex=expandCost(word,r,c,dir);
+          const score=x*14-ex.cost*1.3+rng()*1.5;
+          if(!best||score>best.score)best={r,c,dir,score,ex};
+        }
+      }
+      if(best){apply(cand,best.r,best.c,best.dir);progress=true;
+        bb={minR:best.ex.nMinR,minC:best.ex.nMinC,maxR:best.ex.nMaxR,maxC:best.ex.nMaxC};}
+      else still.push(cand);
+    }
+    remaining=still;
+  }
+  return placements;
+}
+
+function finalize(pl){
+  let minR=1e9,minC=1e9,maxR=-1e9,maxC=-1e9;
+  for(const p of pl){const dr=p.dir==="down"?1:0,dc=p.dir==="across"?1:0;
+    for(let i=0;i<p.word.length;i++){const r=p.row+dr*i,c=p.col+dc*i;
+      minR=Math.min(minR,r);maxR=Math.max(maxR,r);minC=Math.min(minC,c);maxC=Math.max(maxC,c);}}
+  const rows=maxR-minR+1,cols=maxC-minC+1;
+  const sh=pl.map(p=>({word:p.word,clue:p.clue,dir:p.dir,row:p.row-minR,col:p.col-minC}));
+  const sol=Array.from({length:rows},()=>new Array(cols).fill(null));
+  for(const p of sh){const dr=p.dir==="down"?1:0,dc=p.dir==="across"?1:0;
+    for(let i=0;i<p.word.length;i++)sol[p.row+dr*i][p.col+dc*i]=p.word[i];}
+  const number=Array.from({length:rows},()=>new Array(cols).fill(0));
+  let n=0;
+  for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+    if(!sol[r][c])continue;
+    const sA=(c===0||!sol[r][c-1])&&(c+1<cols&&sol[r][c+1]);
+    const sD=(r===0||!sol[r-1][c])&&(r+1<rows&&sol[r+1][c]);
+    if(sA||sD)number[r][c]=++n;
+  }
+  const words=sh.map(p=>{
+    const dr=p.dir==="down"?1:0,dc=p.dir==="across"?1:0,cells=[];
+    for(let i=0;i<p.word.length;i++)cells.push({r:p.row+dr*i,c:p.col+dc*i});
+    return {number:number[p.row][p.col],dir:p.dir,clue:p.clue,answer:p.word,cells};
+  });
+  words.sort((a,b)=>a.number-b.number||(a.dir==="across"?0:1)-(b.dir==="across"?0:1));
+  return {rows,cols,sol,number,words};
+}
+
+function buildPuzzle(difficulty,seed){
+  const bank=WORDBANK.filter(w=>{
+    if(w.w.length>9) return false;             // keep grid mobile-friendly
+    return difficulty==="hard" ? true : w.l==="easy";
+  });
+  const target=difficulty==="hard"?11:9;
+  let best=null,bestScore=-1e9;
+  for(let a=0;a<26;a++){
+    const pl=tryGenerate(bank,target,seed+a*7919);
+    if(pl.length<Math.max(6,target-3))continue;
+    const fin=finalize(pl);
+    const fill=pl.reduce((s,p)=>s+p.word.length,0);
+    const density=fill/(fin.rows*fin.cols);
+    const aspect=Math.min(fin.rows,fin.cols)/Math.max(fin.rows,fin.cols);
+    const score=fin.words.length*3+density*60+aspect*12-Math.max(0,Math.max(fin.rows,fin.cols)-13)*4;
+    if(score>bestScore){bestScore=score;best=fin;}
+  }
+  if(!best)best=finalize(tryGenerate(bank,target,seed));
+  best.seed=seed;best.difficulty=difficulty;
+  return best;
+}
+
+/* ============================================================
+   Game state + UI
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const gridEl=$("grid"),gridWrap=$("gridWrap");
+let P=null;                 // current puzzle
+let cell=[];                // 2D of {el,sol,num,acrossW,downW,input,revealed} or null
+let cur={r:0,c:0,dir:"across"};
+let started=false,timer=0,timerId=null,solved=false;
+let acrossList=[],downList=[];
+
+/* ---- persistence ---- */
+const LSK=p=>`aixw:${p.difficulty}:${p.seed}`;
+function saveProgress(){
+  if(!P)return;
+  const inp={};
+  for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++){
+    const cc=cell[r][c]; if(cc&&cc.input)inp[K(r,c)]={v:cc.input,rv:cc.revealed?1:0};
+  }
+  try{localStorage.setItem(LSK(P),JSON.stringify({inp,timer,solved}));}catch(e){}
+}
+function loadProgress(){
+  try{
+    const raw=localStorage.getItem(LSK(P)); if(!raw)return;
+    const d=JSON.parse(raw);
+    if(d.inp)for(const k in d.inp){const[r,c]=k.split(",").map(Number);const cc=cell[r][c];
+      if(cc){cc.input=d.inp[k].v;cc.revealed=!!d.inp[k].rv;paintLetter(cc);}}
+    timer=d.timer||0; solved=!!d.solved; updateTimer();
+    if(timer>0)started=true;
+  }catch(e){}
+}
+
+/* ---- seed helpers ---- */
+function currentSeeds(){
+  try{return JSON.parse(localStorage.getItem("aixw:seeds")||"{}");}catch(e){return {};}
+}
+function seedFor(diff){
+  const s=currentSeeds();
+  if(s[diff]==null){s[diff]=daySeed();localStorage.setItem("aixw:seeds",JSON.stringify(s));}
+  return s[diff];
+}
+function setSeed(diff,val){const s=currentSeeds();s[diff]=val;localStorage.setItem("aixw:seeds",JSON.stringify(s));}
+function daySeed(){const d=new Date();return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();}
+
+/* ---- build & render ---- */
+let difficulty="easy";
+function newPuzzle(diff,seed){
+  difficulty=diff;
+  P=buildPuzzle(diff,seed);
+  solved=false;started=false;timer=0;stopTimer();updateTimer();
+  renderGrid();
+  buildClueOrder();
+  loadProgress();
+  // pick first clue
+  const first=acrossList[0]||downList[0];
+  if(first){cur={r:first.cells[0].r,c:first.cells[0].c,dir:first.dir};}
+  focusFirstEmpty();
+  refresh();
+  if(solved) markAllGood();
+}
+
+function renderGrid(){
+  gridEl.innerHTML="";
+  gridEl.style.gridTemplateColumns=`repeat(${P.cols},1fr)`;
+  gridEl.style.gridTemplateRows=`repeat(${P.rows},1fr)`;
+  cell=Array.from({length:P.rows},()=>new Array(P.cols).fill(null));
+  // precompute which word (index in P.words) covers each cell per dir
+  const aMap={},dMap={};
+  P.words.forEach((w,i)=>{w.cells.forEach(cc=>{(w.dir==="across"?aMap:dMap)[K(cc.r,cc.c)]=i;});});
+  for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++){
+    const el=document.createElement("div");
+    const s=P.sol[r][c];
+    if(!s){el.className="cell block";gridEl.appendChild(el);continue;}
+    el.className="cell";
+    const num=P.number[r][c];
+    if(num){const ns=document.createElement("span");ns.className="num";ns.textContent=num;el.appendChild(ns);}
+    const lt=document.createElement("span");lt.className="ltr";el.appendChild(lt);
+    const obj={el,ltrEl:lt,sol:s,num,r,c,acrossW:aMap[K(r,c)],downW:dMap[K(r,c)],input:"",revealed:false};
+    el.addEventListener("click",()=>onCellTap(r,c));
+    cell[r][c]=obj;
+    gridEl.appendChild(el);
+  }
+  fitGrid();
+}
+
+function fitGrid(){
+  if(!P)return;
+  const availW=gridWrap.clientWidth-2, availH=gridWrap.clientHeight-2;
+  const gap=2;
+  const cw=(availW-gap*(P.cols-1)-4)/P.cols;
+  const ch=(availH-gap*(P.rows-1)-4)/P.rows;
+  let cs=Math.floor(Math.min(cw,ch));
+  cs=Math.max(16,Math.min(cs,52));
+  const w=cs*P.cols+gap*(P.cols-1)+4, h=cs*P.rows+gap*(P.rows-1)+4;
+  gridEl.style.width=w+"px";gridEl.style.height=h+"px";
+  const fs=Math.max(11,Math.floor(cs*0.5));
+  gridEl.style.setProperty("--fs",fs+"px");
+  for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++){const cc=cell[r][c];if(cc)cc.ltrEl.style.fontSize=fs+"px";}
+}
+window.addEventListener("resize",fitGrid);
+window.addEventListener("orientationchange",()=>setTimeout(fitGrid,200));
+
+function buildClueOrder(){
+  acrossList=P.words.filter(w=>w.dir==="across").sort((a,b)=>a.number-b.number);
+  downList=P.words.filter(w=>w.dir==="down").sort((a,b)=>a.number-b.number);
+}
+
+/* ---- selection & highlighting ---- */
+function wordAt(r,c,dir){
+  const cc=cell[r][c]; if(!cc)return null;
+  const wi=dir==="across"?cc.acrossW:cc.downW;
+  return wi==null?null:P.words[wi];
+}
+function currentWord(){
+  let w=wordAt(cur.r,cur.c,cur.dir);
+  if(!w){const other=cur.dir==="across"?"down":"across";w=wordAt(cur.r,cur.c,other);if(w)cur.dir=other;}
+  return w;
+}
+function onCellTap(r,c){
+  const cc=cell[r][c]; if(!cc)return;
+  if(cur.r===r&&cur.c===c){
+    // toggle direction if both available
+    const other=cur.dir==="across"?"down":"across";
+    if(wordAt(r,c,other))cur.dir=other;
+  }else{
+    cur.r=r;cur.c=c;
+    if(!wordAt(r,c,cur.dir)){const other=cur.dir==="across"?"down":"across";if(wordAt(r,c,other))cur.dir=other;}
+  }
+  refresh();
+}
+
+function refresh(){
+  // clear
+  for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++){const cc=cell[r][c];if(cc){cc.el.classList.remove("hl","cur");}}
+  const w=currentWord();
+  if(w){w.cells.forEach(pc=>cell[pc.r][pc.c].el.classList.add("hl"));}
+  const cc=cell[cur.r][cur.c]; if(cc)cc.el.classList.add("cur");
+  updateClueBar(w);
+}
+function updateClueBar(w){
+  if(!w){$("clueMain").textContent="";return;}
+  $("clueLabel").textContent=w.dir.toUpperCase();
+  $("clueMain").textContent=`${w.number}. ${w.clue}`;
+}
+
+/* ---- letters ---- */
+function paintLetter(cc){
+  cc.ltrEl.textContent=cc.input||"";
+  cc.el.classList.remove("bad","good","reveal");
+  if(cc.revealed&&cc.input)cc.el.classList.add("reveal");
+}
+function typeLetter(ch){
+  if(solved)return;
+  const cc=cell[cur.r][cur.c]; if(!cc)return;
+  startTimer();
+  cc.input=ch; cc.revealed=false;
+  cc.el.classList.remove("bad","good","reveal");
+  paintLetter(cc);
+  cc.el.classList.remove("pop");void cc.el.offsetWidth;cc.el.classList.add("pop");
+  saveProgress();
+  advance();
+  checkWin();
+}
+function backspace(){
+  if(solved)return;
+  const cc=cell[cur.r][cur.c];
+  if(cc&&cc.input){cc.input="";cc.revealed=false;paintLetter(cc);saveProgress();return;}
+  // move back within word and clear
+  const w=currentWord(); if(!w)return;
+  const idx=w.cells.findIndex(pc=>pc.r===cur.r&&pc.c===cur.c);
+  if(idx>0){const pc=w.cells[idx-1];cur.r=pc.r;cur.c=pc.c;const pcell=cell[pc.r][pc.c];
+    pcell.input="";pcell.revealed=false;paintLetter(pcell);refresh();saveProgress();}
+}
+function advance(){
+  const w=currentWord(); if(!w)return;
+  const idx=w.cells.findIndex(pc=>pc.r===cur.r&&pc.c===cur.c);
+  // next empty cell within word first, else next cell, else next word
+  for(let k=idx+1;k<w.cells.length;k++){const pc=w.cells[k];if(!cell[pc.r][pc.c].input){cur.r=pc.r;cur.c=pc.c;refresh();return;}}
+  if(idx+1<w.cells.length){const pc=w.cells[idx+1];cur.r=pc.r;cur.c=pc.c;refresh();return;}
+  gotoAdjacentClue(1,true);
+}
+
+/* ---- clue navigation ---- */
+function orderedWords(){return acrossList.concat(downList);}
+function gotoAdjacentClue(delta,preferEmpty){
+  const list=orderedWords();
+  const w=currentWord(); if(!w){if(list[0])selectWord(list[0]);return;}
+  let i=list.findIndex(x=>x.number===w.number&&x.dir===w.dir);
+  if(i<0)i=0;
+  for(let step=1;step<=list.length;step++){
+    const nw=list[(i+delta*step%list.length+list.length*2)%list.length];
+    if(preferEmpty){
+      const empty=nw.cells.find(pc=>!cell[pc.r][pc.c].input);
+      if(empty){cur.dir=nw.dir;cur.r=empty.r;cur.c=empty.c;refresh();return;}
+    }else{selectWord(nw);return;}
+  }
+  // none empty -> just move one
+  const nw=list[((i+delta)%list.length+list.length)%list.length];
+  selectWord(nw);
+}
+function selectWord(w){
+  cur.dir=w.dir;
+  const empty=w.cells.find(pc=>!cell[pc.r][pc.c].input)||w.cells[0];
+  cur.r=empty.r;cur.c=empty.c;refresh();
+}
+function focusFirstEmpty(){
+  const w=currentWord();
+  if(w){const e=w.cells.find(pc=>!cell[pc.r][pc.c].input);if(e){cur.r=e.r;cur.c=e.c;}}
+}
+
+/* ---- check / reveal ---- */
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("on");clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove("on"),1400);}
+function checkCells(cells){
+  let anyWrong=false;
+  cells.forEach(pc=>{const cc=cell[pc.r][pc.c];if(!cc.input)return;
+    cc.el.classList.remove("good","bad");
+    if(cc.input===cc.sol)cc.el.classList.add("good");else{cc.el.classList.add("bad");anyWrong=true;}
+  });
+  setTimeout(()=>cells.forEach(pc=>{const cc=cell[pc.r][pc.c];if(cc.input!==cc.sol)return;cc.el.classList.remove("good");}),1200);
+  return anyWrong;
+}
+function checkWord(){const w=currentWord();if(!w)return;const bad=checkCells(w.cells);toast(bad?"Some letters are off":"Looks right!");}
+function checkPuzzle(){
+  const all=[];for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++)if(cell[r][c])all.push({r,c});
+  const bad=checkCells(all);toast(bad?"Red squares are wrong":"No mistakes so far!");
+}
+function revealLetter(){
+  const cc=cell[cur.r][cur.c];if(!cc)return;
+  cc.input=cc.sol;cc.revealed=true;paintLetter(cc);saveProgress();advance();checkWin();
+}
+function revealWord(){
+  const w=currentWord();if(!w)return;
+  w.cells.forEach(pc=>{const cc=cell[pc.r][pc.c];cc.input=cc.sol;cc.revealed=true;paintLetter(cc);});
+  saveProgress();checkWin();
+}
+function clearAll(){
+  for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++){const cc=cell[r][c];if(cc){cc.input="";cc.revealed=false;paintLetter(cc);}}
+  solved=false;saveProgress();refresh();toast("Cleared");
+}
+
+/* ---- win ---- */
+function isComplete(){
+  for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++){const cc=cell[r][c];if(cc&&cc.input!==cc.sol)return false;}
+  return true;
+}
+function markAllGood(){for(let r=0;r<P.rows;r++)for(let c=0;c<P.cols;c++){const cc=cell[r][c];if(cc){cc.el.classList.remove("bad","reveal");}}}
+function checkWin(){
+  if(solved)return;
+  if(isComplete()){
+    solved=true;stopTimer();saveProgress();markAllGood();
+    showWin();
+  }
+}
+function showWin(){
+  $("winTime").childNodes[0].nodeValue=fmt(timer);
+  $("winWords").childNodes[0].nodeValue=String(P.words.length);
+  // glossary sorted alphabetically
+  const seen={},list=[];
+  P.words.slice().sort((a,b)=>a.answer.localeCompare(b.answer)).forEach(w=>{if(seen[w.answer])return;seen[w.answer]=1;list.push(w);});
+  $("winGlossary").innerHTML=list.map(w=>`<div><b>${w.answer}</b> — ${escapeHtml(w.clue)}</div>`).join("");
+  $("winModal").classList.add("on");
+}
+function escapeHtml(s){return s.replace(/[&<>]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[m]));}
+
+/* ---- timer ---- */
+function fmt(s){const m=Math.floor(s/60),ss=s%60;return m+":"+String(ss).padStart(2,"0");}
+function updateTimer(){$("timer").textContent=fmt(timer);}
+function startTimer(){if(timerId||solved)return;started=true;timerId=setInterval(()=>{timer++;updateTimer();if(timer%5===0)saveProgress();},1000);}
+function stopTimer(){if(timerId){clearInterval(timerId);timerId=null;}}
+
+/* ============================================================
+   Keyboard
+   ============================================================ */
+function buildKeyboard(){
+  const rows=["QWERTYUIOP","ASDFGHJKL","ZXCVBNM"];
+  const kb=$("kb");kb.innerHTML="";
+  rows.forEach((row,ri)=>{
+    const rd=document.createElement("div");rd.className="kbrow";
+    if(ri===2){/* leave space; add del at end */}
+    row.split("").forEach(ch=>{
+      const b=document.createElement("button");b.className="key";b.textContent=ch;
+      b.addEventListener("click",()=>typeLetter(ch));
+      rd.appendChild(b);
+    });
+    if(ri===2){
+      const del=document.createElement("button");del.className="key wide";del.textContent="⌫";
+      del.addEventListener("click",backspace);
+      rd.appendChild(del);
+    }
+    kb.appendChild(rd);
+  });
+}
+document.addEventListener("keydown",e=>{
+  if($("winModal").classList.contains("on")||$("helpModal").classList.contains("on"))return;
+  if(e.key>="a"&&e.key<="z"||e.key>="A"&&e.key<="Z"){typeLetter(e.key.toUpperCase());e.preventDefault();}
+  else if(e.key==="Backspace"){backspace();e.preventDefault();}
+  else if(e.key==="ArrowRight"||e.key==="ArrowDown"){moveArrow(e.key);e.preventDefault();}
+  else if(e.key==="ArrowLeft"||e.key==="ArrowUp"){moveArrow(e.key);e.preventDefault();}
+  else if(e.key===" "){const o=cur.dir==="across"?"down":"across";if(wordAt(cur.r,cur.c,o))cur.dir=o;refresh();e.preventDefault();}
+  else if(e.key==="Tab"){gotoAdjacentClue(e.shiftKey?-1:1,false);e.preventDefault();}
+});
+function moveArrow(k){
+  const dr=k==="ArrowDown"?1:k==="ArrowUp"?-1:0, dc=k==="ArrowRight"?1:k==="ArrowLeft"?-1:0;
+  const wantDir=(dc!==0)?"across":"down";
+  if(cur.dir!==wantDir&&wordAt(cur.r,cur.c,wantDir)){cur.dir=wantDir;refresh();return;}
+  let r=cur.r+dr,c=cur.c+dc;
+  while(r>=0&&r<P.rows&&c>=0&&c<P.cols){if(cell[r][c]){cur.r=r;cur.c=c;refresh();return;}r+=dr;c+=dc;}
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+$("cluePrev").addEventListener("click",()=>gotoAdjacentClue(-1,false));
+$("clueNext").addEventListener("click",()=>gotoAdjacentClue(1,false));
+$("clueText").addEventListener("click",()=>gotoAdjacentClue(1,false));
+
+$("diffSeg").addEventListener("click",e=>{
+  const b=e.target.closest("button");if(!b)return;
+  const d=b.dataset.d;if(d===difficulty)return;
+  [...$("diffSeg").children].forEach(x=>x.classList.toggle("on",x===b));
+  $("diffPill").textContent=d.toUpperCase();$("diffPill").className="pill "+d;
+  newPuzzle(d,seedFor(d));
+});
+$("btnNew").addEventListener("click",()=>{
+  const ns=(seedFor(difficulty)+1)>>>0;setSeed(difficulty,ns);newPuzzle(difficulty,ns);toast("New puzzle");
+});
+
+/* menu sheet */
+const menuSheet=$("menuSheet");
+$("btnMenu").addEventListener("click",()=>menuSheet.classList.add("on"));
+menuSheet.addEventListener("click",e=>{if(e.target===menuSheet)menuSheet.classList.remove("on");
+  const b=e.target.closest("button.row");if(!b)return;
+  const a=b.dataset.act;menuSheet.classList.remove("on");
+  if(a==="check-word")checkWord();
+  else if(a==="check-puzzle")checkPuzzle();
+  else if(a==="reveal-letter")revealLetter();
+  else if(a==="reveal-word")revealWord();
+  else if(a==="clear")clearAll();
+});
+
+/* help */
+$("btnHelp").addEventListener("click",()=>$("helpModal").classList.add("on"));
+$("helpClose").addEventListener("click",()=>{$("helpModal").classList.remove("on");localStorage.setItem("aixw:seen","1");});
+
+/* win */
+$("winNext").addEventListener("click",()=>{$("winModal").classList.remove("on");const ns=(seedFor(difficulty)+1)>>>0;setSeed(difficulty,ns);newPuzzle(difficulty,ns);});
+$("winClose").addEventListener("click",()=>$("winModal").classList.remove("on"));
+
+/* ---- boot ---- */
+buildKeyboard();
+newPuzzle("easy",seedFor("easy"));
+$("diffPill").className="pill easy";
+if(!localStorage.getItem("aixw:seen"))$("helpModal").classList.add("on");
+// keep grid sized after fonts load
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitGrid);
+setTimeout(fitGrid,300);
+</script>
+</body>
+</html>
