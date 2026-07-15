@@ -1,3 +1,46 @@
+# AI Central — web properties
+
+This repo hosts two static, self-contained pages that deploy together as one Vercel static site:
+
+1. **[`crossword.html`](crossword.html)** — the **AI Central AI Vocabulary Crossword** (see below). Deployed at **`/crossword`**.
+2. **`index.html`** — the editable GTA AI Quarterly whitepaper preview (see further down).
+
+---
+
+## AI Vocabulary Crossword (`/crossword`)
+
+A New York Times–style crossword, built mobile-first, that teaches subscribers the vocabulary of
+artificial intelligence. Everything lives in the single file `crossword.html` — no build step, no
+dependencies, no backend (only Google Fonts are loaded).
+
+### What it does
+
+| Feature | Detail |
+|---------|--------|
+| **Themed word bank** | ~55 curated AI terms (MODEL, TOKEN, PROMPT, TRANSFORMER, EMBEDDING, ALIGNMENT, …), each with a plain-English clue. |
+| **Auto-generated puzzles** | A seeded crossword generator interlocks the words into a dense, roughly-square grid. Every generated grid is valid — no stray letter runs. |
+| **Two difficulties** | **Easy** uses everyday terms (~9 words); **Hard** pulls the full deep-learning vocabulary (~11 words). |
+| **Mobile UX** | Custom on-screen QWERTY keyboard, tap-to-select with across/down toggle, a swipeable clue bar, and prev/next clue navigation — just like the NYT app. Physical keyboard works on desktop. |
+| **Solving aids** | Check word, check whole puzzle, reveal letter, reveal word, and clear — from the `⋯` menu. |
+| **Learning payoff** | On solving, a **glossary** lists every word and its definition, so subscribers walk away having learned the terms. |
+| **Persistence** | Progress, the timer, and which puzzle you're on are saved to `localStorage`, so a refresh resumes where you left off. **New puzzle** advances the seed for an endless supply. |
+
+### Adding or editing words
+
+Open `crossword.html` and edit the `WORDBANK` array near the top of the `<script>`:
+
+```js
+{w:"EMBEDDING", c:"Dense vector that captures a word's meaning", l:"hard"},
+```
+
+- `w` — the answer, UPPERCASE letters only (≤ 9 characters keeps grids mobile-friendly).
+- `c` — the clue.
+- `l` — `"easy"` or `"hard"`.
+
+No rebuild needed — reload the page and the generator picks up the new bank.
+
+---
+
 # GTA AI Quarterly — Whitepaper G (editable preview)
 
 A shareable, single-page web preview of the **GTA AI Quarterly Report — Session 01 ("The 10/90 Divide")**,
