@@ -99,6 +99,7 @@ const runtime = `
   var editables = [];
 
   function isEditableBlock(el){
+    if(INLINE[el.tagName]) return false;              // block containers only, never inline elems
     if(!el.textContent || !el.textContent.trim()) return false;
     var k = el.children;
     for(var i=0;i<k.length;i++){ if(!INLINE[k[i].tagName]) return false; }
