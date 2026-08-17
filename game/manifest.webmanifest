@@ -1,13 +1,13 @@
 {
-  "name": "Candy Garden Saga",
-  "short_name": "CandyGarden",
-  "description": "Match-3 puzzle game — 15 levels, works offline.",
+  "name": "Garden Bloom",
+  "short_name": "GardenBloom",
+  "description": "Garden match-3 puzzle — 15 levels, firecracker/bomb/dynamite/TNT power-ups, works offline.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#47115c",
-  "theme_color": "#7b2d8b",
+  "background_color": "#2f6e2b",
+  "theme_color": "#3f8f3b",
   "icons": [
     { "src": "icon.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
     { "src": "icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }

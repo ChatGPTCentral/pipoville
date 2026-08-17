@@ -1,14 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
-    <radialGradient id="bg" cx="50%" cy="35%" r="80%">
-      <stop offset="0%" stop-color="#c956c9"/><stop offset="100%" stop-color="#47115c"/>
-    </radialGradient>
-    <radialGradient id="c1" cx="38%" cy="32%" r="75%">
-      <stop offset="0%" stop-color="#ff9d9d"/><stop offset="55%" stop-color="#f43b3b"/><stop offset="100%" stop-color="#a80f0f"/>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#8fd8ff"/><stop offset="45%" stop-color="#9ed67e"/><stop offset="100%" stop-color="#2f6e2b"/>
+    </linearGradient>
+    <radialGradient id="ap" cx="38%" cy="32%" r="75%">
+      <stop offset="0%" stop-color="#ff9d8a"/><stop offset="55%" stop-color="#e8402a"/><stop offset="100%" stop-color="#8f1607"/>
     </radialGradient>
   </defs>
   <rect width="512" height="512" rx="110" fill="url(#bg)"/>
-  <circle cx="256" cy="262" r="150" fill="url(#c1)"/>
-  <ellipse cx="205" cy="195" rx="55" ry="34" fill="rgba(255,255,255,.75)" transform="rotate(-25 205 195)"/>
-  <path d="M256 112 c-40 -46 -96 -30 -96 -8 0 20 50 14 96 8z" fill="#4fc42a"/>
+  <path d="M256 170 C156 116 84 188 93 287 C102 386 183 449 256 440 C329 449 410 386 419 287 C428 188 356 116 256 170 Z" fill="url(#ap)"/>
+  <rect x="242" y="96" width="28" height="76" rx="14" fill="#6d4520"/>
+  <path d="M270 128 C310 74 372 82 382 100 C364 146 300 154 270 128 Z" fill="#57b32a"/>
+  <ellipse cx="185" cy="235" rx="46" ry="30" fill="rgba(255,255,255,.6)" transform="rotate(-25 185 235)"/>
 </svg>

@@ -1,5 +1,5 @@
-/* Candy Garden Saga — offline cache */
-const CACHE = 'candy-garden-v1';
+/* Garden Bloom — offline cache */
+const CACHE = 'garden-bloom-v2';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

@@ -5,88 +5,101 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#7b2d8b">
+<meta name="theme-color" content="#3f8f3b">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
-<title>Candy Garden Saga</title>
+<title>Garden Bloom</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
   html,body { height:100%; overflow:hidden; }
   body {
     font-family: "Baloo 2","Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded","Arial Rounded MT Bold",system-ui,sans-serif;
-    background:#3e1150;
+    background:#2f6e2b;
     color:#fff;
     position:fixed; inset:0;
   }
   .screen { position:absolute; inset:0; display:none; flex-direction:column; }
   .screen.active { display:flex; }
 
-  /* ---------- shared candy-style buttons ---------- */
+  /* ---------- garden-style buttons ---------- */
   .btn {
     display:inline-block; border:none; cursor:pointer;
     font-family:inherit; font-weight:800; color:#fff;
     font-size:22px; padding:12px 34px; border-radius:999px;
-    background:linear-gradient(180deg,#8ee060 0%,#4cb022 45%,#2f8c10 100%);
-    box-shadow:0 5px 0 #1d6606, 0 8px 14px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.6);
+    background:linear-gradient(180deg,#a8e063 0%,#66bb3a 45%,#3f8f24 100%);
+    box-shadow:0 5px 0 #2a6412, 0 8px 14px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.6);
     text-shadow:0 2px 2px rgba(0,0,0,.35);
     transition:transform .08s, box-shadow .08s;
   }
-  .btn:active { transform:translateY(4px); box-shadow:0 1px 0 #1d6606, 0 3px 6px rgba(0,0,0,.3); }
-  .btn.blue   { background:linear-gradient(180deg,#7fd4ff 0%,#2f9fe8 45%,#1877c2 100%); box-shadow:0 5px 0 #0d548e, 0 8px 14px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.6); }
+  .btn:active { transform:translateY(4px); box-shadow:0 1px 0 #2a6412, 0 3px 6px rgba(0,0,0,.3); }
+  .btn.blue   { background:linear-gradient(180deg,#8fdcff 0%,#38a7e8 45%,#1a7cba 100%); box-shadow:0 5px 0 #0d548e, 0 8px 14px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.6); }
   .btn.blue:active { box-shadow:0 1px 0 #0d548e, 0 3px 6px rgba(0,0,0,.3); }
   .btn.orange { background:linear-gradient(180deg,#ffd36b 0%,#ff9d2e 45%,#f0730a 100%); box-shadow:0 5px 0 #b34e00, 0 8px 14px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.6); }
   .btn.orange:active { box-shadow:0 1px 0 #b34e00, 0 3px 6px rgba(0,0,0,.3); }
   .btn.small { font-size:17px; padding:9px 22px; }
 
-  /* ---------- splash ---------- */
+  /* ---------- splash: sunny garden ---------- */
   #splash {
-    background:radial-gradient(120% 90% at 50% 0%, #ff8fd0 0%, #c956c9 35%, #7b2d8b 70%, #47115c 100%);
-    align-items:center; justify-content:center; text-align:center; gap:26px;
+    background:linear-gradient(180deg,#8fd8ff 0%, #bfeaff 34%, #cdeea0 46%, #7cc45c 62%, #4a9c3e 82%, #2f6e2b 100%);
+    align-items:center; justify-content:center; text-align:center; gap:24px;
+    position:absolute; overflow:hidden;
   }
+  #splash .sun {
+    position:absolute; top:6%; right:10%; width:110px; height:110px; border-radius:50%;
+    background:radial-gradient(circle at 40% 35%, #fffbe0, #ffe45c 55%, #ffb400 100%);
+    box-shadow:0 0 60px 22px rgba(255,220,80,.55);
+  }
+  #splash .hill { position:absolute; left:-20%; right:-20%; height:32%; border-radius:50% 50% 0 0; }
+  #splash .hill.h1 { bottom:-6%; background:linear-gradient(180deg,#5fae44,#3a8330); }
+  #splash .hill.h2 { bottom:-14%; left:-40%; right:10%; background:linear-gradient(180deg,#6fc153,#4a9c3e); }
   .logo {
+    position:relative; z-index:2;
     font-size: clamp(42px, 11vw, 76px); font-weight:900; line-height:.95;
-    background:linear-gradient(180deg,#fff8d0 5%, #ffd93d 40%, #ff8a00 75%, #e2510a 100%);
+    background:linear-gradient(180deg,#f4ffd8 5%, #b6e84c 40%, #55a81e 75%, #2f7d12 100%);
     -webkit-background-clip:text; background-clip:text; color:transparent;
-    filter:drop-shadow(0 4px 0 #7c2500) drop-shadow(0 8px 10px rgba(0,0,0,.4));
-    transform:rotate(-4deg);
+    filter:drop-shadow(0 4px 0 #1d5410) drop-shadow(0 8px 10px rgba(0,0,0,.35));
+    transform:rotate(-3deg);
   }
   .logo .sub { display:block; font-size:.42em; color:transparent;
-    background:linear-gradient(180deg,#e5fbff, #6bd6ff 60%, #1f8fd6);
+    background:linear-gradient(180deg,#fff3c8, #ffc93d 60%, #e08a00);
     -webkit-background-clip:text; background-clip:text;
-    filter:drop-shadow(0 3px 0 #0b4d7a); transform:rotate(1deg); }
-  .splash-candies { font-size:44px; letter-spacing:8px; filter:drop-shadow(0 4px 5px rgba(0,0,0,.4)); }
+    filter:drop-shadow(0 3px 0 #8a4d00); transform:rotate(1deg); }
+  .splash-row { position:relative; z-index:2; font-size:42px; letter-spacing:6px; filter:drop-shadow(0 4px 5px rgba(0,0,0,.35)); }
+  #splash .btn, #splash .note { position:relative; z-index:2; }
+  #splash .note { font-size:13px; font-weight:700; color:#0e3d0c; text-shadow:0 1px 0 rgba(255,255,255,.4); }
 
-  /* ---------- level map ---------- */
-  #map {
-    background:linear-gradient(180deg,#8fe1ff 0%, #bff0a8 30%, #7fd06a 55%, #4da84f 80%, #2f7f46 100%);
-  }
+  /* ---------- level map: garden path ---------- */
+  #map { background:linear-gradient(180deg,#8fd8ff 0%, #cdeea0 18%, #7cc45c 40%, #4a9c3e 75%, #35812f 100%); }
   .map-top {
     flex:0 0 auto; display:flex; align-items:center; justify-content:space-between;
     padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
-    background:linear-gradient(180deg, rgba(62,17,80,.92), rgba(62,17,80,.75));
-    box-shadow:0 3px 10px rgba(0,0,0,.3); z-index:5;
+    background:linear-gradient(180deg,#7c4a24,#5e3416);
+    border-bottom:3px solid #d9a066;
+    box-shadow:0 3px 10px rgba(0,0,0,.35); z-index:5;
   }
-  .map-title { font-weight:900; font-size:22px; text-shadow:0 2px 3px rgba(0,0,0,.4); }
+  .map-title { font-weight:900; font-size:22px; color:#ffe9c9; text-shadow:0 2px 3px rgba(0,0,0,.4); }
   .map-stars { font-weight:800; font-size:17px; color:#ffd93d; text-shadow:0 1px 2px rgba(0,0,0,.5); }
   #map-scroll { flex:1; overflow-y:auto; overflow-x:hidden; position:relative; -webkit-overflow-scrolling:touch; }
   #map-inner { position:relative; width:100%; }
   #map-path { position:absolute; inset:0; width:100%; height:100%; }
+  .map-deco { position:absolute; font-size:30px; filter:drop-shadow(0 3px 3px rgba(0,0,0,.25)); pointer-events:none; }
   .lvl-node {
     position:absolute; width:70px; height:70px; margin-left:-35px; margin-top:-35px;
-    border-radius:50%; border:none; cursor:pointer;
+    border-radius:50%; border:4px solid #ffe9c9; cursor:pointer;
     font-family:inherit; font-size:26px; font-weight:900; color:#fff;
-    background:radial-gradient(circle at 35% 30%, #ffb3e2, #ff5fb0 45%, #d61e7f 100%);
-    box-shadow:0 5px 0 #8e0f52, 0 8px 12px rgba(0,0,0,.35), inset 0 3px 4px rgba(255,255,255,.55);
+    background:radial-gradient(circle at 35% 30%, #a8e063, #55a81e 50%, #2f7d12 100%);
+    box-shadow:0 5px 0 #1d5410, 0 8px 12px rgba(0,0,0,.35), inset 0 3px 4px rgba(255,255,255,.5);
     text-shadow:0 2px 2px rgba(0,0,0,.4);
     display:flex; align-items:center; justify-content:center;
   }
   .lvl-node:active { transform:translateY(3px); }
   .lvl-node.locked {
-    background:radial-gradient(circle at 35% 30%, #cfcfcf, #9a9a9a 45%, #6d6d6d 100%);
-    box-shadow:0 5px 0 #4a4a4a, 0 8px 12px rgba(0,0,0,.3), inset 0 3px 4px rgba(255,255,255,.35);
-    color:#e9e9e9;
+    background:radial-gradient(circle at 35% 30%, #cfc4b4, #9a8f7c 45%, #6d6455 100%);
+    border-color:#d8cdbb;
+    box-shadow:0 5px 0 #4a4438, 0 8px 12px rgba(0,0,0,.3), inset 0 3px 4px rgba(255,255,255,.3);
+    color:#efe8da;
   }
   .lvl-node.current { animation:bounce 1.2s ease-in-out infinite; }
   @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
@@ -94,72 +107,71 @@
     color:#ffd93d; text-shadow:0 1px 1px rgba(0,0,0,.6); }
   .lvl-stars .off { color:rgba(0,0,0,.35); }
 
-  /* ---------- game screen ---------- */
-  #game { background:radial-gradient(130% 100% at 50% -10%, #b565d8 0%, #7b2d8b 45%, #48125e 80%, #320a44 100%); }
+  /* ---------- game screen: garden + wood ---------- */
+  #game { background:linear-gradient(180deg,#8fd8ff 0%, #b9e6f5 12%, #9ed67e 30%, #5aa947 62%, #35812f 100%); }
   #hud {
     flex:0 0 auto; display:flex; align-items:stretch; gap:8px;
     padding:calc(8px + env(safe-area-inset-top)) 10px 6px;
   }
   .hud-panel {
-    background:linear-gradient(180deg,#5a1970 0%, #43104f 100%);
-    border:2px solid #a86bd0; border-radius:16px;
-    box-shadow:0 3px 6px rgba(0,0,0,.35), inset 0 2px 4px rgba(255,255,255,.15);
+    background:linear-gradient(180deg,#a97142 0%, #7c4a24 100%);
+    border:3px solid #d9a066; border-radius:16px;
+    box-shadow:0 4px 6px rgba(0,0,0,.35), inset 0 2px 4px rgba(255,255,255,.3), inset 0 -3px 5px rgba(60,25,0,.35);
     padding:6px 10px; display:flex; flex-direction:column; align-items:center; justify-content:center;
   }
   #hud-moves { min-width:74px; }
-  #hud-moves .label, #hud-goals .label { font-size:11px; font-weight:800; letter-spacing:.06em; color:#e5b8f7; text-transform:uppercase; }
+  #hud-moves .label, #hud-goals .label { font-size:11px; font-weight:800; letter-spacing:.06em; color:#ffe0b0; text-transform:uppercase; }
   #moves-num { font-size:32px; font-weight:900; line-height:1; color:#fff; text-shadow:0 2px 2px rgba(0,0,0,.45); }
-  #moves-num.low { color:#ff5f5f; animation:pulse .8s infinite; }
+  #moves-num.low { color:#ff6b5f; animation:pulse .8s infinite; }
   @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
   #hud-goals { flex:1; }
   #goal-chips { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:2px; flex-wrap:wrap; }
   .goal-chip { display:flex; align-items:center; gap:4px; font-weight:900; font-size:17px; text-shadow:0 1px 2px rgba(0,0,0,.5); }
-  .goal-chip svg, .goal-chip .jelly-ico { width:26px; height:26px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
-  .goal-chip.done .cnt { color:#7dff8a; }
-  .jelly-ico { display:inline-block; border-radius:6px; background:linear-gradient(160deg,#bdf3ff, #58c4f0 60%, #2b8fd0); border:2px solid #e8fbff; }
+  .goal-chip svg, .goal-chip .dirt-ico { width:26px; height:26px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+  .goal-chip.done .cnt { color:#aaff8a; }
+  .dirt-ico { display:inline-block; border-radius:6px; background:linear-gradient(160deg,#c9915a, #8a5a2e 60%, #5e3a17); border:2px solid #ffe0b0; }
   #score-row { flex:0 0 auto; padding:0 12px 6px; }
   #score-panel {
-    background:linear-gradient(180deg,#5a1970,#43104f); border:2px solid #a86bd0; border-radius:14px;
-    box-shadow:0 3px 6px rgba(0,0,0,.35); padding:5px 12px 8px; display:flex; align-items:center; gap:10px;
+    background:linear-gradient(180deg,#a97142,#7c4a24); border:3px solid #d9a066; border-radius:14px;
+    box-shadow:0 4px 6px rgba(0,0,0,.35), inset 0 2px 4px rgba(255,255,255,.3); padding:5px 12px 8px; display:flex; align-items:center; gap:10px;
   }
   #score-val { font-weight:900; font-size:16px; min-width:70px; text-shadow:0 1px 2px rgba(0,0,0,.5); }
-  #star-track { flex:1; position:relative; height:14px; border-radius:999px; background:#2c0a38; box-shadow:inset 0 2px 4px rgba(0,0,0,.6); }
+  #star-track { flex:1; position:relative; height:14px; border-radius:999px; background:#4a2a10; box-shadow:inset 0 2px 4px rgba(0,0,0,.6); }
   #star-fill { position:absolute; left:0; top:0; bottom:0; border-radius:999px; width:0%;
     background:linear-gradient(180deg,#ffe98a,#ffb400); box-shadow:0 0 8px rgba(255,200,0,.7); transition:width .4s; }
-  .track-star { position:absolute; top:50%; transform:translate(-50%,-54%); font-size:20px; color:#5b4b74; text-shadow:0 1px 1px rgba(0,0,0,.5); transition:color .3s, transform .3s; }
+  .track-star { position:absolute; top:50%; transform:translate(-50%,-54%); font-size:20px; color:#6e4a26; text-shadow:0 1px 1px rgba(0,0,0,.5); transition:color .3s, transform .3s; }
   .track-star.lit { color:#ffd93d; transform:translate(-50%,-54%) scale(1.25); text-shadow:0 0 8px rgba(255,200,0,.9); }
 
   #board-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:6px 10px calc(10px + env(safe-area-inset-bottom)); min-height:0; }
   #board {
     position:relative; border-radius:14px;
-    background:rgba(30,6,44,.55);
-    box-shadow:0 6px 18px rgba(0,0,0,.45), inset 0 0 0 3px rgba(190,120,230,.35);
-    padding:0; overflow:visible;
+    background:rgba(36,72,20,.55);
+    box-shadow:0 6px 18px rgba(0,0,0,.45), 0 0 0 5px #8a5a2e, 0 0 0 8px #d9a066;
+    overflow:visible;
   }
-  .cell { position:absolute; border-radius:5px; background:rgba(255,255,255,.07); }
-  .cell.alt { background:rgba(255,255,255,.13); }
-  .cell.jelly { background:linear-gradient(160deg, rgba(160,230,255,.85), rgba(60,170,235,.85)); box-shadow:inset 0 0 6px rgba(255,255,255,.8), inset 0 -3px 5px rgba(20,90,160,.6); }
+  #board.shake { animation:shakeB .4s; }
+  @keyframes shakeB { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-6px,3px)} 40%{transform:translate(5px,-4px)} 60%{transform:translate(-4px,-3px)} 80%{transform:translate(4px,3px)} }
+  .cell { position:absolute; border-radius:5px; background:rgba(255,255,235,.12); }
+  .cell.alt { background:rgba(255,255,235,.2); }
+  .cell.dirt { background:linear-gradient(160deg, rgba(201,145,90,.95), rgba(122,77,36,.95)); box-shadow:inset 0 0 5px rgba(255,235,200,.55), inset 0 -3px 5px rgba(60,25,0,.55); }
   .candy {
     position:absolute; display:flex; align-items:center; justify-content:center;
     will-change:top,left,transform; z-index:2;
     transition:top .22s cubic-bezier(.3,.7,.4,1.1), left .18s ease;
   }
-  .candy svg { width:88%; height:88%; filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)); pointer-events:none; }
+  .candy svg { width:90%; height:90%; filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)); pointer-events:none; }
+  .candy.power svg { width:96%; height:96%; }
+  .candy.power { animation:powerGlow 1.4s ease-in-out infinite alternate; }
+  @keyframes powerGlow { from{filter:drop-shadow(0 0 2px rgba(255,220,80,.0))} to{filter:drop-shadow(0 0 10px rgba(255,220,80,.9))} }
   .candy.sel { z-index:3; animation:selPulse .5s ease-in-out infinite alternate; }
   @keyframes selPulse { from{transform:scale(1)} to{transform:scale(1.18)} }
   .candy.hint { animation:hintWig .5s ease-in-out 4; }
   @keyframes hintWig { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg) scale(1.08)} 75%{transform:rotate(10deg) scale(1.08)} }
   .candy.pop { transition:transform .18s ease-in, opacity .18s; transform:scale(0)!important; opacity:0; }
-  .blast {
-    position:absolute; z-index:4; pointer-events:none; border-radius:8px;
-    background:linear-gradient(90deg, transparent, #fff 25%, #ffe98a 50%, #fff 75%, transparent);
-    opacity:.95; animation:blastFade .3s ease-out forwards;
-  }
-  @keyframes blastFade { from{opacity:.95; filter:blur(0)} to{opacity:0; filter:blur(4px)} }
   .boom {
     position:absolute; z-index:4; pointer-events:none; border-radius:50%;
-    background:radial-gradient(circle, #fff 0%, #ffd93d 35%, rgba(255,90,40,.8) 65%, transparent 72%);
-    animation:boomGrow .35s ease-out forwards;
+    background:radial-gradient(circle, #fff 0%, #ffd93d 30%, rgba(255,110,40,.85) 60%, rgba(120,60,20,.4) 72%, transparent 78%);
+    animation:boomGrow .38s ease-out forwards;
   }
   @keyframes boomGrow { from{transform:scale(.2); opacity:1} to{transform:scale(1.25); opacity:0} }
   #flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:9; }
@@ -168,9 +180,9 @@
 
   #btn-pause {
     position:absolute; left:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:6;
-    width:52px; height:52px; border-radius:50%; border:none; cursor:pointer; font-size:22px; color:#fff;
-    background:radial-gradient(circle at 35% 30%, #9c58c9, #6b2a92 60%, #4c1668);
-    box-shadow:0 4px 0 #35084d, 0 6px 10px rgba(0,0,0,.4), inset 0 2px 3px rgba(255,255,255,.4);
+    width:52px; height:52px; border-radius:50%; border:3px solid #d9a066; cursor:pointer; font-size:20px; color:#ffe9c9;
+    background:radial-gradient(circle at 35% 30%, #a97142, #7c4a24 60%, #5e3416);
+    box-shadow:0 4px 0 #3d2008, 0 6px 10px rgba(0,0,0,.4), inset 0 2px 3px rgba(255,255,255,.35);
   }
   #btn-pause:active { transform:translateY(3px); }
 
@@ -183,51 +195,52 @@
   #toast {
     position:absolute; top:38%; left:50%; transform:translate(-50%,-50%) scale(.6); z-index:8;
     font-size:clamp(30px,9vw,52px); font-weight:900; text-align:center; white-space:nowrap;
-    background:linear-gradient(180deg,#fff8d0, #ffd93d 45%, #ff8a00 90%);
+    background:linear-gradient(180deg,#f4ffd8, #b6e84c 45%, #2f7d12 90%);
     -webkit-background-clip:text; background-clip:text; color:transparent;
-    filter:drop-shadow(0 3px 0 #7c2500) drop-shadow(0 6px 8px rgba(0,0,0,.5));
+    filter:drop-shadow(0 3px 0 #1d5410) drop-shadow(0 6px 8px rgba(0,0,0,.5));
     opacity:0; pointer-events:none;
   }
   #toast.show { animation:toastAnim 1.1s ease-out forwards; }
   @keyframes toastAnim { 0%{opacity:0; transform:translate(-50%,-50%) scale(.5)} 20%{opacity:1; transform:translate(-50%,-50%) scale(1.15)} 35%{transform:translate(-50%,-50%) scale(1)} 80%{opacity:1} 100%{opacity:0; transform:translate(-50%,-50%) scale(1.1)} }
 
-  /* ---------- modals ---------- */
-  .overlay { position:absolute; inset:0; background:rgba(20,4,32,.72); display:none; align-items:center; justify-content:center; z-index:20; padding:20px; }
+  /* ---------- modals: garden signboard ---------- */
+  .overlay { position:absolute; inset:0; background:rgba(15,40,10,.72); display:none; align-items:center; justify-content:center; z-index:20; padding:20px; }
   .overlay.show { display:flex; }
   .modal {
     width:min(92vw, 380px); border-radius:26px; padding:22px 20px 24px; text-align:center; position:relative;
-    background:linear-gradient(180deg,#fdf3ff 0%, #f3d9ff 100%);
-    border:4px solid #b545d8;
-    box-shadow:0 10px 0 #7d1f9e, 0 18px 30px rgba(0,0,0,.5), inset 0 2px 6px #fff;
-    color:#5b1273; animation:modalIn .3s cubic-bezier(.2,1.4,.4,1);
+    background:linear-gradient(180deg,#fff9e8 0%, #f7e7c3 100%);
+    border:5px solid #8a5a2e;
+    box-shadow:0 10px 0 #5e3416, 0 18px 30px rgba(0,0,0,.5), inset 0 2px 6px #fff;
+    color:#5e3416; animation:modalIn .3s cubic-bezier(.2,1.4,.4,1);
   }
   @keyframes modalIn { from{transform:scale(.6); opacity:0} to{transform:scale(1); opacity:1} }
   .modal h2 {
     font-size:30px; font-weight:900; margin-bottom:6px;
-    background:linear-gradient(180deg,#ff7ac8, #c9269d 70%);
+    background:linear-gradient(180deg,#7ec850, #2f7d12 70%);
     -webkit-background-clip:text; background-clip:text; color:transparent;
     filter:drop-shadow(0 2px 0 rgba(255,255,255,.8));
   }
   .modal .ribbon {
     position:absolute; top:-22px; left:50%; transform:translateX(-50%);
-    background:linear-gradient(180deg,#ffd93d,#ff9d00); color:#7a3c00;
+    background:linear-gradient(180deg,#a8e063,#55a81e); color:#fff;
     font-weight:900; font-size:19px; padding:8px 26px; border-radius:999px;
-    border:3px solid #fff2c0; box-shadow:0 4px 8px rgba(0,0,0,.35); white-space:nowrap;
+    border:3px solid #eaffce; box-shadow:0 4px 8px rgba(0,0,0,.35); white-space:nowrap;
+    text-shadow:0 1px 2px rgba(0,0,0,.35);
   }
-  .modal p { font-size:16px; font-weight:700; color:#7c3a94; margin:6px 0; }
+  .modal p { font-size:16px; font-weight:700; color:#7a5230; margin:6px 0; }
   .modal .goals-row { display:flex; gap:14px; justify-content:center; margin:14px 0 6px; flex-wrap:wrap; }
-  .modal .goal-chip { color:#5b1273; font-size:19px; text-shadow:none; }
-  .modal .goal-chip svg, .modal .goal-chip .jelly-ico { width:34px; height:34px; }
+  .modal .goal-chip { color:#5e3416; font-size:19px; text-shadow:none; }
+  .modal .goal-chip svg, .modal .goal-chip .dirt-ico { width:34px; height:34px; }
   .modal .btns { display:flex; gap:10px; justify-content:center; margin-top:18px; flex-wrap:wrap; }
-  .big-stars { font-size:52px; letter-spacing:6px; margin:8px 0 2px; color:#d9c9e4; }
+  .big-stars { font-size:52px; letter-spacing:6px; margin:8px 0 2px; color:#d8cdbb; }
   .big-stars .lit { color:#ffb400; text-shadow:0 3px 0 #c47a00, 0 0 16px rgba(255,190,0,.8); animation:starPop .4s cubic-bezier(.2,1.6,.4,1) backwards; }
   .big-stars .lit:nth-child(2){ animation-delay:.25s } .big-stars .lit:nth-child(3){ animation-delay:.5s }
   @keyframes starPop { from{transform:scale(0)} to{transform:scale(1)} }
-  .modal .score-line { font-size:22px; font-weight:900; color:#b545d8; }
+  .modal .score-line { font-size:22px; font-weight:900; color:#3f8f24; }
   .switch-row { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px; font-weight:800; }
 
   #confetti-layer { position:absolute; inset:0; pointer-events:none; z-index:25; overflow:hidden; }
-  .conf { position:absolute; width:10px; height:14px; top:-20px; border-radius:3px; animation:confFall linear forwards; }
+  .conf { position:absolute; width:11px; height:11px; top:-20px; border-radius:50% 0 50% 50%; animation:confFall linear forwards; }
   @keyframes confFall { to { transform:translateY(110vh) rotate(720deg); } }
 </style>
 </head>
@@ -235,16 +248,19 @@
 
 <!-- SPLASH -->
 <div id="splash" class="screen active">
-  <div class="logo">CANDY<span class="sub">GARDEN SAGA</span></div>
-  <div class="splash-candies">🍬🍭🍡🧁🍩</div>
+  <div class="sun"></div>
+  <div class="hill h2"></div>
+  <div class="hill h1"></div>
+  <div class="logo">GARDEN<span class="sub">BLOOM</span></div>
+  <div class="splash-row">🍎🍋🌷🦋💧</div>
   <button class="btn" id="btn-play" style="font-size:26px; padding:14px 52px;">Play!</button>
-  <div style="font-size:13px; opacity:.75; font-weight:700;">Works offline · Progress saved on this device</div>
+  <div class="note">Works offline · Progress saved on this device</div>
 </div>
 
 <!-- LEVEL MAP -->
 <div id="map" class="screen">
   <div class="map-top">
-    <div class="map-title">🍭 Level Map</div>
+    <div class="map-title">🌻 Garden Path</div>
     <div class="map-stars" id="total-stars">★ 0/45</div>
   </div>
   <div id="map-scroll"><div id="map-inner">
@@ -288,7 +304,7 @@
     <h2 style="margin-top:10px;">Ready?</h2>
     <p id="intro-moves"></p>
     <div class="goals-row" id="intro-goals"></div>
-    <p style="font-size:13px;">Reach the goals before you run out of moves!</p>
+    <p style="font-size:13px;">Match 4+ to craft boosters: firecracker, bomb, dynamite, TNT. Tap a booster to set it off!</p>
     <div class="btns">
       <button class="btn" id="btn-start">Play!</button>
     </div>
@@ -298,7 +314,7 @@
 <div class="overlay" id="ov-win">
   <div class="modal">
     <div class="ribbon">Level Complete!</div>
-    <h2 style="margin-top:12px;" id="win-title">Sweet!</h2>
+    <h2 style="margin-top:12px;" id="win-title">Blooming!</h2>
     <div class="big-stars" id="win-stars">★★★</div>
     <div class="score-line" id="win-score">Score: 0</div>
     <div class="btns">
@@ -311,7 +327,7 @@
 
 <div class="overlay" id="ov-lose">
   <div class="modal">
-    <div class="ribbon" style="background:linear-gradient(180deg,#ff8f8f,#e23c3c); color:#fff; border-color:#ffd0d0;">Out of Moves!</div>
+    <div class="ribbon" style="background:linear-gradient(180deg,#ff8f8f,#e23c3c); border-color:#ffd0d0;">Out of Moves!</div>
     <h2 style="margin-top:12px;">So close!</h2>
     <p id="lose-text">You didn't reach the goal this time.</p>
     <div class="btns">
@@ -338,8 +354,13 @@
 <script>
 'use strict';
 /* =====================================================================
-   CANDY GARDEN SAGA — a match-3 prototype
-   Candy-Crush-style UI + specials, Gardenscapes-style collect goals.
+   GARDEN BLOOM — a match-3 prototype in the style of garden puzzlers.
+   Power-up ladder by match size:
+     4 pieces  → Firecracker (blast 1 cell in every direction, 3×3)
+     5 pieces  → Bomb        (blast radius 2, 5×5)
+     6 pieces  → Dynamite    (blast radius 3, 7×7)
+     7+ pieces → TNT         (blast radius 4, 9×9)
+   Tap a power-up to detonate it. Swap two power-ups for a mega blast.
    Fully self-contained, offline-capable, progress in localStorage.
    ===================================================================== */
 
@@ -365,105 +386,140 @@ const Snd = {
     o.connect(g); g.connect(this.ctx.destination);
     o.start(t); o.stop(t + dur + .05);
   },
-  pop(mult){ this.ensure(); const f = 500 + Math.min(mult,6)*120; this.tone(f,.12,'triangle',.18); this.tone(f*1.5,.1,'sine',.1,.03); },
+  pop(mult){ this.ensure(); const f = 480 + Math.min(mult,6)*110; this.tone(f,.12,'triangle',.18); this.tone(f*1.5,.1,'sine',.1,.03); },
   swap(){ this.ensure(); this.tone(320,.08,'sine',.12); },
   bad(){ this.ensure(); this.tone(180,.15,'sawtooth',.1); },
-  special(){ this.ensure(); this.tone(700,.2,'square',.09); this.tone(1050,.25,'sine',.12,.05); },
-  boom(){ this.ensure(); this.tone(90,.4,'sawtooth',.25); this.tone(60,.5,'square',.18,.05); },
+  special(){ this.ensure(); this.tone(650,.2,'square',.09); this.tone(980,.25,'sine',.12,.05); },
+  boom(big){ this.ensure(); this.tone(big?70:100,.45,'sawtooth',.26); this.tone(big?48:65,.55,'square',.2,.05); },
   win(){ this.ensure(); [523,659,784,1047].forEach((f,i)=>this.tone(f,.35,'triangle',.18,i*.13)); },
   lose(){ this.ensure(); [400,340,280,220].forEach((f,i)=>this.tone(f,.3,'sine',.15,i*.15)); },
   star(){ this.ensure(); this.tone(1200,.3,'sine',.15); this.tone(1600,.35,'sine',.12,.08); }
 };
 
-/* ---------------- candy artwork (inline SVG per color/special) ---------------- */
-const COLORS = ['red','orange','yellow','green','blue','purple'];
-const PALETTE = {
-  red:    ['#ff9d9d','#f43b3b','#a80f0f'],
-  orange: ['#ffd08a','#ff8c1a','#b35400'],
-  yellow: ['#fff3a8','#ffd21f','#c79400'],
-  green:  ['#b6f397','#4fc42a','#1f7d0a'],
-  blue:   ['#a8dcff','#2f9fe8','#0d5f9e'],
-  purple: ['#e3b5ff','#a648e0','#5f1596']
+/* ---------------- garden piece artwork (inline SVG) ---------------- */
+const KINDS = ['apple','lemon','leaf','drop','flower','butterfly'];
+const KIND_HUE = {
+  apple:    ['#ff9d8a','#e8402a','#8f1607'],
+  lemon:    ['#fff6b0','#ffd21f','#c79400'],
+  leaf:     ['#c4f39b','#57b32a','#22660d'],
+  drop:     ['#bfe9ff','#3aa4ea','#0d5f9e'],
+  flower:   ['#f2c7ff','#c05fe8','#6d1596'],
+  butterfly:['#ffd9a0','#ff8c1a','#b35400']
 };
+const POWERS = { fire:{rad:1}, bomb:{rad:2}, dyna:{rad:3}, tnt:{rad:4} };
 let gradSeq = 0;
-function candySVG(color, special){
-  const [hi, mid, lo] = PALETTE[color] || PALETTE.red;
+function pieceSVG(kind){
+  const [hi, mid, lo] = KIND_HUE[kind] || KIND_HUE.apple;
   const uid = 'g' + (gradSeq++);
-  const gloss = `<ellipse cx="35" cy="30" rx="16" ry="10" fill="rgba(255,255,255,.75)" transform="rotate(-25 35 30)"/>`;
   const grad = `<radialGradient id="${uid}" cx="38%" cy="32%" r="75%">
       <stop offset="0%" stop-color="${hi}"/><stop offset="55%" stop-color="${mid}"/><stop offset="100%" stop-color="${lo}"/>
     </radialGradient>`;
-  let body;
-  switch(color){
-    case 'red':    body = `<circle cx="50" cy="50" r="38" fill="url(#${uid})"/>`; break;
-    case 'orange': body = `<ellipse cx="50" cy="50" rx="42" ry="30" fill="url(#${uid})" transform="rotate(-18 50 50)"/>`; break;
-    case 'yellow': body = `<path d="M50 8 L88 50 L50 92 L12 50 Z" fill="url(#${uid})" stroke="${lo}" stroke-width="2" stroke-linejoin="round"/>`; break;
-    case 'green':  body = `<rect x="14" y="14" width="72" height="72" rx="20" fill="url(#${uid})"/>`; break;
-    case 'blue':   body = `<circle cx="50" cy="50" r="36" fill="url(#${uid})"/><circle cx="50" cy="50" r="36" fill="none" stroke="${hi}" stroke-width="5" stroke-dasharray="10 12" opacity=".8"/>`; break;
-    case 'purple': body = `<path d="M50 6 L86 28 L86 72 L50 94 L14 72 L14 28 Z" fill="url(#${uid})" stroke="${lo}" stroke-width="2" stroke-linejoin="round"/>`; break;
-    default:       body = `<circle cx="50" cy="50" r="38" fill="url(#${uid})"/>`;
+  switch(kind){
+    case 'apple': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
+      <path d="M50 30 C28 18 12 34 14 56 C16 78 34 92 50 90 C66 92 84 78 86 56 C88 34 72 18 50 30 Z" fill="url(#${uid})"/>
+      <rect x="47" y="14" width="6" height="16" rx="3" fill="#6d4520"/>
+      <path d="M53 20 C62 8 76 10 78 14 C74 24 60 26 53 20 Z" fill="#57b32a"/>
+      <ellipse cx="35" cy="43" rx="10" ry="7" fill="rgba(255,255,255,.65)" transform="rotate(-25 35 43)"/></svg>`;
+    case 'lemon': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
+      <ellipse cx="50" cy="52" rx="38" ry="28" fill="url(#${uid})" transform="rotate(-18 50 52)"/>
+      <circle cx="16" cy="40" r="6" fill="${mid}"/><circle cx="84" cy="62" r="6" fill="${mid}"/>
+      <ellipse cx="36" cy="40" rx="11" ry="7" fill="rgba(255,255,255,.7)" transform="rotate(-20 36 40)"/></svg>`;
+    case 'leaf': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
+      <path d="M50 8 C88 22 92 66 52 92 C14 68 14 24 50 8 Z" fill="url(#${uid})"/>
+      <path d="M50 16 L50 84 M50 34 L68 44 M50 34 L32 44 M50 54 L70 66 M50 54 L30 66" stroke="#1d5410" stroke-width="4" stroke-linecap="round" fill="none" opacity=".55"/>
+      <ellipse cx="38" cy="30" rx="9" ry="6" fill="rgba(255,255,255,.55)" transform="rotate(-35 38 30)"/></svg>`;
+    case 'drop': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
+      <path d="M50 6 C64 30 84 46 84 64 C84 82 68 94 50 94 C32 94 16 82 16 64 C16 46 36 30 50 6 Z" fill="url(#${uid})"/>
+      <ellipse cx="36" cy="56" rx="9" ry="13" fill="rgba(255,255,255,.65)" transform="rotate(18 36 56)"/></svg>`;
+    case 'flower': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
+      ${[0,60,120,180,240,300].map(a=>`<ellipse cx="50" cy="26" rx="13" ry="20" fill="url(#${uid})" transform="rotate(${a} 50 50)"/>`).join('')}
+      <circle cx="50" cy="50" r="15" fill="#ffd21f" stroke="#c79400" stroke-width="3"/>
+      <ellipse cx="45" cy="45" rx="5" ry="3" fill="rgba(255,255,255,.8)"/></svg>`;
+    case 'butterfly': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
+      <ellipse cx="30" cy="34" rx="20" ry="16" fill="url(#${uid})" transform="rotate(-20 30 34)"/>
+      <ellipse cx="70" cy="34" rx="20" ry="16" fill="url(#${uid})" transform="rotate(20 70 34)"/>
+      <ellipse cx="32" cy="64" rx="15" ry="12" fill="url(#${uid})" transform="rotate(15 32 64)"/>
+      <ellipse cx="68" cy="64" rx="15" ry="12" fill="url(#${uid})" transform="rotate(-15 68 64)"/>
+      <rect x="45" y="26" width="10" height="52" rx="5" fill="#5e3416"/>
+      <path d="M47 26 C40 12 32 10 28 12 M53 26 C60 12 68 10 72 12" stroke="#5e3416" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <circle cx="26" cy="30" r="4" fill="rgba(255,255,255,.7)"/><circle cx="74" cy="30" r="4" fill="rgba(255,255,255,.7)"/></svg>`;
   }
-  let extra = '';
-  if(special === 'h'){ // horizontally striped → clears its ROW
-    extra = `<g clip-path="url(#c${uid})">` +
-      [30,46,62].map(y=>`<rect x="4" y="${y}" width="92" height="9" rx="4" fill="rgba(255,255,255,.9)"/>`).join('') + `</g>`;
-  } else if(special === 'v'){ // vertically striped → clears its COLUMN
-    extra = `<g clip-path="url(#c${uid})">` +
-      [30,46,62].map(x=>`<rect x="${x}" y="4" width="9" height="92" rx="4" fill="rgba(255,255,255,.9)"/>`).join('') + `</g>`;
-  } else if(special === 'wrap'){
-    extra = `<rect x="6" y="6" width="88" height="88" rx="24" fill="none" stroke="rgba(255,255,255,.95)" stroke-width="7" stroke-dasharray="16 10"/>`;
+  return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="${mid}"/></svg>`;
+}
+function powerSVG(power){
+  switch(power){
+    case 'fire': return `<svg viewBox="0 0 100 100">
+      <rect x="34" y="30" width="32" height="52" rx="10" fill="#e8402a" stroke="#8f1607" stroke-width="3"/>
+      <rect x="34" y="44" width="32" height="8" fill="#fff6b0"/><rect x="34" y="60" width="32" height="8" fill="#fff6b0"/>
+      <path d="M50 30 C50 20 56 18 56 12" stroke="#5e3416" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <g fill="#ffd21f"><circle cx="58" cy="9" r="3"/><circle cx="64" cy="14" r="2"/><circle cx="52" cy="6" r="2"/></g>
+      <ellipse cx="41" cy="38" rx="4" ry="8" fill="rgba(255,255,255,.5)"/></svg>`;
+    case 'bomb': return `<svg viewBox="0 0 100 100">
+      <circle cx="48" cy="58" r="34" fill="#3a3f47"/><circle cx="48" cy="58" r="34" fill="none" stroke="#15181c" stroke-width="3"/>
+      <rect x="42" y="18" width="14" height="12" rx="3" fill="#5b6470"/>
+      <path d="M50 18 C52 8 62 8 66 4" stroke="#8a5a2e" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <g fill="#ffd21f"><circle cx="68" cy="3" r="4"/><circle cx="74" cy="8" r="2.6"/><circle cx="63" cy="-1" r="2.4"/></g>
+      <ellipse cx="36" cy="46" rx="10" ry="7" fill="rgba(255,255,255,.4)" transform="rotate(-25 36 46)"/></svg>`;
+    case 'dyna': return `<svg viewBox="0 0 100 100">
+      <rect x="22" y="26" width="16" height="58" rx="7" fill="#e8402a" stroke="#8f1607" stroke-width="2.5"/>
+      <rect x="42" y="20" width="16" height="64" rx="7" fill="#f4573f" stroke="#8f1607" stroke-width="2.5"/>
+      <rect x="62" y="26" width="16" height="58" rx="7" fill="#e8402a" stroke="#8f1607" stroke-width="2.5"/>
+      <rect x="18" y="48" width="64" height="10" rx="4" fill="#8a5a2e"/>
+      <path d="M50 20 C52 10 60 10 64 5" stroke="#5e3416" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <g fill="#ffd21f"><circle cx="66" cy="4" r="3.6"/><circle cx="72" cy="9" r="2.4"/><circle cx="61" cy="0" r="2.2"/></g></svg>`;
+    case 'tnt': return `<svg viewBox="0 0 100 100">
+      <rect x="12" y="24" width="76" height="64" rx="8" fill="#c9915a" stroke="#5e3416" stroke-width="4"/>
+      <rect x="12" y="24" width="76" height="14" fill="#a97142"/><rect x="12" y="74" width="76" height="14" fill="#a97142"/>
+      <rect x="12" y="46" width="76" height="18" fill="#fff3d6"/>
+      <text x="50" y="61" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="17" fill="#c1272d">T·N·T</text>
+      <path d="M50 24 C52 14 60 14 64 8" stroke="#5e3416" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <g fill="#ffd21f"><circle cx="66" cy="7" r="3.6"/><circle cx="72" cy="12" r="2.4"/><circle cx="61" cy="3" r="2.2"/></g></svg>`;
   }
-  const clip = `<clipPath id="c${uid}">${body.replace(/fill="[^"]*"/,'fill="#fff"')}</clipPath>`;
-  if(special === 'bomb'){
-    const dots = COLORS.map((c,i)=>{ const a = i*60*Math.PI/180; const x = 50+Math.cos(a)*22, y = 50+Math.sin(a)*22;
-      return `<circle cx="${x}" cy="${y}" r="6" fill="${PALETTE[c][1]}"/>`; }).join('');
-    return `<svg viewBox="0 0 100 100"><defs><radialGradient id="${uid}" cx="38%" cy="32%" r="75%">
-      <stop offset="0%" stop-color="#7a5236"/><stop offset="55%" stop-color="#4a2c17"/><stop offset="100%" stop-color="#241207"/></radialGradient></defs>
-      <circle cx="50" cy="50" r="40" fill="url(#${uid})"/>${dots}
-      <ellipse cx="36" cy="30" rx="14" ry="9" fill="rgba(255,255,255,.5)" transform="rotate(-25 36 30)"/></svg>`;
-  }
-  return `<svg viewBox="0 0 100 100"><defs>${grad}${clip}</defs>${body}${extra}${gloss}</svg>`;
+  return '';
+}
+function chipIcon(g){
+  return g.type === 'dirt' ? `<span class="dirt-ico"></span>` : pieceSVG(g.kind);
 }
 
 /* ---------------- levels ----------------
-   Masks: '.' = playable, 'X' = hole, 'J' = jelly (playable, one layer of jelly)
-   Goals: {type:'color', color, count} | {type:'jelly'} (count auto = jelly cells) */
+   Masks: '.' = playable, 'X' = hole, 'J' = dirt patch (clear by matching on it)
+   Goals: {type:'kind', kind, count} | {type:'dirt'} (count auto) */
 const LEVELS = [
   { moves:20, colors:4, mask:[ '.......','.......','.......','.......','.......','.......','.......' ],
-    goals:[{type:'color', color:'red', count:20}] },
+    goals:[{type:'kind', kind:'apple', count:20}] },
   { moves:22, colors:4, mask:[ '.......','.......','.......','.......','.......','.......','.......' ],
-    goals:[{type:'color', color:'blue', count:18},{type:'color', color:'yellow', count:18}] },
+    goals:[{type:'kind', kind:'drop', count:18},{type:'kind', kind:'lemon', count:18}] },
   { moves:26, colors:5, mask:[ '........','........','........','........','........','........','........','........' ],
-    goals:[{type:'color', color:'green', count:30}] },
+    goals:[{type:'kind', kind:'leaf', count:30}] },
   { moves:22, colors:5, mask:[ 'XX....XX','X......X','........','........','........','........','X......X','XX....XX' ],
-    goals:[{type:'color', color:'purple', count:20},{type:'color', color:'orange', count:20}] },
+    goals:[{type:'kind', kind:'flower', count:20},{type:'kind', kind:'butterfly', count:20}] },
   { moves:20, colors:4, mask:[ '.......','.......','..JJJ..','..JJJ..','..JJJ..','.......','.......' ],
-    goals:[{type:'jelly'},{type:'color', color:'red', count:15}] },
+    goals:[{type:'dirt'},{type:'kind', kind:'apple', count:15}] },
   { moves:25, colors:5, mask:[ '........','........','........','........','........','........','........','........' ],
-    goals:[{type:'color', color:'red', count:28},{type:'color', color:'blue', count:28}] },
+    goals:[{type:'kind', kind:'apple', count:28},{type:'kind', kind:'drop', count:28}] },
   { moves:26, colors:5, mask:[ '........','.JJJJJJ.','.J....J.','.J....J.','.J....J.','.J....J.','.JJJJJJ.','........' ],
-    goals:[{type:'jelly'}] },
+    goals:[{type:'dirt'}] },
   { moves:26, colors:5, mask:[ '.........','.........','.........','.........','.........','.........','.........','.........','.........' ],
-    goals:[{type:'color', color:'yellow', count:40}] },
+    goals:[{type:'kind', kind:'lemon', count:40}] },
   { moves:24, colors:5, mask:[ 'XXX...XXX','XX.....XX','X.......X','.........','.........','.........','X.......X','XX.....XX','XXX...XXX' ],
-    goals:[{type:'color', color:'green', count:25},{type:'color', color:'purple', count:25}] },
+    goals:[{type:'kind', kind:'leaf', count:25},{type:'kind', kind:'flower', count:25}] },
   { moves:28, colors:6, mask:[ '........','........','...JJ...','..JJJJ..','..JJJJ..','...JJ...','........','........' ],
-    goals:[{type:'color', color:'orange', count:26},{type:'jelly'}] },
+    goals:[{type:'kind', kind:'butterfly', count:26},{type:'dirt'}] },
   { moves:26, colors:6, mask:[ 'J.J.J.J.J','.........','J.J.J.J.J','.........','J.J.J.J.J','.........','J.J.J.J.J','.........','J.J.J.J.J' ],
-    goals:[{type:'jelly'}] },
+    goals:[{type:'dirt'}] },
   { moves:26, colors:6, mask:[ 'XXXX.XXXX','XXX...XXX','XX.....XX','X.......X','.........','X.......X','XX.....XX','XXX...XXX','XXXX.XXXX' ],
-    goals:[{type:'color', color:'red', count:30},{type:'color', color:'blue', count:30}] },
+    goals:[{type:'kind', kind:'apple', count:30},{type:'kind', kind:'drop', count:30}] },
   { moves:26, colors:6, mask:[ '.........','.........','.........','.........','.........','.........','.........','.........','.........' ],
-    goals:[{type:'color', color:'green', count:45}] },
+    goals:[{type:'kind', kind:'leaf', count:45}] },
   { moves:28, colors:6, mask:[ '.........','.........','.........','.........','.........','.........','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ' ],
-    goals:[{type:'jelly'}] },
+    goals:[{type:'dirt'}] },
   { moves:30, colors:6, mask:[ 'J.......J','.J.....J.','..J...J..','...JJJ...','...JJJ...','...JJJ...','..J...J..','.J.....J.','J.......J' ],
-    goals:[{type:'color', color:'purple', count:35},{type:'color', color:'yellow', count:35},{type:'jelly'}] },
+    goals:[{type:'kind', kind:'flower', count:35},{type:'kind', kind:'lemon', count:35},{type:'dirt'}] },
 ];
 LEVELS.forEach((L,i)=>{
   L.rows = L.mask.length; L.cols = L.mask[0].length;
-  L.jellyTotal = L.mask.join('').split('J').length - 1;
-  L.goals.forEach(g=>{ if(g.type==='jelly') g.count = L.jellyTotal; });
+  L.dirtTotal = L.mask.join('').split('J').length - 1;
+  L.goals.forEach(g=>{ if(g.type==='dirt') g.count = L.dirtTotal; });
   const base = L.moves * 260 + i * 900;
   L.starScores = [base, Math.round(base*1.7), Math.round(base*2.5)];
 });
@@ -483,9 +539,10 @@ function showScreen(id){
 function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 
 /* ---------------- level map ---------------- */
+const MAP_DECOS = ['🌳','🌷','🌻','🌼','🪻','🌿','🍄','🌲'];
 function renderMap(){
   const inner = $('#map-inner');
-  inner.querySelectorAll('.lvl-node, .lvl-holder').forEach(n=>n.remove());
+  inner.querySelectorAll('.lvl-node, .lvl-holder, .map-deco').forEach(n=>n.remove());
   const n = LEVELS.length;
   const H = 170 * n + 160;
   inner.style.height = H + 'px';
@@ -502,8 +559,20 @@ function renderMap(){
     const [x0,y0] = pts[i-1], [x1,y1] = pts[i];
     d += ` C ${x0} ${(y0+y1)/2}, ${x1} ${(y0+y1)/2}, ${x1} ${y1}`;
   }
-  svg.innerHTML = `<path d="${d}" fill="none" stroke="rgba(255,255,255,.75)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0.1 16" vector-effect="non-scaling-stroke"/>
-                   <path d="${d}" fill="none" stroke="rgba(120,70,30,.25)" stroke-width="16" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`;
+  svg.innerHTML = `<path d="${d}" fill="none" stroke="rgba(94,52,22,.35)" stroke-width="18" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                   <path d="${d}" fill="none" stroke="#e8d5a8" stroke-width="12" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+                   <path d="${d}" fill="none" stroke="rgba(138,90,46,.8)" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 14" vector-effect="non-scaling-stroke"/>`;
+  // scatter garden decorations beside the path
+  for(let i=0;i<n;i++){
+    const [x,y] = pts[i];
+    const deco = document.createElement('div');
+    deco.className = 'map-deco';
+    deco.textContent = MAP_DECOS[i % MAP_DECOS.length];
+    const side = (i % 2) ? -1 : 1;
+    deco.style.left = `calc(${x}% + ${side * 92}px)`;
+    deco.style.top = (y - 40 + (i%3)*22) + 'px';
+    inner.appendChild(deco);
+  }
   let totalStars = 0;
   pts.forEach(([x,y],i)=>{
     const lvl = i+1;
@@ -538,17 +607,16 @@ function renderMap(){
 
 /* ---------------- goal chips ---------------- */
 function goalChipHTML(g, remaining){
-  const icon = g.type === 'jelly' ? `<span class="jelly-ico"></span>` : candySVG(g.color, null);
   const done = remaining <= 0;
   const txt = done ? '✔' : remaining;
-  return `<div class="goal-chip ${done?'done':''}">${icon}<span class="cnt">${txt}</span></div>`;
+  return `<div class="goal-chip ${done?'done':''}">${chipIcon(g)}<span class="cnt">${txt}</span></div>`;
 }
 
 /* =====================================================================
    GAME ENGINE
    ===================================================================== */
 const G = {
-  level:0, L:null, grid:[], jelly:[], playable:[],
+  level:0, L:null, grid:[], dirt:[], playable:[],
   movesLeft:0, score:0, goals:[],
   busy:false, over:false, sel:null,
   cellPx:0, hintTimer:null, idSeq:0
@@ -585,19 +653,19 @@ function placeCandy(el, r, c, instant){
 }
 
 /* ---- piece creation ---- */
-function makePiece(color, special){
-  const p = { color, special: special||null, id: ++G.idSeq, el: document.createElement('div') };
+function makePiece(kind){
+  const p = { kind, power:null, id: ++G.idSeq, el: document.createElement('div') };
   p.el.className = 'candy';
-  p.el.innerHTML = candySVG(color, p.special);
+  p.el.innerHTML = pieceSVG(kind);
   sizeCandy(p.el);
   boardEl.appendChild(p.el);
   return p;
 }
-function setSpecial(p, special, color){
-  p.special = special;
-  if(color) p.color = color;
-  if(special === 'bomb') p.color = null;
-  p.el.innerHTML = candySVG(p.color || 'red', special);
+function setPower(p, power){
+  p.power = power;
+  p.kind = null;
+  p.el.classList.add('power');
+  p.el.innerHTML = powerSVG(power);
 }
 function removePieceEl(p){
   p.el.classList.add('pop');
@@ -608,39 +676,38 @@ function removePieceEl(p){
 /* ---- board init ---- */
 function buildBoard(){
   boardEl.innerHTML = '';
-  G.grid = []; G.jelly = []; G.playable = [];
+  G.grid = []; G.dirt = []; G.playable = [];
   for(let r=0;r<G.L.rows;r++){
-    G.grid[r] = []; G.jelly[r] = []; G.playable[r] = [];
+    G.grid[r] = []; G.dirt[r] = []; G.playable[r] = [];
     for(let c=0;c<G.L.cols;c++){
       const ch = G.L.mask[r][c];
       const ok = ch !== 'X';
       G.playable[r][c] = ok;
-      G.jelly[r][c] = ch === 'J' ? 1 : 0;
+      G.dirt[r][c] = ch === 'J' ? 1 : 0;
       G.grid[r][c] = null;
       if(ok){
         const cellEl = document.createElement('div');
-        cellEl.className = 'cell' + (((r+c)%2)?' alt':'') + (G.jelly[r][c] ? ' jelly' : '');
+        cellEl.className = 'cell' + (((r+c)%2)?' alt':'') + (G.dirt[r][c] ? ' dirt' : '');
         cellEl.dataset.r = r; cellEl.dataset.c = c;
         boardEl.appendChild(cellEl);
       }
     }
   }
   layoutBoard();
-  // fill without immediate matches
   for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
     if(!G.playable[r][c]) continue;
-    let color;
+    let kind;
     let guard = 0;
-    do { color = COLORS[rnd(G.L.colors)]; guard++; }
-    while(guard < 40 && createsInstantMatch(r,c,color));
-    const p = makePiece(color, null);
+    do { kind = KINDS[rnd(G.L.colors)]; guard++; }
+    while(guard < 40 && createsInstantMatch(r,c,kind));
+    const p = makePiece(kind);
     G.grid[r][c] = p;
     placeCandy(p.el, r, c, true);
   }
   if(!findAnyMove()) shuffleBoard(true);
 }
-function createsInstantMatch(r,c,color){
-  const cc = (rr,cx)=>{ const p = pieceAt(rr,cx); return p && p.color === color; };
+function createsInstantMatch(r,c,kind){
+  const cc = (rr,cx)=>{ const p = pieceAt(rr,cx); return p && p.kind === kind; };
   return (cc(r,c-1)&&cc(r,c-2)) || (cc(r-1,c)&&cc(r-2,c));
 }
 
@@ -651,11 +718,11 @@ function findRuns(){
     let run = [];
     for(let c=0;c<=G.L.cols;c++){
       const p = c < G.L.cols ? pieceAt(r,c) : null;
-      const col = p && p.color && p.special !== 'bomb' ? p.color : null;
-      if(col && run.length && G.grid[r][run[run.length-1][1]].color === col){ run.push([r,c]); }
+      const k = p && p.kind ? p.kind : null;
+      if(k && run.length && G.grid[r][run[run.length-1][1]].kind === k){ run.push([r,c]); }
       else {
         if(run.length >= 3) hRuns.push(run);
-        run = col ? [[r,c]] : [];
+        run = k ? [[r,c]] : [];
       }
     }
   }
@@ -663,69 +730,69 @@ function findRuns(){
     let run = [];
     for(let r=0;r<=G.L.rows;r++){
       const p = r < G.L.rows ? pieceAt(r,c) : null;
-      const col = p && p.color && p.special !== 'bomb' ? p.color : null;
-      if(col && run.length && G.grid[run[run.length-1][0]][c].color === col){ run.push([r,c]); }
+      const k = p && p.kind ? p.kind : null;
+      if(k && run.length && G.grid[run[run.length-1][0]][c].kind === k){ run.push([r,c]); }
       else {
         if(run.length >= 3) vRuns.push(run);
-        run = col ? [[r,c]] : [];
+        run = k ? [[r,c]] : [];
       }
     }
   }
   return { hRuns, vRuns };
 }
-/* Decide destroyed cells + specials to create. swapCells prioritizes creation spot. */
+function powerForSize(size){
+  if(size >= 7) return 'tnt';
+  if(size === 6) return 'dyna';
+  if(size === 5) return 'bomb';
+  if(size === 4) return 'fire';
+  return null;
+}
+/* Group overlapping runs of the same kind, size the group, pick power tier. */
 function analyzeMatches(swapCells){
   const { hRuns, vRuns } = findRuns();
   if(!hRuns.length && !vRuns.length) return null;
   const matched = new Set();
-  [...hRuns, ...vRuns].forEach(run => run.forEach(([r,c]) => matched.add(key(r,c))));
-  const creations = [];
-  const usedH = new Set(), usedV = new Set();
-  // wrapped: intersections of an h-run and a v-run
-  hRuns.forEach((hr,hi)=>{
-    vRuns.forEach((vr,vi)=>{
-      if(usedH.has(hi) || usedV.has(vi)) return;
-      const hSet = new Set(hr.map(([r,c])=>key(r,c)));
-      const shared = vr.find(([r,c])=>hSet.has(key(r,c)));
-      if(shared){
-        creations.push({ r:shared[0], c:shared[1], kind:'wrap', color:G.grid[shared[0]][shared[1]].color });
-        usedH.add(hi); usedV.add(vi);
+  const runs = [...hRuns, ...vRuns];
+  runs.forEach(run => run.forEach(([r,c]) => matched.add(key(r,c))));
+  // union runs that share a cell (L / T / + shapes) into groups
+  const groups = runs.map(run => new Set(run.map(([r,c])=>key(r,c))));
+  let merged = true;
+  while(merged){
+    merged = false;
+    outer:
+    for(let i=0;i<groups.length;i++){
+      for(let j=i+1;j<groups.length;j++){
+        let shares = false;
+        for(const k of groups[j]) if(groups[i].has(k)){ shares = true; break; }
+        if(shares){
+          for(const k of groups[j]) groups[i].add(k);
+          groups.splice(j,1);
+          merged = true;
+          break outer;
+        }
       }
-    });
-  });
-  const pickSpot = run => {
-    if(swapCells){
-      const hit = run.find(([r,c]) => swapCells.some(s => s[0]===r && s[1]===c));
-      if(hit) return hit;
     }
-    return run[Math.floor(run.length/2)];
-  };
-  hRuns.forEach((run,hi)=>{
-    if(usedH.has(hi)) return;
-    if(run.length >= 5){ const [r,c] = pickSpot(run); creations.push({r,c,kind:'bomb',color:null}); }
-    else if(run.length === 4){ const [r,c] = pickSpot(run); creations.push({r,c,kind:'v',color:G.grid[r][c].color}); }
-  });
-  vRuns.forEach((run,vi)=>{
-    if(usedV.has(vi)) return;
-    if(run.length >= 5){ const [r,c] = pickSpot(run); creations.push({r,c,kind:'bomb',color:null}); }
-    else if(run.length === 4){ const [r,c] = pickSpot(run); creations.push({r,c,kind:'h',color:G.grid[r][c].color}); }
+  }
+  const creations = [];
+  groups.forEach(cells=>{
+    const power = powerForSize(cells.size);
+    if(!power) return;
+    const arr = [...cells].map(unkey);
+    let spot = null;
+    if(swapCells){
+      spot = arr.find(([r,c]) => swapCells.some(s => s[0]===r && s[1]===c));
+    }
+    if(!spot) spot = arr[Math.floor(arr.length/2)];
+    creations.push({ r:spot[0], c:spot[1], power });
   });
   return { matched, creations };
 }
 
-/* ---- special chain expansion ---- */
-function bombTargetColor(){
-  // prefer a color still needed by goals, else the most common on board
-  const needed = G.goals.filter(g => g.type==='color' && g.remaining > 0).map(g=>g.color);
-  const counts = {};
-  for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
-    const p = pieceAt(r,c); if(p && p.color) counts[p.color] = (counts[p.color]||0)+1;
-  }
-  const present = Object.keys(counts);
-  if(!present.length) return null;
-  const wanted = needed.filter(c=>counts[c]);
-  if(wanted.length) return wanted[rnd(wanted.length)];
-  return present.sort((a,b)=>counts[b]-counts[a])[0];
+/* ---- blast chain expansion ---- */
+function blastCells(r, c, rad, queue){
+  for(let rr=r-rad; rr<=r+rad; rr++)
+    for(let cc=c-rad; cc<=c+rad; cc++)
+      if(pieceAt(rr,cc)) queue.push(key(rr,cc));
 }
 function expandDestroy(initialKeys){
   const out = new Set(), effects = [];
@@ -737,48 +804,25 @@ function expandDestroy(initialKeys){
     const p = pieceAt(r,c);
     if(!p) continue;
     out.add(k);
-    if(p.special === 'h'){
-      effects.push({type:'row', r});
-      for(let cc=0; cc<G.L.cols; cc++) if(pieceAt(r,cc)) queue.push(key(r,cc));
-    } else if(p.special === 'v'){
-      effects.push({type:'col', c});
-      for(let rr=0; rr<G.L.rows; rr++) if(pieceAt(rr,c)) queue.push(key(rr,c));
-    } else if(p.special === 'wrap'){
-      effects.push({type:'boom', r, c, rad:1});
-      for(let rr=r-1; rr<=r+1; rr++) for(let cc=c-1; cc<=c+1; cc++) if(pieceAt(rr,cc)) queue.push(key(rr,cc));
-    } else if(p.special === 'bomb'){
-      const col = bombTargetColor();
-      effects.push({type:'flash'});
-      if(col) for(let rr=0; rr<G.L.rows; rr++) for(let cc=0; cc<G.L.cols; cc++){
-        const q = pieceAt(rr,cc); if(q && q.color === col) queue.push(key(rr,cc));
-      }
+    if(p.power){
+      const rad = POWERS[p.power].rad;
+      effects.push({type:'boom', r, c, rad});
+      blastCells(r, c, rad, queue);
     }
   }
   return { out, effects };
 }
 
 /* ---- visual effects ---- */
-function fxRow(r){
-  const d = document.createElement('div');
-  d.className = 'blast';
-  d.style.cssText = `left:0; top:${r*G.cellPx + G.cellPx*0.2}px; width:${G.L.cols*G.cellPx}px; height:${G.cellPx*0.6}px;`;
-  boardEl.appendChild(d); setTimeout(()=>d.remove(), 350);
-}
-function fxCol(c){
-  const d = document.createElement('div');
-  d.className = 'blast';
-  d.style.cssText = `top:0; left:${c*G.cellPx + G.cellPx*0.2}px; height:${G.L.rows*G.cellPx}px; width:${G.cellPx*0.6}px;
-    background:linear-gradient(180deg, transparent, #fff 25%, #ffe98a 50%, #fff 75%, transparent);`;
-  boardEl.appendChild(d); setTimeout(()=>d.remove(), 350);
-}
 function fxBoom(r,c,rad){
-  const size = G.cellPx * (rad*2+1) * 1.15;
+  const size = G.cellPx * (rad*2+1) * 1.12;
   const d = document.createElement('div');
   d.className = 'boom';
   d.style.cssText = `width:${size}px; height:${size}px; left:${(c+.5)*G.cellPx - size/2}px; top:${(r+.5)*G.cellPx - size/2}px;`;
-  boardEl.appendChild(d); setTimeout(()=>d.remove(), 400);
+  boardEl.appendChild(d); setTimeout(()=>d.remove(), 420);
 }
 function fxFlash(){ const f = $('#flash'); f.classList.remove('on'); void f.offsetWidth; f.classList.add('on'); }
+function fxShake(){ boardEl.classList.remove('shake'); void boardEl.offsetWidth; boardEl.classList.add('shake'); }
 function floatScore(r, c, pts){
   const d = document.createElement('div');
   d.className = 'float-score';
@@ -793,37 +837,36 @@ function toast(msg){
   t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
 }
 function playEffects(effects){
-  let boomed = false, flashed = false;
+  let big = false;
   effects.forEach(e=>{
-    if(e.type==='row') fxRow(e.r);
-    else if(e.type==='col') fxCol(e.c);
-    else if(e.type==='boom'){ fxBoom(e.r,e.c,e.rad); boomed = true; }
-    else if(e.type==='flash'){ if(!flashed){ fxFlash(); flashed = true; } }
+    if(e.type==='boom'){
+      fxBoom(e.r, e.c, e.rad);
+      if(e.rad >= 2) big = true;
+      if(e.rad >= 3){ fxShake(); }
+      if(e.rad >= 4){ fxFlash(); }
+    }
   });
-  if(flashed || boomed) Snd.boom();
-  else if(effects.length) Snd.special();
+  if(effects.length){ Snd.boom(big); vibrate(big ? 60 : 25); }
 }
 
 /* ---- destruction step ---- */
 function destroyCells(keys, creations, mult){
   const creationKeys = new Set((creations||[]).map(cr => key(cr.r, cr.c)));
   let destroyed = 0;
-  let jellyCleared = 0;
+  let dirtCleared = 0;
   let anchor = null;
   keys.forEach(k=>{
     const [r,c] = unkey(k);
-    // clear jelly under every affected cell, even the one converting to a special
-    if(G.jelly[r][c]){
-      G.jelly[r][c] = 0; jellyCleared++;
+    if(G.dirt[r][c]){
+      G.dirt[r][c] = 0; dirtCleared++;
       const cellEl = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
-      if(cellEl) cellEl.classList.remove('jelly');
+      if(cellEl) cellEl.classList.remove('dirt');
     }
-    if(creationKeys.has(k)) return; // piece morphs into a special instead of dying
+    if(creationKeys.has(k)) return; // this piece becomes a power-up instead
     const p = G.grid[r][c];
     if(!p) return;
-    // goal progress for collected colors
-    if(p.color){
-      const g = G.goals.find(g => g.type==='color' && g.color === p.color && g.remaining > 0);
+    if(p.kind){
+      const g = G.goals.find(g => g.type==='kind' && g.kind === p.kind && g.remaining > 0);
       if(g) g.remaining--;
     }
     removePieceEl(p);
@@ -831,18 +874,18 @@ function destroyCells(keys, creations, mult){
     destroyed++;
     if(!anchor) anchor = [r,c];
   });
-  if(jellyCleared){
-    const g = G.goals.find(g => g.type==='jelly');
-    if(g) g.remaining = Math.max(0, g.remaining - jellyCleared);
+  if(dirtCleared){
+    const g = G.goals.find(g => g.type==='dirt');
+    if(g) g.remaining = Math.max(0, g.remaining - dirtCleared);
   }
   (creations||[]).forEach(cr=>{
     const p = G.grid[cr.r][cr.c];
-    if(p){ setSpecial(p, cr.kind, cr.color); Snd.special(); }
+    if(p){ setPower(p, cr.power); Snd.special(); }
   });
-  const pts = destroyed * 60 * mult + jellyCleared * 100;
+  const pts = destroyed * 60 * mult + dirtCleared * 100;
   if(pts && anchor){ G.score += pts; floatScore(anchor[0], anchor[1], pts); }
   else G.score += pts;
-  return destroyed + jellyCleared;
+  return destroyed + dirtCleared;
 }
 
 /* ---- gravity + refill ---- */
@@ -854,7 +897,6 @@ function applyGravity(){
     if(!rows.length) continue;
     const pieces = rows.map(r=>G.grid[r][c]).filter(Boolean);
     const empties = rows.length - pieces.length;
-    // place survivors at the bottom
     for(let i=0;i<rows.length;i++){
       const r = rows[i];
       const pi = i - empties;
@@ -862,16 +904,14 @@ function applyGravity(){
       if(G.grid[r][c] !== p) moved = true;
       G.grid[r][c] = p;
     }
-    // spawn new pieces for the top empties
     for(let i=0;i<empties;i++){
       const r = rows[i];
-      const p = makePiece(COLORS[rnd(G.L.colors)], null);
+      const p = makePiece(KINDS[rnd(G.L.colors)]);
       G.grid[r][c] = p;
-      placeCandy(p.el, rows[0] - (empties - i), c, true); // start above the board
+      placeCandy(p.el, rows[0] - (empties - i), c, true);
       moved = true;
     }
   }
-  // animate everything to its cell
   for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
     const p = pieceAt(r,c);
     if(p) placeCandy(p.el, r, c, false);
@@ -889,16 +929,19 @@ function wouldMatch(r1,c1,r2,c2){
   swapInGrid(r1,c1,r2,c2);
   return hRuns.length + vRuns.length > 0;
 }
+/* Returns cells describing an available move:
+   [ [r,c] ]           → tap this power-up
+   [ [r,c],[r2,c2] ]   → swap these two */
 function findAnyMove(){
   for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
     const p = pieceAt(r,c);
     if(!p) continue;
+    if(p.power) return [[r,c]];
     for(const [dr,dc] of [[0,1],[1,0]]){
       const r2 = r+dr, c2 = c+dc;
       const q = pieceAt(r2,c2);
       if(!q) continue;
-      if(p.special === 'bomb' || q.special === 'bomb') return [[r,c],[r2,c2]];
-      if(p.special && q.special) return [[r,c],[r2,c2]];
+      if(p.power && q.power) return [[r,c],[r2,c2]];
       if(wouldMatch(r,c,r2,c2)) return [[r,c],[r2,c2]];
     }
   }
@@ -910,21 +953,20 @@ function shuffleBoard(silent){
     const cells = [];
     for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
       const p = pieceAt(r,c);
-      if(p && !p.special) cells.push([r,c]);
+      if(p && !p.power) cells.push([r,c]);
     }
     for(let i=cells.length-1;i>0;i--){
       const j = rnd(i+1);
       const [r1,c1] = cells[i], [r2,c2] = cells[j];
       swapInGrid(r1,c1,r2,c2);
     }
-    // remove accidental instant matches by recoloring
     let fix = 0;
     let runs = findRuns();
     while((runs.hRuns.length || runs.vRuns.length) && fix < 200){
       const run = runs.hRuns[0] || runs.vRuns[0];
       const [r,c] = run[1];
       const p = G.grid[r][c];
-      if(p && !p.special){ p.color = COLORS[rnd(G.L.colors)]; p.el.innerHTML = candySVG(p.color, p.special); }
+      if(p && !p.power){ p.kind = KINDS[rnd(G.L.colors)]; p.el.innerHTML = pieceSVG(p.kind); }
       runs = findRuns(); fix++;
     }
     guard++;
@@ -959,7 +1001,7 @@ function updateHUD(){
   mn.classList.toggle('low', G.movesLeft <= 5);
   $('#goal-chips').innerHTML = G.goals.map(g=>goalChipHTML(g, g.remaining)).join('');
   $('#score-val').textContent = G.score.toLocaleString();
-  const [s1,s2,s3] = G.L.starScores;
+  const s3 = G.L.starScores[2];
   const pct = Math.min(100, G.score / s3 * 100);
   $('#star-fill').style.width = pct + '%';
   document.querySelectorAll('.track-star').forEach(el=>{
@@ -985,7 +1027,7 @@ async function resolveCascades(initial, initialCreations){
       matchedKeys = initial; creations = initialCreations || [];
       first = false;
     } else {
-      const res = analyzeMatches(first ? G.lastSwap : null);
+      const res = analyzeMatches(null);
       first = false;
       if(!res) break;
       matchedKeys = res.matched; creations = res.creations;
@@ -994,8 +1036,7 @@ async function resolveCascades(initial, initialCreations){
     if(!out.size) break;
     playEffects(effects);
     Snd.pop(mult);
-    vibrate(15);
-    if(mult >= 3) toast(['Sweet!','Tasty!','Divine!','Delicious!'][Math.min(mult-3,3)]);
+    if(mult >= 3) toast(['Great!','Amazing!','Spectacular!','Unbelievable!'][Math.min(mult-3,3)]);
     destroyCells(out, creations, mult);
     updateHUD();
     await sleep(230);
@@ -1015,76 +1056,30 @@ async function afterMove(){
   armHint();
 }
 
-/* ---- special+special / bomb combos on swap ---- */
-async function executeSwapCombo(a, ra, ca, b, rb, cb){
-  const set = new Set();
-  const addAll = cond => {
-    for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
-      const p = pieceAt(r,c); if(p && cond(p,r,c)) set.add(key(r,c));
-    }
-  };
-  const sa = a.special, sb = b.special;
-  if(sa === 'bomb' && sb === 'bomb'){
-    fxFlash(); Snd.boom(); toast('Divine!');
-    addAll(()=>true);
-  } else if(sa === 'bomb' || sb === 'bomb'){
-    const bombPos = sa === 'bomb' ? [ra,ca] : [rb,cb];
-    const other = sa === 'bomb' ? b : a;
-    fxFlash(); Snd.boom();
-    set.add(key(bombPos[0], bombPos[1]));
-    if(other.special === 'h' || other.special === 'v'){
-      // every candy of that color becomes striped and fires
-      addAll(p => p.color === other.color);
-      set.forEach(k=>{
-        const [r,c] = unkey(k);
-        const p = G.grid[r][c];
-        if(p && !p.special && p.color === other.color) p.special = rnd(2) ? 'h' : 'v';
-      });
-      toast('Tasty!');
-    } else if(other.special === 'wrap'){
-      addAll(p => p.color === other.color);
-      set.forEach(k=>{
-        const [r,c] = unkey(k);
-        const p = G.grid[r][c];
-        if(p && p.color === other.color && !['bomb'].includes(p.special)) p.special = 'wrap';
-      });
-      toast('Sweet!');
-    } else {
-      addAll(p => p.color === other.color);
-    }
-  } else if((sa === 'h' || sa === 'v') && (sb === 'h' || sb === 'v')){
-    // cross blast
-    a.special = 'h'; b.special = 'v';
-    set.add(key(ra,ca)); set.add(key(rb,cb));
-    toast('Sweet!');
-  } else if((sa === 'wrap' && (sb === 'h' || sb === 'v')) || (sb === 'wrap' && (sa === 'h' || sa === 'v'))){
-    // giant cross: 3 rows + 3 cols
-    const [r,c] = [rb,cb];
-    for(let dr=-1; dr<=1; dr++){
-      const rr = r+dr;
-      for(let cc=0; cc<G.L.cols; cc++) if(pieceAt(rr,cc)) set.add(key(rr,cc));
-      fxRow(Math.max(0, Math.min(G.L.rows-1, rr)));
-    }
-    for(let dc=-1; dc<=1; dc++){
-      const cc = c+dc;
-      for(let rr=0; rr<G.L.rows; rr++) if(pieceAt(rr,cc)) set.add(key(rr,cc));
-      fxCol(Math.max(0, Math.min(G.L.cols-1, cc)));
-    }
-    a.special = null; b.special = null;
-    set.add(key(ra,ca)); set.add(key(rb,cb));
-    Snd.boom(); toast('Tasty!');
-  } else if(sa === 'wrap' && sb === 'wrap'){
-    // massive double blast
-    a.special = null; b.special = null;
-    for(let dr=-2; dr<=2; dr++) for(let dc=-2; dc<=2; dc++){
-      [[ra,ca],[rb,cb]].forEach(([r,c])=>{ if(pieceAt(r+dr, c+dc)) set.add(key(r+dr, c+dc)); });
-    }
-    fxBoom(ra,ca,2); fxBoom(rb,cb,2); Snd.boom(); toast('Divine!');
-  } else {
-    return false;
-  }
+/* ---- power-up activation ---- */
+async function activatePower(r, c){
+  const p = pieceAt(r,c);
+  if(!p || !p.power || G.busy || G.over) return;
+  G.busy = true;
+  clearHint();
+  deselect();
+  G.movesLeft--;
+  updateHUD();
+  await resolveCascades(new Set([key(r,c)]), []);
+  await afterMove();
+}
+/* Swapping two power-ups: one combined blast, radius = biggest + 2 */
+async function executePowerCombo(a, ra, ca, b, rb, cb){
+  const rad = Math.min(6, Math.max(POWERS[a.power].rad, POWERS[b.power].rad) + 2);
+  a.power = null; b.power = null; // detonate as one, no double chain from themselves
+  const set = new Set([key(ra,ca), key(rb,cb)]);
+  const queue = [];
+  blastCells(ra, ca, rad, queue);
+  blastCells(rb, cb, rad, queue);
+  queue.forEach(k=>set.add(k));
+  fxBoom(ra, ca, rad); fxShake(); fxFlash(); Snd.boom(true); vibrate(80);
+  toast('Spectacular!');
   await resolveCascades(set, []);
-  return true;
 }
 
 /* ---- swap handling ---- */
@@ -1096,27 +1091,21 @@ async function trySwap(r1,c1,r2,c2){
   G.busy = true;
   clearHint();
   deselect();
-  // animate swap
   Snd.swap();
   swapInGrid(r1,c1,r2,c2);
   placeCandy(a.el, r2, c2, false);
   placeCandy(b.el, r1, c1, false);
   await sleep(200);
-  G.lastSwap = [[r1,c1],[r2,c2]];
 
-  const bothSpecial = a.special && b.special;
-  const anyBomb = a.special === 'bomb' || b.special === 'bomb';
-  if(bothSpecial || anyBomb){
+  if(a.power && b.power){
     G.movesLeft--;
     updateHUD();
-    // positions after the swap: a is now at (r2,c2), b at (r1,c1)
-    await executeSwapCombo(a, r2, c2, b, r1, c1);
+    await executePowerCombo(a, r2, c2, b, r1, c1);
     await afterMove();
     return;
   }
   const res = analyzeMatches([[r1,c1],[r2,c2]]);
   if(!res){
-    // invalid: swap back
     Snd.bad();
     swapInGrid(r1,c1,r2,c2);
     placeCandy(a.el, r1, c1, false);
@@ -1181,14 +1170,16 @@ boardEl.addEventListener('pointerup', e=>{
     deselect();
   }
   const p = pieceAt(r,c);
-  if(p){ G.sel = [r,c]; p.el.classList.add('sel'); Snd.swap(); }
+  if(!p) return;
+  if(p.power){ activatePower(r,c); return; } // tap to detonate, garden-style
+  G.sel = [r,c]; p.el.classList.add('sel'); Snd.swap();
 });
 window.addEventListener('resize', ()=>{ if(G.L) layoutBoard(); });
 
 /* ---- win / lose ---- */
 function confetti(){
   const layer = $('#confetti-layer');
-  const cols = ['#ff5fb0','#ffd21f','#4fc42a','#2f9fe8','#a648e0','#ff8c1a'];
+  const cols = ['#ff8ac2','#ffd21f','#7ec850','#38a7e8','#c05fe8','#ff8c1a','#fff'];
   for(let i=0;i<80;i++){
     const d = document.createElement('div');
     d.className = 'conf';
@@ -1206,7 +1197,6 @@ async function winSequence(){
   toast('Level Complete!');
   Snd.win();
   await sleep(700);
-  // remaining moves → bonus points
   while(G.movesLeft > 0){
     G.movesLeft--;
     G.score += 120;
@@ -1220,7 +1210,7 @@ async function winSequence(){
   if(G.level >= save.unlocked && G.level < LEVELS.length) save.unlocked = G.level + 1;
   persist();
   confetti();
-  $('#win-title').textContent = ['Sweet!','Tasty!','Divine!'][stars-1] || 'Sweet!';
+  $('#win-title').textContent = ['Lovely!','Blooming!','Spectacular!'][stars-1] || 'Lovely!';
   $('#win-stars').innerHTML = [1,2,3].map(s=>`<span class="${s<=stars?'lit':''}">★</span>`).join('');
   $('#win-score').textContent = 'Score: ' + G.score.toLocaleString();
   $('#btn-win-next').style.display = G.level < LEVELS.length ? '' : 'none';
@@ -1252,7 +1242,6 @@ function prepareLevel(){
   G.over = false;
   G.busy = false;
   G.sel = null;
-  G.lastSwap = null;
   G.goals = G.L.goals.map(g=>({ ...g, remaining: g.count }));
   buildBoard();
   updateHUD();
@@ -1285,13 +1274,13 @@ syncSoundBtn();
 /* ---- offline: register service worker (best-effort) ---- */
 if('serviceWorker' in navigator && location.protocol !== 'file:'){
   window.addEventListener('load', ()=>{
-    navigator.serviceWorker.register('sw.js').catch(()=>{ /* fine offline-in-page anyway */ });
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
 }
 
 /* ---- automation hooks for tests ---- */
 window.__test = {
-  openLevel, startLevel, trySwap,
+  openLevel, startLevel, trySwap, activatePower,
   state: () => G,
   findAnyMove,
   levels: LEVELS,
