@@ -1,5 +1,5 @@
 /* Garden Bloom — offline cache */
-const CACHE = 'garden-bloom-v2';
+const CACHE = 'garden-bloom-v3';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {

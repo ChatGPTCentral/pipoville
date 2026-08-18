@@ -129,7 +129,7 @@
   #hud-goals { flex:1; }
   #goal-chips { display:flex; gap:12px; align-items:center; justify-content:center; margin-top:2px; flex-wrap:wrap; }
   .goal-chip { display:flex; align-items:center; gap:4px; font-weight:900; font-size:17px; text-shadow:0 1px 2px rgba(0,0,0,.5); }
-  .goal-chip svg, .goal-chip .dirt-ico { width:26px; height:26px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+  .goal-chip svg, .goal-chip img, .goal-chip .dirt-ico { width:26px; height:26px; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
   .goal-chip.done .cnt { color:#aaff8a; }
   .dirt-ico { display:inline-block; border-radius:6px; background:linear-gradient(160deg,#c9915a, #8a5a2e 60%, #5e3a17); border:2px solid #ffe0b0; }
   #score-row { flex:0 0 auto; padding:0 12px 6px; }
@@ -163,8 +163,8 @@
     will-change:top,left,transform; z-index:2;
     transition:top .3s cubic-bezier(.34,1.3,.64,1), left .18s ease;
   }
-  .candy svg { width:90%; height:90%; filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)); pointer-events:none; transform-origin:50% 88%; }
-  .candy.power svg { width:96%; height:96%; }
+  .candy svg, .candy img { width:90%; height:90%; filter:drop-shadow(0 3px 3px rgba(0,0,0,.35)); pointer-events:none; transform-origin:50% 88%; }
+  .candy.power svg, .candy.power img { width:96%; height:96%; }
   .candy.power { animation:powerGlow 1.4s ease-in-out infinite alternate; }
   @keyframes powerGlow { from{filter:drop-shadow(0 0 2px rgba(255,220,80,.0))} to{filter:drop-shadow(0 0 10px rgba(255,220,80,.9))} }
   .candy.sel { z-index:3; animation:selPulse .5s ease-in-out infinite alternate; }
@@ -234,7 +234,7 @@
   .modal p { font-size:16px; font-weight:700; color:#7a5230; margin:6px 0; }
   .modal .goals-row { display:flex; gap:14px; justify-content:center; margin:14px 0 6px; flex-wrap:wrap; }
   .modal .goal-chip { color:#5e3416; font-size:19px; text-shadow:none; }
-  .modal .goal-chip svg, .modal .goal-chip .dirt-ico { width:34px; height:34px; }
+  .modal .goal-chip svg, .modal .goal-chip img, .modal .goal-chip .dirt-ico { width:34px; height:34px; }
   .modal .btns { display:flex; gap:10px; justify-content:center; margin-top:18px; flex-wrap:wrap; }
   .big-stars { font-size:52px; letter-spacing:6px; margin:8px 0 2px; color:#d8cdbb; }
   .big-stars .lit { color:#ffb400; text-shadow:0 3px 0 #c47a00, 0 0 16px rgba(255,190,0,.8); animation:starPop .4s cubic-bezier(.2,1.6,.4,1) backwards; }
@@ -246,16 +246,21 @@
   /* ---------- juice: particles, rings, flights, squash ---------- */
   .part { position:absolute; z-index:6; border-radius:50%; pointer-events:none; animation:partFly .6s ease-out forwards; }
   @keyframes partFly { 0%{transform:translate(0,0) scale(1); opacity:1} 100%{transform:translate(var(--dx), calc(var(--dy) + 70px)) scale(.2); opacity:0} }
-  .ring { position:absolute; z-index:5; pointer-events:none; border:4px solid rgba(255,255,255,.95); border-radius:50%;
-    box-shadow:0 0 14px rgba(255,220,120,.9), inset 0 0 10px rgba(255,220,120,.7); animation:ringGrow .45s ease-out forwards; }
+  .ring { position:absolute; z-index:5; pointer-events:none; border:5px solid rgba(255,200,60,.95); border-radius:50%;
+    box-shadow:0 0 16px rgba(255,220,120,.9), inset 0 0 12px rgba(255,220,120,.7); animation:ringGrow .45s ease-out forwards; }
+  .ring::before { content:''; position:absolute; inset:9%; border:3px solid rgba(255,255,255,.85); border-radius:50%; }
   @keyframes ringGrow { from{transform:scale(.25); opacity:1} to{transform:scale(1.35); opacity:0} }
+  .rays { position:absolute; z-index:5; pointer-events:none; animation:raysGrow .55s ease-out forwards; }
+  .rays i { position:absolute; left:50%; top:50%; width:3.5%; height:54%; margin-left:-1.75%; transform-origin:50% 0; border-radius:999px;
+    background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,220,120,.55) 55%, transparent); }
+  @keyframes raysGrow { from{transform:scale(.25); opacity:1} to{transform:scale(1.55); opacity:0} }
   .fly { position:absolute; z-index:15; pointer-events:none;
     transition:left .5s cubic-bezier(.55,.05,.65,.45), top .5s cubic-bezier(.25,.6,.5,1), transform .5s ease-in, opacity .5s; }
-  .fly svg { width:100%; height:100%; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
+  .fly svg, .fly img { width:100%; height:100%; filter:drop-shadow(0 2px 3px rgba(0,0,0,.4)); }
   .goal-chip { transition:transform .15s; }
   .goal-chip.bump { animation:chipB .32s cubic-bezier(.2,1.6,.4,1); }
   @keyframes chipB { 0%{transform:scale(1)} 45%{transform:scale(1.35)} 100%{transform:scale(1)} }
-  .candy.land svg { animation:landSq .24s ease-out; }
+  .candy.land svg, .candy.land img { animation:landSq .24s ease-out; }
   @keyframes landSq { 0%{transform:scaleY(.76) scaleX(1.16)} 55%{transform:scaleY(1.08) scaleX(.96)} 100%{transform:scaleY(1) scaleX(1)} }
   .candy.born { animation:bornPop .5s cubic-bezier(.2,1.7,.4,1); }
   @keyframes bornPop { 0%{transform:scale(0) rotate(-40deg)} 70%{transform:scale(1.28) rotate(6deg)} 100%{transform:scale(1) rotate(0)} }
@@ -442,84 +447,261 @@ const KIND_HUE = {
   butterfly:['#ffd9a0','#ff8c1a','#b35400']
 };
 const POWERS = { fire:{rad:1}, bomb:{rad:2}, dyna:{rad:3}, tnt:{rad:4} };
-let gradSeq = 0;
-function pieceSVG(kind){
-  const [hi, mid, lo] = KIND_HUE[kind] || KIND_HUE.apple;
-  const uid = 'g' + (gradSeq++);
-  const grad = `<radialGradient id="${uid}" cx="38%" cy="30%" r="78%">
-      <stop offset="0%" stop-color="${hi}"/><stop offset="52%" stop-color="${mid}"/><stop offset="100%" stop-color="${lo}"/>
-    </radialGradient>`;
-  const O = `stroke="${lo}" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"`;
-  const sparkle = (x,y)=>`<circle cx="${x}" cy="${y}" r="3" fill="rgba(255,255,255,.9)"/>`;
-  switch(kind){
-    case 'apple': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
-      <path d="M50 30 C28 18 12 34 14 56 C16 78 34 92 50 90 C66 92 84 78 86 56 C88 34 72 18 50 30 Z" fill="url(#${uid})" ${O}/>
-      <path d="M30 78 C38 86 62 86 70 78 C62 90 38 90 30 78 Z" fill="rgba(90,10,0,.25)"/>
-      <rect x="47" y="13" width="7" height="18" rx="3.5" fill="#6d4520" stroke="#4a2c12" stroke-width="2"/>
-      <path d="M54 21 C63 7 78 9 80 14 C76 25 61 27 54 21 Z" fill="#57b32a" stroke="#2a6412" stroke-width="2.5" stroke-linejoin="round"/>
-      <ellipse cx="34" cy="43" rx="11" ry="8" fill="rgba(255,255,255,.75)" transform="rotate(-25 34 43)"/>${sparkle(46,36)}</svg>`;
-    case 'lemon': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
-      <path d="M13 42 C9 36 13 30 20 33 C30 20 46 16 58 22 C74 28 84 42 83 56 C90 60 88 68 80 67 C70 80 52 84 40 78 C25 72 15 58 17 46 Z" fill="url(#${uid})" ${O}/>
-      <ellipse cx="34" cy="38" rx="12" ry="8" fill="rgba(255,255,255,.8)" transform="rotate(-22 34 38)"/>
-      <path d="M30 70 C44 78 62 74 72 62 C66 78 44 82 30 70 Z" fill="rgba(140,90,0,.25)"/>${sparkle(50,30)}</svg>`;
-    case 'leaf': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
-      <path d="M50 8 C88 22 92 66 52 92 C14 68 14 24 50 8 Z" fill="url(#${uid})" ${O}/>
-      <path d="M50 18 L50 82 M50 34 L67 44 M50 34 L33 44 M50 54 L69 65 M50 54 L31 65" stroke="#1d5410" stroke-width="4" stroke-linecap="round" fill="none" opacity=".5"/>
-      <ellipse cx="37" cy="29" rx="10" ry="6" fill="rgba(255,255,255,.65)" transform="rotate(-35 37 29)"/>${sparkle(58,24)}</svg>`;
-    case 'drop': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
-      <path d="M50 6 C64 30 84 46 84 64 C84 82 68 94 50 94 C32 94 16 82 16 64 C16 46 36 30 50 6 Z" fill="url(#${uid})" ${O}/>
-      <ellipse cx="35" cy="58" rx="9" ry="14" fill="rgba(255,255,255,.75)" transform="rotate(16 35 58)"/>
-      <path d="M30 82 C42 90 60 88 70 78 C62 90 40 92 30 82 Z" fill="rgba(6,60,110,.3)"/>${sparkle(60,42)}</svg>`;
-    case 'flower': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
-      ${[0,60,120,180,240,300].map(a=>`<ellipse cx="50" cy="25" rx="13.5" ry="21" fill="url(#${uid})" ${O} transform="rotate(${a} 50 50)"`+`/>`).join('')}
-      <circle cx="50" cy="50" r="16" fill="#ffd21f" stroke="#b8860b" stroke-width="3.5"/>
-      <circle cx="50" cy="50" r="8" fill="#ffb400" opacity=".7"/>
-      <ellipse cx="44" cy="44" rx="6" ry="4" fill="rgba(255,255,255,.85)"/></svg>`;
-    case 'butterfly': return `<svg viewBox="0 0 100 100"><defs>${grad}</defs>
-      <ellipse cx="29" cy="33" rx="21" ry="17" fill="url(#${uid})" ${O} transform="rotate(-20 29 33)"/>
-      <ellipse cx="71" cy="33" rx="21" ry="17" fill="url(#${uid})" ${O} transform="rotate(20 71 33)"/>
-      <ellipse cx="31" cy="65" rx="16" ry="13" fill="url(#${uid})" ${O} transform="rotate(15 31 65)"/>
-      <ellipse cx="69" cy="65" rx="16" ry="13" fill="url(#${uid})" ${O} transform="rotate(-15 69 65)"/>
-      <circle cx="29" cy="33" r="6" fill="rgba(255,255,255,.5)"/><circle cx="71" cy="33" r="6" fill="rgba(255,255,255,.5)"/>
-      <rect x="44.5" y="24" width="11" height="54" rx="5.5" fill="#5e3416" stroke="#3d2008" stroke-width="2"/>
-      <path d="M47 25 C40 11 32 9 28 11 M53 25 C60 11 68 9 72 11" stroke="#3d2008" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-      <ellipse cx="26" cy="29" rx="4.5" ry="3.5" fill="rgba(255,255,255,.8)"/></svg>`;
-  }
-  return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="38" fill="${mid}" ${O}/></svg>`;
+/* =====================================================================
+   BAKED BITMAP SPRITES
+   Each piece and power-up is painted once at boot onto a 256px canvas
+   with layered radial shading, ambient occlusion, rim light, and
+   specular highlights, then reused everywhere as a bitmap <img>.
+   No image assets, no network — works fully offline.
+   ===================================================================== */
+const SPR = 256;
+const SPRITES = {};
+function rgrad(x, cx, cy, r0, r1, stops){
+  const g = x.createRadialGradient(cx, cy, r0, cx, cy, r1);
+  stops.forEach(([o,c])=>g.addColorStop(o,c));
+  return g;
 }
-function powerSVG(power){
-  switch(power){
-    case 'fire': return `<svg viewBox="0 0 100 100">
-      <rect x="34" y="30" width="32" height="52" rx="10" fill="#e8402a" stroke="#8f1607" stroke-width="3"/>
-      <rect x="34" y="44" width="32" height="8" fill="#fff6b0"/><rect x="34" y="60" width="32" height="8" fill="#fff6b0"/>
-      <path d="M50 30 C50 20 56 18 56 12" stroke="#5e3416" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <g class="spark" fill="#ffd21f"><circle cx="58" cy="9" r="3"/><circle cx="64" cy="14" r="2"/><circle cx="52" cy="6" r="2"/></g>
-      <ellipse cx="41" cy="38" rx="4" ry="8" fill="rgba(255,255,255,.5)"/></svg>`;
-    case 'bomb': return `<svg viewBox="0 0 100 100">
-      <circle cx="48" cy="58" r="34" fill="#3a3f47"/><circle cx="48" cy="58" r="34" fill="none" stroke="#15181c" stroke-width="3"/>
-      <rect x="42" y="18" width="14" height="12" rx="3" fill="#5b6470"/>
-      <path d="M50 18 C52 8 62 8 66 4" stroke="#8a5a2e" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <g class="spark" fill="#ffd21f"><circle cx="68" cy="3" r="4"/><circle cx="74" cy="8" r="2.6"/><circle cx="63" cy="-1" r="2.4"/></g>
-      <ellipse cx="36" cy="46" rx="10" ry="7" fill="rgba(255,255,255,.4)" transform="rotate(-25 36 46)"/></svg>`;
-    case 'dyna': return `<svg viewBox="0 0 100 100">
-      <rect x="22" y="26" width="16" height="58" rx="7" fill="#e8402a" stroke="#8f1607" stroke-width="2.5"/>
-      <rect x="42" y="20" width="16" height="64" rx="7" fill="#f4573f" stroke="#8f1607" stroke-width="2.5"/>
-      <rect x="62" y="26" width="16" height="58" rx="7" fill="#e8402a" stroke="#8f1607" stroke-width="2.5"/>
-      <rect x="18" y="48" width="64" height="10" rx="4" fill="#8a5a2e"/>
-      <path d="M50 20 C52 10 60 10 64 5" stroke="#5e3416" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <g class="spark" fill="#ffd21f"><circle cx="66" cy="4" r="3.6"/><circle cx="72" cy="9" r="2.4"/><circle cx="61" cy="0" r="2.2"/></g></svg>`;
-    case 'tnt': return `<svg viewBox="0 0 100 100">
-      <rect x="12" y="24" width="76" height="64" rx="8" fill="#c9915a" stroke="#5e3416" stroke-width="4"/>
-      <rect x="12" y="24" width="76" height="14" fill="#a97142"/><rect x="12" y="74" width="76" height="14" fill="#a97142"/>
-      <rect x="12" y="46" width="76" height="18" fill="#fff3d6"/>
-      <text x="50" y="61" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="17" fill="#c1272d">T·N·T</text>
-      <path d="M50 24 C52 14 60 14 64 8" stroke="#5e3416" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <g class="spark" fill="#ffd21f"><circle cx="66" cy="7" r="3.6"/><circle cx="72" cy="12" r="2.4"/><circle cx="61" cy="3" r="2.2"/></g></svg>`;
-  }
-  return '';
+function lgrad(x, x0, y0, x1, y1, stops){
+  const g = x.createLinearGradient(x0, y0, x1, y1);
+  stops.forEach(([o,c])=>g.addColorStop(o,c));
+  return g;
 }
+function darkHex(hex, f){
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.round(((n>>16)&255)*f), g = Math.round(((n>>8)&255)*f), b = Math.round((n&255)*f);
+  return `rgb(${r},${g},${b})`;
+}
+/* base shading pass: volume gradient, bottom AO, top sheen, rim light, outline */
+function shadeBody(x, path, hue, o={}){
+  const [hi, mid, lo] = hue;
+  const cx = o.cx ?? 40, cy = o.cy ?? 34, R = o.r ?? 80;
+  x.save();
+  x.fillStyle = rgrad(x, cx, cy, 2, R, [[0,hi],[.5,mid],[1,lo]]);
+  x.fill(path);
+  x.save();
+  x.clip(path);
+  x.fillStyle = lgrad(x, 0, 98, 0, 52, [[0,'rgba(20,0,10,.4)'],[1,'rgba(20,0,10,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.fillStyle = lgrad(x, 0, 6, 0, 48, [[0,'rgba(255,255,255,.3)'],[1,'rgba(255,255,255,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.save();
+  x.translate(-2.5, -3.5);
+  x.strokeStyle = 'rgba(255,255,255,.28)'; x.lineWidth = 7; x.stroke(path);
+  x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = 3.5; x.stroke(path);
+  x.restore();
+  x.restore();
+  x.strokeStyle = darkHex(lo, .6);
+  x.lineWidth = 3.5; x.lineJoin = 'round';
+  x.stroke(path);
+  x.restore();
+}
+function specBlob(x, px, py, rx, ry, rot, a){
+  a = a ?? .85;
+  x.save();
+  x.translate(px, py); x.rotate((rot||0)*Math.PI/180); x.scale(rx, ry);
+  x.fillStyle = rgrad(x, 0, 0, 0, 1, [[0,`rgba(255,255,255,${a})`],[.55,`rgba(255,255,255,${a*.4})`],[1,'rgba(255,255,255,0)']]);
+  x.beginPath(); x.arc(0, 0, 1, 0, 7); x.fill();
+  x.restore();
+}
+function sparkGlow(x, px, py){
+  x.save();
+  x.fillStyle = rgrad(x, px, py, 0, 9, [[0,'rgba(255,240,150,.95)'],[.4,'rgba(255,200,40,.55)'],[1,'rgba(255,200,40,0)']]);
+  x.beginPath(); x.arc(px, py, 9, 0, 7); x.fill();
+  x.fillStyle = '#ffd21f';
+  [[0,0,2.6],[4,3,1.6],[-3,-3,1.4]].forEach(([dx,dy,r])=>{ x.beginPath(); x.arc(px+dx, py+dy, r, 0, 7); x.fill(); });
+  x.restore();
+}
+function paintApple(x){
+  const body = new Path2D('M50 30 C28 18 12 34 14 56 C16 78 34 92 50 90 C66 92 84 78 86 56 C88 34 72 18 50 30 Z');
+  shadeBody(x, body, KIND_HUE.apple, {cx:38, cy:42});
+  x.fillStyle = lgrad(x, 46, 0, 55, 0, [[0,'#8a5a2e'],[.5,'#6d4520'],[1,'#4a2c12']]);
+  const stem = new Path2D('M47 31 L47 17 Q47 13 50.5 13 Q54 13 54 17 L54 31 Z');
+  x.fill(stem); x.strokeStyle = '#3d2008'; x.lineWidth = 2; x.stroke(stem);
+  const leaf = new Path2D('M54 21 C63 7 78 9 80 14 C76 25 61 27 54 21 Z');
+  x.fillStyle = rgrad(x, 62, 14, 1, 22, [[0,'#9ade6e'],[.6,'#57b32a'],[1,'#2a6412']]);
+  x.fill(leaf); x.strokeStyle = '#1d5410'; x.lineWidth = 2.2; x.stroke(leaf);
+  specBlob(x, 33, 42, 11, 7.5, -25);
+  specBlob(x, 46, 34, 3, 3, 0, .9);
+}
+function paintLemon(x){
+  const body = new Path2D('M13 42 C9 36 13 30 20 33 C30 20 46 16 58 22 C74 28 84 42 83 56 C90 60 88 68 80 67 C70 80 52 84 40 78 C25 72 15 58 17 46 Z');
+  shadeBody(x, body, KIND_HUE.lemon, {cx:36, cy:36});
+  x.save(); x.clip(body);
+  x.fillStyle = 'rgba(255,255,255,.25)';
+  [[30,55],[42,64],[56,66],[66,54],[26,44]].forEach(([px,py])=>{ x.beginPath(); x.arc(px,py,1.2,0,7); x.fill(); });
+  x.fillStyle = 'rgba(140,90,0,.15)';
+  [[62,38],[48,30],[70,45],[36,68]].forEach(([px,py])=>{ x.beginPath(); x.arc(px,py,1.3,0,7); x.fill(); });
+  x.restore();
+  specBlob(x, 33, 37, 12, 7, -22);
+  specBlob(x, 48, 28, 3, 3, 0, .9);
+}
+function paintLeaf(x){
+  const body = new Path2D('M50 8 C88 22 92 66 52 92 C14 68 14 24 50 8 Z');
+  shadeBody(x, body, KIND_HUE.leaf, {cx:40, cy:30});
+  x.save(); x.clip(body);
+  x.strokeStyle = 'rgba(29,84,16,.55)'; x.lineCap = 'round';
+  x.lineWidth = 3.2;
+  x.beginPath(); x.moveTo(50,18); x.lineTo(50,82); x.stroke();
+  x.lineWidth = 2.4;
+  [[34,[33,44]],[34,[67,44]],[54,[31,65]],[54,[69,65]],[70,[37,78]],[70,[63,78]]].forEach(([sy,[ex,ey]])=>{
+    x.beginPath(); x.moveTo(50,sy); x.lineTo(ex,ey); x.stroke();
+  });
+  x.restore();
+  specBlob(x, 37, 28, 9, 5.5, -35);
+  specBlob(x, 58, 24, 2.6, 2.6, 0, .9);
+}
+function paintDrop(x){
+  const body = new Path2D('M50 6 C64 30 84 46 84 64 C84 82 68 94 50 94 C32 94 16 82 16 64 C16 46 36 30 50 6 Z');
+  shadeBody(x, body, KIND_HUE.drop, {cx:40, cy:46});
+  x.save(); x.clip(body);
+  x.fillStyle = rgrad(x, 50, 82, 2, 26, [[0,'rgba(195,240,255,.5)'],[1,'rgba(195,240,255,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.restore();
+  specBlob(x, 35, 56, 7.5, 13, 16);
+  specBlob(x, 58, 40, 3, 3, 0, .9);
+}
+function paintFlower(x){
+  const [hi, mid, lo] = KIND_HUE.flower;
+  for(const a of [0,60,120,180,240,300]){
+    x.save(); x.translate(50,50); x.rotate(a*Math.PI/180);
+    const p = new Path2D(); p.ellipse(0, -26, 13.5, 21, 0, 0, 7);
+    x.fillStyle = rgrad(x, 0, -34, 1, 34, [[0,hi],[.55,mid],[1,lo]]);
+    x.fill(p);
+    x.strokeStyle = darkHex(lo, .65); x.lineWidth = 3; x.stroke(p);
+    x.fillStyle = 'rgba(255,255,255,.3)';
+    x.beginPath(); x.ellipse(0, -36, 6, 4, 0, 0, 7); x.fill();
+    x.restore();
+  }
+  x.fillStyle = rgrad(x, 46, 46, 1, 20, [[0,'#ffe98a'],[.55,'#ffc21f'],[1,'#b8860b']]);
+  x.beginPath(); x.arc(50, 50, 16, 0, 7); x.fill();
+  x.strokeStyle = '#8a5f06'; x.lineWidth = 3; x.stroke();
+  x.fillStyle = '#a86f00';
+  for(let i=0;i<8;i++){
+    const t = i/8*Math.PI*2;
+    x.beginPath(); x.arc(50+Math.cos(t)*9, 50+Math.sin(t)*9, 1.6, 0, 7); x.fill();
+  }
+  specBlob(x, 44, 44, 5, 3.5, 0, .8);
+}
+function paintButterfly(x){
+  const [hi, mid, lo] = KIND_HUE.butterfly;
+  const wing = (cx, cy, rx, ry, rot)=>{
+    x.save(); x.translate(cx, cy); x.rotate(rot*Math.PI/180);
+    const p = new Path2D(); p.ellipse(0, 0, rx, ry, 0, 0, 7);
+    x.fillStyle = rgrad(x, -rx*.25, -ry*.3, 1, rx*1.4, [[0,hi],[.55,mid],[1,lo]]);
+    x.fill(p);
+    x.strokeStyle = darkHex(lo, .65); x.lineWidth = 3; x.stroke(p);
+    x.strokeStyle = 'rgba(255,255,255,.45)'; x.lineWidth = 2;
+    x.beginPath(); x.ellipse(0, 0, rx*.55, ry*.55, 0, 0, 7); x.stroke();
+    x.fillStyle = 'rgba(255,255,255,.75)';
+    x.beginPath(); x.arc(-rx*.25, -ry*.25, 2.6, 0, 7); x.fill();
+    x.restore();
+  };
+  wing(29,33,21,17,-20); wing(71,33,21,17,20);
+  wing(31,65,16,13,15);  wing(69,65,16,13,-15);
+  const body = new Path2D('M44.5 30 Q44.5 24 50 24 Q55.5 24 55.5 30 L55.5 72 Q55.5 78 50 78 Q44.5 78 44.5 72 Z');
+  x.fillStyle = lgrad(x, 44.5, 0, 55.5, 0, [[0,'#3d2008'],[.5,'#7a4a22'],[1,'#3d2008']]);
+  x.fill(body);
+  x.strokeStyle = '#2a1505'; x.lineWidth = 2; x.stroke(body);
+  x.strokeStyle = '#3d2008'; x.lineWidth = 3; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(47,25); x.bezierCurveTo(40,11,32,9,28,11); x.stroke();
+  x.beginPath(); x.moveTo(53,25); x.bezierCurveTo(60,11,68,9,72,11); x.stroke();
+}
+function paintFire(x){
+  const body = new Path2D('M34 40 Q34 30 44 30 L56 30 Q66 30 66 40 L66 72 Q66 82 56 82 L44 82 Q34 82 34 72 Z');
+  x.fillStyle = lgrad(x, 34, 0, 66, 0, [[0,'#9c1608'],[.18,'#e8402a'],[.5,'#ff8a6a'],[.82,'#e8402a'],[1,'#9c1608']]);
+  x.fill(body);
+  x.save(); x.clip(body);
+  x.fillStyle = lgrad(x, 34, 0, 66, 0, [[0,'#a89060'],[.18,'#e8d5a8'],[.5,'#fff9e0'],[.82,'#e8d5a8'],[1,'#a89060']]);
+  x.fillRect(34, 44, 32, 8); x.fillRect(34, 60, 32, 8);
+  x.fillStyle = lgrad(x, 0, 76, 0, 84, [[0,'rgba(60,10,0,0)'],[1,'rgba(60,10,0,.4)']]);
+  x.fillRect(34, 70, 32, 14);
+  x.restore();
+  x.strokeStyle = '#7a1204'; x.lineWidth = 3; x.stroke(body);
+  x.fillStyle = lgrad(x, 0, 26, 0, 34, [[0,'#c9573f'],[1,'#8f1607']]);
+  x.beginPath(); x.ellipse(50, 30, 16, 5, 0, 0, 7); x.fill();
+  x.strokeStyle = '#7a1204'; x.lineWidth = 2.4; x.stroke();
+  x.strokeStyle = '#5e3416'; x.lineWidth = 3.5; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(50,30); x.bezierCurveTo(50,20,56,18,58,11); x.stroke();
+  sparkGlow(x, 58, 9);
+}
+function paintBomb(x){
+  x.fillStyle = rgrad(x, 36, 44, 2, 62, [[0,'#7d8794'],[.35,'#3a3f47'],[1,'#101418']]);
+  x.beginPath(); x.arc(48, 58, 34, 0, 7); x.fill();
+  x.strokeStyle = '#0a0d10'; x.lineWidth = 3; x.stroke();
+  const cap = new Path2D('M42 30 L42 20 Q42 16 46 16 L54 16 Q58 16 58 20 L58 30 Z');
+  x.fillStyle = lgrad(x, 42, 0, 58, 0, [[0,'#39404a'],[.5,'#8b97a6'],[1,'#39404a']]);
+  x.fill(cap); x.strokeStyle = '#1c2127'; x.lineWidth = 2.4; x.stroke(cap);
+  x.strokeStyle = '#8a5a2e'; x.lineWidth = 4; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(50,17); x.bezierCurveTo(52,8,62,8,66,4); x.stroke();
+  sparkGlow(x, 67, 3);
+  specBlob(x, 35, 45, 11, 8, -25, .5);
+  specBlob(x, 58, 42, 3.5, 3.5, 0, .5);
+}
+function paintDyna(x){
+  const stick = (cx, top)=>{
+    const p = new Path2D(`M${cx-8} ${top+6} Q${cx-8} ${top} ${cx-2} ${top} L${cx+2} ${top} Q${cx+8} ${top} ${cx+8} ${top+6} L${cx+8} 78 Q${cx+8} 84 ${cx+2} 84 L${cx-2} 84 Q${cx-8} 84 ${cx-8} 78 Z`);
+    x.fillStyle = lgrad(x, cx-8, 0, cx+8, 0, [[0,'#8f1607'],[.25,'#e8402a'],[.5,'#ff8a6a'],[.75,'#e8402a'],[1,'#8f1607']]);
+    x.fill(p); x.strokeStyle = '#7a1204'; x.lineWidth = 2.4; x.stroke(p);
+    x.fillStyle = 'rgba(120,15,0,.5)';
+    x.beginPath(); x.ellipse(cx, top+3, 6.5, 2.4, 0, 0, 7); x.fill();
+  };
+  stick(30, 26); stick(70, 26); stick(50, 20);
+  const strap = new Path2D('M16 48 Q14 48 14 51 L14 55 Q14 58 16 58 L84 58 Q86 58 86 55 L86 51 Q86 48 84 48 Z');
+  x.fillStyle = lgrad(x, 0, 48, 0, 58, [[0,'#b8804f'],[.5,'#8a5a2e'],[1,'#5e3a17']]);
+  x.fill(strap); x.strokeStyle = '#4a2c12'; x.lineWidth = 2.2; x.stroke(strap);
+  x.strokeStyle = '#5e3416'; x.lineWidth = 3.5; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(50,20); x.bezierCurveTo(52,11,60,11,64,6); x.stroke();
+  sparkGlow(x, 65, 5);
+}
+function paintTNT(x){
+  const crate = new Path2D('M20 24 Q12 24 12 32 L12 80 Q12 88 20 88 L80 88 Q88 88 88 80 L88 32 Q88 24 80 24 Z');
+  x.fillStyle = lgrad(x, 0, 24, 0, 88, [[0,'#d8a86b'],[.5,'#c9915a'],[1,'#96662f']]);
+  x.fill(crate);
+  x.save(); x.clip(crate);
+  x.fillStyle = 'rgba(94,52,22,.3)';
+  x.fillRect(12, 24, 76, 13); x.fillRect(12, 75, 76, 13);
+  x.strokeStyle = 'rgba(74,44,18,.35)'; x.lineWidth = 1.4;
+  [29,33,80,84].forEach(y=>{ x.beginPath(); x.moveTo(14,y); x.bezierCurveTo(35,y-1.5,65,y+1.5,86,y); x.stroke(); });
+  x.fillStyle = lgrad(x, 0, 46, 0, 66, [[0,'#efe0bf'],[.5,'#fff6dd'],[1,'#e2cfa4']]);
+  x.fillRect(12, 46, 76, 20);
+  x.strokeStyle = 'rgba(94,52,22,.5)'; x.lineWidth = 1.6;
+  x.beginPath(); x.moveTo(12,46); x.lineTo(88,46); x.moveTo(12,66); x.lineTo(88,66); x.stroke();
+  x.restore();
+  x.strokeStyle = '#5e3416'; x.lineWidth = 3.6; x.stroke(crate);
+  x.font = '900 15px "Arial Black", Arial, sans-serif';
+  x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.lineWidth = 3.4; x.strokeStyle = '#7a1204'; x.strokeText('T·N·T', 50, 56.6);
+  x.fillStyle = '#e33540'; x.fillText('T·N·T', 50, 56.6);
+  x.fillStyle = '#5e3416';
+  [[18,30],[82,30],[18,82],[82,82]].forEach(([px,py])=>{ x.beginPath(); x.arc(px,py,2.2,0,7); x.fill(); });
+  x.strokeStyle = '#5e3416'; x.lineWidth = 3.5; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(50,24); x.bezierCurveTo(52,15,60,15,64,9); x.stroke();
+  sparkGlow(x, 65, 8);
+}
+function bake(fn){
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = SPR;
+  const x = cv.getContext('2d');
+  x.scale(SPR/100, SPR/100);
+  x.lineJoin = 'round'; x.lineCap = 'round';
+  fn(x);
+  return cv.toDataURL('image/png');
+}
+(function bakeAll(){
+  SPRITES.apple = bake(paintApple);
+  SPRITES.lemon = bake(paintLemon);
+  SPRITES.leaf = bake(paintLeaf);
+  SPRITES.drop = bake(paintDrop);
+  SPRITES.flower = bake(paintFlower);
+  SPRITES.butterfly = bake(paintButterfly);
+  SPRITES.p_fire = bake(paintFire);
+  SPRITES.p_bomb = bake(paintBomb);
+  SPRITES.p_dyna = bake(paintDyna);
+  SPRITES.p_tnt = bake(paintTNT);
+})();
+function spriteImg(k){ return `<img src="${SPRITES[k]}" alt="" draggable="false">`; }
 function chipIcon(g){
-  return g.type === 'dirt' ? `<span class="dirt-ico"></span>` : pieceSVG(g.kind);
+  return g.type === 'dirt' ? `<span class="dirt-ico"></span>` : spriteImg(g.kind);
 }
 
 /* ---------------- levels ----------------
@@ -728,7 +910,7 @@ function placeCandy(el, r, c, instant){
 function makePiece(kind){
   const p = { kind, power:null, id: ++G.idSeq, el: document.createElement('div') };
   p.el.className = 'candy';
-  p.el.innerHTML = pieceSVG(kind);
+  p.el.innerHTML = spriteImg(kind);
   sizeCandy(p.el);
   boardEl.appendChild(p.el);
   return p;
@@ -737,7 +919,7 @@ function setPower(p, power){
   p.power = power;
   p.kind = null;
   p.el.classList.add('power','born');
-  p.el.innerHTML = powerSVG(power);
+  p.el.innerHTML = spriteImg('p_' + power);
   setTimeout(()=>p.el.classList.remove('born'), 520);
 }
 function removePieceEl(p){
@@ -915,13 +1097,26 @@ function spawnBurst(r, c, colors, n){
 function spawnRing(r, c, rad){
   if(REDUCED) return;
   const size = G.cellPx * (rad*2+1);
-  const d = document.createElement('div');
-  d.className = 'ring';
-  d.style.width = d.style.height = size + 'px';
-  d.style.left = ((c+.5)*G.cellPx - size/2) + 'px';
-  d.style.top  = ((r+.5)*G.cellPx - size/2) + 'px';
-  boardEl.appendChild(d);
-  setTimeout(()=>d.remove(), 500);
+  const mk = cls => {
+    const d = document.createElement('div');
+    d.className = cls;
+    d.style.width = d.style.height = size + 'px';
+    d.style.left = ((c+.5)*G.cellPx - size/2) + 'px';
+    d.style.top  = ((r+.5)*G.cellPx - size/2) + 'px';
+    boardEl.appendChild(d);
+    return d;
+  };
+  const ring = mk('ring');
+  setTimeout(()=>ring.remove(), 500);
+  if(rad >= 1){
+    const rays = mk('rays');
+    for(let i=0;i<8;i++){
+      const s = document.createElement('i');
+      s.style.transform = `rotate(${i*45}deg)`;
+      rays.appendChild(s);
+    }
+    setTimeout(()=>rays.remove(), 560);
+  }
 }
 /* a small copy of the collected piece arcs up to its goal chip */
 function flyToGoal(gk, r, c, flights){
@@ -935,7 +1130,7 @@ function flyToGoal(gk, r, c, flights){
   const cRect = chip.getBoundingClientRect();
   const d = document.createElement('div');
   d.className = 'fly';
-  d.innerHTML = gk === 'dirt' ? '<span class="dirt-ico" style="width:100%;height:100%;display:block;"></span>' : pieceSVG(gk);
+  d.innerHTML = gk === 'dirt' ? '<span class="dirt-ico" style="width:100%;height:100%;display:block;"></span>' : spriteImg(gk);
   const size = Math.max(22, Math.round(G.cellPx * .6));
   d.style.width = d.style.height = size + 'px';
   d.style.left = (bRect.left - gRect.left + c*G.cellPx + (G.cellPx-size)/2) + 'px';
@@ -1117,7 +1312,7 @@ function shuffleBoard(silent){
       const run = runs.hRuns[0] || runs.vRuns[0];
       const [r,c] = run[1];
       const p = G.grid[r][c];
-      if(p && !p.power){ p.kind = KINDS[rnd(G.L.colors)]; p.el.innerHTML = pieceSVG(p.kind); }
+      if(p && !p.power){ p.kind = KINDS[rnd(G.L.colors)]; p.el.innerHTML = spriteImg(p.kind); }
       runs = findRuns(); fix++;
     }
     guard++;
