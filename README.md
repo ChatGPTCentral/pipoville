@@ -5,8 +5,11 @@ meta on top of a size-tiered explosive match-3, built as a single offline
 HTML file with zero dependencies and zero image assets (every sprite is
 canvas-painted at boot).
 
-**Play:** https://aleville.vercel.app — on iPhone, open in Safari →
+**Play:** https://pipoville.vercel.app — on iPhone, open in Safari →
 Share → **Add to Home Screen** for the full-screen offline app.
+
+Available in **English and Italiano** — pick your language on the title
+screen (character names stay the same in both).
 
 ## What's inside
 

@@ -70,6 +70,12 @@
     filter:drop-shadow(0 3px 0 #8a4d00); transform:rotate(1deg); }
   .splash-row { position:relative; z-index:2; font-size:42px; letter-spacing:6px; filter:drop-shadow(0 4px 5px rgba(0,0,0,.35)); }
   #splash .btn, #splash .note { position:relative; z-index:2; }
+  .lang-row { position:relative; z-index:2; display:flex; gap:10px; margin-bottom:12px; }
+  .lang-btn { font:inherit; font-size:14px; font-weight:800; padding:7px 16px; border-radius:999px;
+    border:2.5px solid rgba(255,255,255,.75); background:rgba(255,255,255,.28); color:#0e3d0c;
+    cursor:pointer; opacity:.85; text-shadow:0 1px 0 rgba(255,255,255,.4); }
+  .lang-btn.active { background:#fff; opacity:1; box-shadow:0 3px 0 rgba(0,0,0,.18); }
+  .lang-btn:active { transform:translateY(2px); }
   #splash .note { font-size:13px; font-weight:700; color:#0e3d0c; text-shadow:0 1px 0 rgba(255,255,255,.4); }
 
   /* ---------- level map: garden path ---------- */
@@ -485,6 +491,10 @@
   <div class="logo">PIPOVILLE<span class="sub">HELP PIPOP RESCUE HIS FRIENDS</span></div>
   <img id="pipop-splash" class="pipop-img" alt="">
   <div class="splash-row">🍎🍋🌷🦋💧</div>
+  <div class="lang-row">
+    <button class="lang-btn" data-lang="en">🇬🇧 English</button>
+    <button class="lang-btn" data-lang="it">🇮🇹 Italiano</button>
+  </div>
   <button class="btn" id="btn-play" style="font-size:26px; padding:14px 52px;">Play!</button>
   <div class="note">Works offline · Progress saved on this device</div>
 </div>
@@ -1369,6 +1379,132 @@ const SAVE_KEY = 'candy_garden_save_v1';
 let save = { stars:{}, unlocked:1, sound:true };
 try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if(s && s.stars) save = Object.assign(save, s); } catch(e){}
 function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e){} }
+
+/* ---------------- i18n (English / Italiano) ----------------
+   Character names (Pipop, Nunu, Cannolio, Whaeleeno, Baggu, ...) are
+   never translated. Static DOM text is swapped once at boot by exact
+   match; dynamic strings go through t() (whole string) or tf(en, it)
+   (templates with interpolation). Switching language reloads the page. */
+const LANG = save.lang === 'it' ? 'it' : 'en';
+const IT = {
+  // splash
+  'HELP PIPOP RESCUE HIS FRIENDS':'AIUTA PIPOP A SALVARE I SUOI AMICI',
+  'Play!':'Gioca!',
+  'Works offline · Progress saved on this device':'Funziona offline · Progressi salvati su questo dispositivo',
+  // HUD
+  'Moves':'Mosse', 'Goals':'Obiettivi', 'Rainbow charge':'Carica arcobaleno',
+  // intro modal
+  'Level 1':'Livello 1', 'Ready?':'Pronti?',
+  'Match 4+ to craft boosters: firecracker, bomb, dynamite, TNT. Tap a booster to set it off!':
+    'Combina 4+ pezzi per creare potenziamenti: petardo, bomba, dinamite, TNT. Tocca un potenziamento per farlo esplodere!',
+  'Level':'Livello', 'moves':'mosse', 'HARD!':'DIFFICILE!',
+  // win modal
+  'Level Complete!':'Livello completato!',
+  'Lovely!':'Che bello!', 'Blooming!':'In fiore!', 'Spectacular!':'Spettacolare!',
+  'Score: 0':'Punteggio: 0', 'Score:':'Punteggio:',
+  '⭐ You can afford a garden task!':'⭐ Puoi permetterti un lavoretto per Pipoville!',
+  'Map':'Mappa', 'Garden 🔨':'Città 🔨', 'Replay':'Rigioca', 'Next ▶':'Avanti ▶',
+  // lose modal
+  'Out of Moves!':'Mosse finite!', 'So close!':'Per un soffio!',
+  "You didn't reach the goal this time.":'Questa volta non hai raggiunto l\'obiettivo.',
+  'One goal was left unfinished. Try again!':'Un obiettivo è rimasto incompiuto. Riprova!',
+  'Reach all the goals before moves run out!':'Completa tutti gli obiettivi prima che finiscano le mosse!',
+  'Try Again':'Riprova',
+  // pause modal
+  'Paused':'Pausa', 'Sound':'Audio', 'Music':'Musica', 'On':'Sì', 'Off':'No',
+  'Resume':'Riprendi', 'Restart':'Ricomincia',
+  // story modal
+  'Emergency!':'Emergenza!',
+  "Pipop! Sheriff Saltbread Cane here. Whaeleeno and Baggu raided the town — they stole the mail and took our friends! Cannolio, Nunu, the whole school... everyone! You're the only one who knows every path in Pipoville. Solve the puzzle boards, follow the trail, and bring them home!":
+    'Pipop! Qui lo sceriffo Sir Saltbread Cane. Whaeleeno e Baggu hanno assaltato la città — hanno rubato la posta e rapito i nostri amici! Cannolio, Nunu, tutta la scuola... tutti quanti! Sei l\'unico che conosce ogni sentiero di Pipoville. Risolvi i tabelloni puzzle, segui le tracce e riportali a casa!',
+  'WANTED:':'RICERCATI:', "Let's go!":'Andiamo!',
+  // tasks modal
+  'Rebuild Pipoville':'Ricostruisci Pipoville', 'Day 1':'Giorno 1', 'Day':'Giorno',
+  "Let's rebuild Pipoville — win levels to earn stars!":'Ricostruiamo Pipoville — vinci i livelli per guadagnare stelle!',
+  '★ 0 to spend':'★ 0 da spendere', 'to spend':'da spendere', 'Close':'Chiudi',
+  'The whole garden is restored! 🌸':'Tutta Pipoville è ricostruita! 🌸',
+  // rescue modal
+  'Rescued!':'In salvo!', 'Pipoville is saved!':'Pipoville è salva!',
+  'Friend':'Amico', 'Hooray!':'Evviva!',
+  // daily gift modal
+  'Daily Gift':'Regalo del giorno',
+  'Come back tomorrow for a bigger gift!':'Torna domani per un regalo più grande!',
+  'Claim!':'Ritira!',
+  'Firecracker':'Petardo', 'Bomb':'Bomba', 'Dynamite':'Dinamite', 'TNT crate':'Cassa di TNT',
+  // toasts
+  'Shuffled!':'Rimescolato!', 'Last move!':'Ultima mossa!',
+  'Great!':'Grande!', 'Amazing!':'Fantastico!', 'Unbelievable!':'Incredibile!',
+  'Rainbow Blast!':'Esplosione Arcobaleno!', 'Rainbow Storm!':'Tempesta Arcobaleno!',
+  'Bloom Burst!':'Scoppio di Fiori!', 'Super Bloom!':'Super Fioritura!',
+  // tutorial
+  'Swap to match 3!':'Scambia per fare tris!',
+  // chapters
+  'Ch.1 — Nunu Farms':'Cap.1 — Fattorie di Nunu',
+  'Ch.2 — Pipoville School':'Cap.2 — Scuola di Pipoville',
+  'Ch.3 — Main Street':'Cap.3 — Corso Principale',
+  'Ch.4 — Town Hall':'Cap.4 — Municipio',
+  // rescue dialogue (names stay as-is)
+  'Neigh! Those thieves tied me up in the hay barn. Thank you, Pipop!':
+    'Hiii! Quei ladri mi avevano legata nel fienile. Grazie, Pipop!',
+  "Woof woof! I KNEW you'd come! I'll dig for you from now on. (+1 shovel every level)":
+    'Bau bau! LO SAPEVO che saresti venuto! D\'ora in poi scavo io per te. (+1 pala ogni livello)',
+  'My farm! My Ninni! You saved us all. Take extra moves on the hard roads. (+2 moves on hard levels)':
+    'La mia fattoria! La mia Ninni! Ci hai salvati tutti. Prendi mosse extra sulle strade difficili. (+2 mosse nei livelli difficili)',
+  'Moo-st impressive, Pipop! The school owes you one. (Daily gifts upgraded)':
+    'Muu-raviglioso, Pipop! La scuola ti deve un favore. (Regali giornalieri potenziati)',
+  'Fascinating! By my calculations, your rainbow wheel now charges faster. (Wheel fills at 50)':
+    'Affascinante! Secondo i miei calcoli, la tua ruota arcobaleno ora si carica più in fretta. (La ruota si riempie a 50)',
+  'GRRREAT hustle out there, champ! Keep those combos coming!':
+    'GRRRANDE grinta, campione! Continua con quelle combo!',
+  "The whole school is free! Art class is back — I'll paint your portrait, hero.":
+    'Tutta la scuola è libera! L\'ora di arte è tornata — ti farò un ritratto, eroe.',
+  'My groceries! My store! Oink-credible work, Pipop!':
+    'La mia spesa! Il mio negozio! Un lavoro oink-credibile, Pipop!',
+  'Hmph. You rescued Mayalee FIRST?! ...Thank you though. Truly.':
+    'Uffa. Hai salvato PRIMA Mayalee?! ...Però grazie. Davvero.',
+  'Fresh croissants for the hero! Your streak boosters just got tastier. (Streaks add a Bomb)':
+    'Cornetti freschi per l\'eroe! I tuoi bonus serie sono ancora più gustosi. (Le serie aggiungono una Bomba)',
+  'Arf! The sheriff is still locked in the town hall — hurry, Pipop!':
+    'Arf! Lo sceriffo è ancora chiuso in municipio — corri, Pipop!',
+  "Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipop.":
+    'Sceriffo Saltbread Cane, di nuovo in servizio. Finiamo il lavoro, vice Pipop.',
+  'Blub... you win, mailbird. Baggu — give back the mail. ALL of it. Pipoville is saved!':
+    'Blub... hai vinto, pinguino postino. Baggu — restituisci la posta. TUTTA. Pipoville è salva!',
+  // garden tasks
+  'Fix the old bench':'Ripara la vecchia panchina', 'A fine spot to rest!':'Un bel posto per riposare!',
+  'Plant the flowerbed':'Pianta l\'aiuola', 'The tulips are lovely!':'I tulipani sono splendidi!',
+  'Restore the fountain':'Restaura la fontana', 'Listen to that water sing!':'Senti come canta l\'acqua!',
+  'Repave the walkway':'Ripavimenta il vialetto', 'Smooth as can be.':'Liscio come l\'olio.',
+  'Revive the old oak':'Rinvigorisci la vecchia quercia', 'It has stood here a century!':'È qui da un secolo!',
+  'Repaint the garden house':'Ridipingi la casetta del giardino', 'Good as new!':'Come nuova!',
+  'Mend the stone bridge':'Sistema il ponte di pietra', 'Sturdy once again!':'Di nuovo solido!',
+  'Pitch the tea tent':'Monta la tenda del tè', 'Tea time, anyone?':'Ora del tè, qualcuno?',
+  'Clean the swan pond':'Pulisci lo stagno dei cigni', 'The swans are back!':'I cigni sono tornati!',
+  'Hang the lanterns':'Appendi le lanterne', 'How magical at dusk!':'Che magia al tramonto!',
+  'Repair the carousel':'Ripara la giostra', 'Round and round it goes!':'Gira che ti rigira!',
+  'Reopen the manor':'Riapri la villa', 'Pipoville is shining again!':'Pipoville splende di nuovo!'
+};
+const IT_TASK_DONE = {
+  bench:'Panchina riparata!', flowerbed:'Aiuola piantata!', fountain:'Fontana restaurata!',
+  path:'Vialetto ripavimentato!', oak:'Quercia rinvigorita!', house:'Casetta ridipinta!',
+  bridge:'Ponte sistemato!', tent:'Tenda montata!', pond:'Stagno pulito!',
+  lights:'Lanterne appese!', carousel:'Giostra riparata!', manor:'Villa riaperta!'
+};
+const t = s => LANG === 'it' ? (IT[s] || s) : s;
+const tf = (en, it) => LANG === 'it' ? it : en;
+(function translateDom(){
+  if(LANG !== 'it') return;
+  document.documentElement.lang = 'it';
+  const w = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+    acceptNode: n => (n.parentElement && !/^(SCRIPT|STYLE)$/.test(n.parentElement.tagName) && n.nodeValue.trim())
+      ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT
+  });
+  const nodes = [];
+  while(w.nextNode()) nodes.push(w.currentNode);
+  nodes.forEach(n => { const s = n.nodeValue.trim(); if(IT[s]) n.nodeValue = n.nodeValue.replace(s, IT[s]); });
+  const wheel = document.querySelector('#hud-wheel');
+  if(wheel) wheel.title = IT['Rainbow charge'];
+})();
 Snd.buf = {};
 Snd.loadSamples = function(){
   if(this._loaded || !this.ctx) return;
@@ -1451,53 +1587,53 @@ function showScreen(id){
 function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 
 /* ---------------- the rescue of Pipoville ---------------- */
-const CHAPTERS = { 1:'Ch.1 — Nunu Farms', 9:'Ch.2 — Pipoville School', 17:'Ch.3 — Main Street', 25:'Ch.4 — Town Hall' };
+const CHAPTERS = { 1:t('Ch.1 — Nunu Farms'), 9:t('Ch.2 — Pipoville School'), 17:t('Ch.3 — Main Street'), 25:t('Ch.4 — Town Hall') };
 const RESCUES = {
-  4:  { id:'ninni', line:'Neigh! Those thieves tied me up in the hay barn. Thank you, Pipop!' },
-  6:  { id:'cannolio', line:"Woof woof! I KNEW you'd come! I'll dig for you from now on. (+1 shovel every level)" },
-  8:  { id:'nunu', line:'My farm! My Ninni! You saved us all. Take extra moves on the hard roads. (+2 moves on hard levels)' },
-  10: { id:'ms_moomoo', line:'Moo-st impressive, Pipop! The school owes you one. (Daily gifts upgraded)' },
-  12: { id:'ms_toni', line:'Fascinating! By my calculations, your rainbow wheel now charges faster. (Wheel fills at 50)' },
-  14: { id:'mr_bobo', line:'GRRREAT hustle out there, champ! Keep those combos coming!' },
-  16: { id:'ms_saltchow', line:"The whole school is free! Art class is back — I'll paint your portrait, hero." },
-  18: { id:'mayalee', line:'My groceries! My store! Oink-credible work, Pipop!' },
-  21: { id:'ovalee', line:'Hmph. You rescued Mayalee FIRST?! ...Thank you though. Truly.' },
-  24: { id:'pancione', line:'Fresh croissants for the hero! Your streak boosters just got tastier. (Streaks add a Bomb)' },
-  26: { id:'winnie', line:'Arf! The sheriff is still locked in the town hall — hurry, Pipop!' },
-  28: { id:'sir_saltbread_cane', line:"Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipop." },
-  30: { id:'whaeleeno', villain:true, line:'Blub... you win, mailbird. Baggu — give back the mail. ALL of it. Pipoville is saved!' }
+  4:  { id:'ninni', line:t('Neigh! Those thieves tied me up in the hay barn. Thank you, Pipop!') },
+  6:  { id:'cannolio', line:t("Woof woof! I KNEW you'd come! I'll dig for you from now on. (+1 shovel every level)") },
+  8:  { id:'nunu', line:t('My farm! My Ninni! You saved us all. Take extra moves on the hard roads. (+2 moves on hard levels)') },
+  10: { id:'ms_moomoo', line:t('Moo-st impressive, Pipop! The school owes you one. (Daily gifts upgraded)') },
+  12: { id:'ms_toni', line:t('Fascinating! By my calculations, your rainbow wheel now charges faster. (Wheel fills at 50)') },
+  14: { id:'mr_bobo', line:t('GRRREAT hustle out there, champ! Keep those combos coming!') },
+  16: { id:'ms_saltchow', line:t("The whole school is free! Art class is back — I'll paint your portrait, hero.") },
+  18: { id:'mayalee', line:t('My groceries! My store! Oink-credible work, Pipop!') },
+  21: { id:'ovalee', line:t('Hmph. You rescued Mayalee FIRST?! ...Thank you though. Truly.') },
+  24: { id:'pancione', line:t('Fresh croissants for the hero! Your streak boosters just got tastier. (Streaks add a Bomb)') },
+  26: { id:'winnie', line:t('Arf! The sheriff is still locked in the town hall — hurry, Pipop!') },
+  28: { id:'sir_saltbread_cane', line:t("Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipop.") },
+  30: { id:'whaeleeno', villain:true, line:t('Blub... you win, mailbird. Baggu — give back the mail. ALL of it. Pipoville is saved!') }
 };
 function isRescued(id){ return (save.rescued || []).includes(id); }
 
 /* ---------------- garden restoration meta ----------------
    Stars are currency: spend them on tasks, Gardenscapes-style. */
 const TASKS = [
-  { id:'bench',    cost:1, emoji:'🪑', name:'Fix the old bench',       line:'A fine spot to rest!' },
-  { id:'flowerbed',cost:1, emoji:'🌷', name:'Plant the flowerbed',     line:'The tulips are lovely!' },
-  { id:'fountain', cost:2, emoji:'⛲', name:'Restore the fountain',    line:'Listen to that water sing!' },
-  { id:'path',     cost:1, emoji:'🧱', name:'Repave the walkway',      line:'Smooth as can be.' },
-  { id:'oak',      cost:2, emoji:'🌳', name:'Revive the old oak',      line:'It has stood here a century!' },
-  { id:'house',    cost:3, emoji:'🏡', name:'Repaint the garden house',line:'Good as new!' },
-  { id:'bridge',   cost:2, emoji:'🌉', name:'Mend the stone bridge',   line:'Sturdy once again!' },
-  { id:'tent',     cost:2, emoji:'⛺', name:'Pitch the tea tent',      line:'Tea time, anyone?' },
-  { id:'pond',     cost:3, emoji:'🦢', name:'Clean the swan pond',     line:'The swans are back!' },
-  { id:'lights',   cost:2, emoji:'🏮', name:'Hang the lanterns',       line:'How magical at dusk!' },
-  { id:'carousel', cost:3, emoji:'🎠', name:'Repair the carousel',     line:'Round and round it goes!' },
-  { id:'manor',    cost:4, emoji:'🏰', name:'Reopen the manor',        line:'Pipoville is shining again!' },
+  { id:'bench',    cost:1, emoji:'🪑', name:t('Fix the old bench'),       line:t('A fine spot to rest!') },
+  { id:'flowerbed',cost:1, emoji:'🌷', name:t('Plant the flowerbed'),     line:t('The tulips are lovely!') },
+  { id:'fountain', cost:2, emoji:'⛲', name:t('Restore the fountain'),    line:t('Listen to that water sing!') },
+  { id:'path',     cost:1, emoji:'🧱', name:t('Repave the walkway'),      line:t('Smooth as can be.') },
+  { id:'oak',      cost:2, emoji:'🌳', name:t('Revive the old oak'),      line:t('It has stood here a century!') },
+  { id:'house',    cost:3, emoji:'🏡', name:t('Repaint the garden house'),line:t('Good as new!') },
+  { id:'bridge',   cost:2, emoji:'🌉', name:t('Mend the stone bridge'),   line:t('Sturdy once again!') },
+  { id:'tent',     cost:2, emoji:'⛺', name:t('Pitch the tea tent'),      line:t('Tea time, anyone?') },
+  { id:'pond',     cost:3, emoji:'🦢', name:t('Clean the swan pond'),     line:t('The swans are back!') },
+  { id:'lights',   cost:2, emoji:'🏮', name:t('Hang the lanterns'),       line:t('How magical at dusk!') },
+  { id:'carousel', cost:3, emoji:'🎠', name:t('Repair the carousel'),     line:t('Round and round it goes!') },
+  { id:'manor',    cost:4, emoji:'🏰', name:t('Reopen the manor'),        line:t('Pipoville is shining again!') },
 ];
 function starsEarnedTotal(){ let t = 0; for(const k in save.stars) t += save.stars[k]; return t; }
 function starsAvailable(){ return starsEarnedTotal() - (save.spent || 0); }
 function nextTask(){ return TASKS.find(t => !save.done.includes(t.id)); }
 function renderTasks(){
   const open = TASKS.filter(t => !save.done.includes(t.id)).slice(0, 3);
-  $('#tasks-day').textContent = 'Day ' + (save.done.length + 1);
-  $('#task-stars').textContent = `★ ${starsAvailable()} to spend`;
+  $('#tasks-day').textContent = t('Day') + ' ' + (save.done.length + 1);
+  $('#task-stars').textContent = `★ ${starsAvailable()} ` + t('to spend');
   $('#task-list').innerHTML = open.length ? open.map(t => `
     <div class="task-row">
       <span class="t-emoji">${t.emoji}</span>
       <span class="t-name">${t.name}</span>
       <button class="btn small t-do" data-id="${t.id}" ${starsAvailable() >= t.cost ? '' : 'disabled'}>★${t.cost}</button>
-    </div>`).join('') : '<p style="font-weight:800;">The whole garden is restored! 🌸</p>';
+    </div>`).join('') : `<p style="font-weight:800;">${t('The whole garden is restored! 🌸')}</p>`;
   $('#task-list').querySelectorAll('.t-do').forEach(b=>{
     b.addEventListener('click', ()=>doTask(b.dataset.id));
   });
@@ -1516,12 +1652,14 @@ function doTask(id){
   renderMap();
   const banner = document.createElement('div');
   banner.className = 'map-banner';
-  banner.textContent = `${t.emoji} ${t.name.replace(/^\w+/, m=>({'Fix':'Fixed','Plant':'Planted','Restore':'Restored','Repave':'Repaved','Revive':'Revived','Repaint':'Repainted','Mend':'Mended','Pitch':'Pitched','Clean':'Cleaned','Hang':'Hung','Repair':'Repaired','Reopen':'Reopened'}[m] || m))}!`;
+  banner.textContent = LANG === 'it'
+    ? `${t.emoji} ${IT_TASK_DONE[t.id] || t.name + '!'}`
+    : `${t.emoji} ${t.name.replace(/^\w+/, m=>({'Fix':'Fixed','Plant':'Planted','Restore':'Restored','Repave':'Repaved','Revive':'Revived','Repaint':'Repainted','Mend':'Mended','Pitch':'Pitched','Clean':'Cleaned','Hang':'Hung','Repair':'Repaired','Reopen':'Reopened'}[m] || m))}!`;
   $('#map').appendChild(banner);
   setTimeout(()=>banner.remove(), 3300);
 }
 /* ---------------- daily gift ---------------- */
-const DAILY_GIFTS = [['fire','Firecracker'],['bomb','Bomb'],['dyna','Dynamite'],['tnt','TNT crate'],['bomb','Bomb'],['dyna','Dynamite'],['tnt','TNT crate']];
+const DAILY_GIFTS = [['fire',t('Firecracker')],['bomb',t('Bomb')],['dyna',t('Dynamite')],['tnt',t('TNT crate')],['bomb',t('Bomb')],['dyna',t('Dynamite')],['tnt',t('TNT crate')]];
 function checkDaily(){
   const today = new Date().toDateString();
   if(save.lastDaily === today) return;
@@ -1531,8 +1669,8 @@ function checkDaily(){
   const [pw, name] = DAILY_GIFTS[Math.min(save.dailyDay - 1 + (isRescued('ms_moomoo') ? 1 : 0), DAILY_GIFTS.length - 1)]; // Ms MooMoo upgrades gifts
   save.pending = (save.pending || []).concat([pw]);
   persist();
-  $('#daily-title').textContent = 'Day ' + save.dailyDay;
-  $('#daily-text').textContent = `A free ${name} will be planted at the start of your next level!`;
+  $('#daily-title').textContent = t('Day') + ' ' + save.dailyDay;
+  $('#daily-text').textContent = tf(`A free ${name} will be planted at the start of your next level!`, `${name} in regalo: lo troverai sul tabellone all'inizio del prossimo livello!`);
   showOverlay('ov-daily', true);
 }
 
@@ -1597,7 +1735,7 @@ function renderMap(){
     inner.appendChild(holder);
   });
   $('#total-stars').textContent = `★ ${totalStars}/${n*3}`;
-  $('#map-streak').textContent = save.streak >= 2 ? `🔥 ${save.streak} streak` : '';
+  $('#map-streak').textContent = save.streak >= 2 ? tf(`🔥 ${save.streak} streak`, `🔥 Serie di ${save.streak}`) : '';
   // garden features along the path: restored by spending stars on tasks
   TASKS.forEach((t, i)=>{
     const anchor = pts[Math.min(n-1, 1 + i*2)];
@@ -2365,7 +2503,7 @@ function shuffleBoard(silent){
     const p = pieceAt(r,c);
     if(p) placeCandy(p.el, r, c, false);
   }
-  if(!silent) toast('Shuffled!');
+  if(!silent) toast(t('Shuffled!'));
 }
 function armHint(){
   clearHint();
@@ -2448,7 +2586,7 @@ async function resolveCascades(initial, initialCreations){
     const maxRad = playEffects(effects);
     if(maxRad >= 2) await sleep(maxRad >= 4 ? 140 : 80); // hit-stop beat
     Snd.pop(mult);
-    if(mult >= 3) toast(['Great!','Amazing!','Spectacular!','Unbelievable!'][Math.min(mult-3,3)]);
+    if(mult >= 3) toast(t(['Great!','Amazing!','Spectacular!','Unbelievable!'][Math.min(mult-3,3)]));
     if(mult >= 3 || maxRad >= 2) setPipopMood('cheer', 1400);
     destroyCells(out, creations, mult);
     updateHUD();
@@ -2484,7 +2622,7 @@ async function afterMove(){
         p.el.innerHTML = spriteImg('p_rainbow');
         setTimeout(()=>p.el.classList.remove('born'), 520);
         spawnRing(r, c, 2);
-        toast('Rainbow Blast!');
+        toast(t('Rainbow Blast!'));
         if(!Snd.play('orb', 1, .55)) Snd.special();
         updateHUD();
         break;
@@ -2492,9 +2630,9 @@ async function afterMove(){
     }
   }
   if(G.movesLeft <= 0){ loseSequence(); return; }
-  if(G.movesLeft === 1) toast('Last move!');
+  if(G.movesLeft === 1) toast(t('Last move!'));
   setPipopMood(pipopBaseline());
-  if(!findAnyMove()){ toast('Shuffled!'); await sleep(500); shuffleBoard(true); }
+  if(!findAnyMove()){ toast(t('Shuffled!')); await sleep(500); shuffleBoard(true); }
   G.busy = false;
   armHint();
 }
@@ -2565,7 +2703,7 @@ async function executePowerCombo(a, ra, ca, b, rb, cb){
   blastCells(rb, cb, rad, queue);
   queue.forEach(k=>set.add(k));
   fxBoom(ra, ca, rad); spawnRing(ra, ca, Math.max(2, rad)); fxShake(); fxFlash(); Snd.boom(true); vibrate(80);
-  toast('Spectacular!');
+  toast(t('Spectacular!'));
   await resolveCascades(set, []);
 }
 
@@ -2599,7 +2737,7 @@ async function trySwap(r1,c1,r2,c2){
       // rainbow + explosive: storm the whole board
       for(let rr=0;rr<G.L.rows;rr++) for(let cc=0;cc<G.L.cols;cc++) if(pieceAt(rr,cc)) set.add(key(rr,cc));
       orb.power = null; other.power = null;
-      fxFlash(); fxShake(); toast('Rainbow Storm!');
+      fxFlash(); fxShake(); toast(t('Rainbow Storm!'));
     } else {
       // rainbow + normal: clear every piece of that kind
       orb.power = null;
@@ -2607,7 +2745,7 @@ async function trySwap(r1,c1,r2,c2){
         const q = pieceAt(rr,cc);
         if(q && q.kind === other.kind) set.add(key(rr,cc));
       }
-      toast('Rainbow Blast!');
+      toast(t('Rainbow Blast!'));
     }
     spawnRing(Math.floor(G.L.rows/2), Math.floor(G.L.cols/2), Math.floor(G.L.rows/2));
     Snd.boom(true); vibrate(70);
@@ -2726,7 +2864,7 @@ async function winSequence(){
   endTutorial();
   $('#game').classList.add('winning');
   setPipopMood('party');
-  toast('Level Complete!');
+  toast(t('Level Complete!'));
   Snd.win();
   await sleep(700);
   // Bloom Burst: leftover moves become firecrackers that all detonate
@@ -2745,12 +2883,12 @@ async function winSequence(){
   }
   updateHUD();
   if(burstCells.length){
-    toast('Bloom Burst!');
+    toast(t('Bloom Burst!'));
     Snd.play('whoosh', 1, .5);
     await sleep(600);
     await resolveCascades(new Set(burstCells), []);
   }
-  if(wonOnLastMove){ toast('Super Bloom!'); confetti(); Snd.win(); await sleep(500); }
+  if(wonOnLastMove){ toast(t('Super Bloom!')); confetti(); Snd.win(); await sleep(500); }
   save.streak = (save.streak || 0) + 1;
   delete save.fails[G.level];
   const stars = Math.max(1, starsEarned());
@@ -2766,15 +2904,15 @@ async function winSequence(){
       spawnBurst(r, c, ['#ffd21f','#ff8c1a','#ff8ac2','#7ec850','#fff'], 10);
     }, i*160);
   }
-  $('#win-title').textContent = ['Lovely!','Blooming!','Spectacular!'][stars-1] || 'Lovely!';
+  $('#win-title').textContent = t(['Lovely!','Blooming!','Spectacular!'][stars-1] || 'Lovely!');
   $('#win-stars').innerHTML = [1,2,3].map(s=>`<span class="${s<=stars?'lit':''}">★</span>`).join('');
   if(window.gsap && !REDUCED){
-    $('#win-score').textContent = 'Score: 0';
+    $('#win-score').textContent = t('Score:') + ' 0';
     const obj = { v: 0 };
     gsap.to(obj, { v: G.score, duration: 1.1, delay: .35, ease: 'power1.out',
-      onUpdate: ()=>{ $('#win-score').textContent = 'Score: ' + Math.round(obj.v).toLocaleString(); } });
+      onUpdate: ()=>{ $('#win-score').textContent = t('Score:') + ' ' + Math.round(obj.v).toLocaleString(); } });
   } else {
-    $('#win-score').textContent = 'Score: ' + G.score.toLocaleString();
+    $('#win-score').textContent = t('Score:') + ' ' + G.score.toLocaleString();
   }
   $('#btn-win-next').style.display = G.level < LEVELS.length ? '' : 'none';
   const nt = nextTask();
@@ -2787,7 +2925,7 @@ async function winSequence(){
     save.rescued.push(rescue.id);
     persist();
     const ch = CHARACTERS[rescue.id];
-    $('#rescue-ribbon').textContent = rescue.villain ? 'Pipoville is saved!' : 'Rescued!';
+    $('#rescue-ribbon').textContent = rescue.villain ? t('Pipoville is saved!') : t('Rescued!');
     $('#rescue-name').textContent = ch.name;
     $('#rescue-portrait').src = SPRITES['c_' + rescue.id];
     $('#rescue-line').textContent = rescue.line;
@@ -2811,8 +2949,8 @@ function loseSequence(){
   const total = G.goals.reduce((s,g)=>s+g.count,0);
   const doneAmt = G.goals.reduce((s,g)=>s+(g.count-Math.max(0,g.remaining)),0);
   const pct = Math.round(doneAmt/total*100);
-  $('#lose-text').textContent = pct >= 75 ? `You were ${pct}% of the way there!` :
-    (unmet.length === 1 ? 'One goal was left unfinished. Try again!' : 'Reach all the goals before moves run out!');
+  $('#lose-text').textContent = pct >= 75 ? tf(`You were ${pct}% of the way there!`, `Eri al ${pct}% del percorso!`) :
+    (unmet.length === 1 ? t('One goal was left unfinished. Try again!') : t('Reach all the goals before moves run out!'));
   $('#lose-goals').innerHTML = unmet.map(g=>goalChipHTML(g, g.remaining)).join('');
   showOverlay('ov-lose', true);
 }
@@ -2821,18 +2959,18 @@ function loseSequence(){
 function openLevel(n){
   G.level = n;
   G.L = LEVELS[n-1];
-  $('#intro-title').textContent = 'Level ' + n + (G.L.hard ? ' · HARD!' : '');
+  $('#intro-title').textContent = t('Level') + ' ' + n + (G.L.hard ? ' · ' + t('HARD!') : '');
   $('#intro-title').classList.toggle('hard', !!G.L.hard);
-  $('#intro-moves').textContent = G.L.moves + ' moves';
+  $('#intro-moves').textContent = G.L.moves + ' ' + t('moves');
   const notes = [];
-  if(save.streak >= 3) notes.push(`🔥 ${save.streak}-win streak — booster head start!`);
-  if(G.L.hard) notes.push('🎁 Hard level gift: free Bomb on the board');
-  if(G.L.gnomeTotal) notes.push('🧙 Guide the trapped gnomes to the bottom of the board!');
-  if(G.L.blockTotal) notes.push("🧊 Baggu froze pieces in ice locks — crack them with nearby matches!");
-  if(RESCUES[n] && !isRescued(RESCUES[n].id)) notes.push('💚 ' + CHARACTERS[RESCUES[n].id].name + ' is trapped at the end of this level!');
-  if(G.L.vineTotal) notes.push("🌊 Whaeleeno's ink weeds spread every move you ignore them — cut fast!");
-  if(save.pending && save.pending.length) notes.push('🎁 Daily gift planted on the board!');
-  if((save.fails[n] || 0) >= 3) notes.push('💚 +' + Math.min(4, Math.floor((save.fails[n]||0)/3)*2) + ' bonus moves');
+  if(save.streak >= 3) notes.push(tf(`🔥 ${save.streak}-win streak — booster head start!`, `🔥 Serie di ${save.streak} vittorie — potenziamenti in partenza!`));
+  if(G.L.hard) notes.push(tf('🎁 Hard level gift: free Bomb on the board', '🎁 Regalo livello difficile: Bomba gratis sul tabellone'));
+  if(G.L.gnomeTotal) notes.push(tf('🧙 Guide the trapped gnomes to the bottom of the board!', '🧙 Guida gli gnomi intrappolati fino in fondo al tabellone!'));
+  if(G.L.blockTotal) notes.push(tf("🧊 Baggu froze pieces in ice locks — crack them with nearby matches!", "🧊 Baggu ha congelato i pezzi nel ghiaccio — rompilo con combinazioni vicine!"));
+  if(RESCUES[n] && !isRescued(RESCUES[n].id)) notes.push('💚 ' + tf(CHARACTERS[RESCUES[n].id].name + ' is trapped at the end of this level!', CHARACTERS[RESCUES[n].id].name + ' è in trappola alla fine di questo livello!'));
+  if(G.L.vineTotal) notes.push(tf("🌊 Whaeleeno's ink weeds spread every move you ignore them — cut fast!", "🌊 Le alghe d'inchiostro di Whaeleeno si diffondono a ogni mossa se le ignori — tagliale in fretta!"));
+  if(save.pending && save.pending.length) notes.push(tf('🎁 Daily gift planted on the board!', '🎁 Regalo del giorno piantato sul tabellone!'));
+  if((save.fails[n] || 0) >= 3) notes.push('💚 +' + Math.min(4, Math.floor((save.fails[n]||0)/3)*2) + ' ' + tf('bonus moves', 'mosse bonus'));
   $('#intro-note').innerHTML = notes.join('<br>');
   $('#intro-goals').innerHTML = G.L.goals.map(g=>goalChipHTML(g, g.count)).join('');
   showScreen('game');
@@ -2887,7 +3025,7 @@ function startTutorial(){
   hand.textContent = '👆';
   const bub = document.createElement('div');
   bub.className = 'tut-bubble';
-  bub.textContent = 'Swap to match 3!';
+  bub.textContent = t('Swap to match 3!');
   const [[r1,c1],[r2,c2]] = mv;
   const pos = (r,c)=>{ hand.style.transform = `translate(${(c+.3)*G.cellPx}px, ${(r+.4)*G.cellPx}px)`; };
   pos(r1,c1);
@@ -2906,6 +3044,14 @@ function endTutorial(){
 }
 
 /* ---- buttons ---- */
+document.querySelectorAll('.lang-btn').forEach(b=>{
+  b.classList.toggle('active', LANG === b.dataset.lang);
+  b.addEventListener('click', ()=>{
+    if(LANG === b.dataset.lang) return;
+    save.lang = b.dataset.lang; persist();
+    location.reload();
+  });
+});
 $('#btn-play').addEventListener('click', ()=>{
   Snd.ensure(); showScreen('map'); renderMap();
   if(!save.storySeen){ save.storySeen = true; persist(); showOverlay('ov-story', true); }
@@ -2940,8 +3086,8 @@ $('#btn-win-next').addEventListener('click', ()=>{
 $('#btn-lose-map').addEventListener('click', ()=>{ showOverlay('ov-lose', false); showScreen('map'); renderMap(); });
 $('#btn-lose-retry').addEventListener('click', ()=>{ showOverlay('ov-lose', false); prepareLevel(); showOverlay('ov-intro', true); });
 function syncSoundBtn(){
-  $('#btn-sound').textContent = Snd.on ? 'On' : 'Off';
-  $('#btn-music').textContent = Music.on ? 'On' : 'Off';
+  $('#btn-sound').textContent = Snd.on ? t('On') : t('Off');
+  $('#btn-music').textContent = Music.on ? t('On') : t('Off');
 }
 $('#btn-sound').addEventListener('click', ()=>{ Snd.on = !Snd.on; save.sound = Snd.on; persist(); syncSoundBtn(); });
 $('#btn-music').addEventListener('click', ()=>{

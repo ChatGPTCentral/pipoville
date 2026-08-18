@@ -142,3 +142,26 @@ gift tier up, Pancione streak bomb. `CHAPTERS` labels map zones. In-level,
 `#pipop-side` stands under the board; `setPipopMood(mood, holdMs)` drives
 reactions (cheer/worry/sad/no/party) with an emote bubble, reverting to a
 moves-aware baseline.
+
+## Localization (i18n)
+
+The game ships in English and Italian. `LANG` is resolved from
+`save.lang` at boot ('en' default); the splash screen renders a
+language picker (`.lang-btn`) that persists the choice and reloads.
+Mechanics, keyed by exact English string:
+
+- `IT` — exact-match dictionary EN → IT. Static DOM text is swapped
+  once at boot by a TreeWalker over body text nodes (scripts/styles
+  skipped), so markup never needs `data-i18n` attributes.
+- `t(s)` — wrap any whole dynamic string (`toast(t('Shuffled!'))`).
+- `tf(en, it)` — template strings with interpolation (both variants
+  written out at the call site).
+- `IT_TASK_DONE` — Italian task-completion banners (the English path
+  conjugates verbs with a regex, which doesn't translate).
+- Data tables (`RESCUES`, `TASKS`, `CHAPTERS`, `DAILY_GIFTS`) wrap
+  their strings in `t()` at definition time, so they resolve once.
+
+Rules: character names (Pipop, Nunu, Whaeleeno, ...) are NEVER
+translated. New user-facing strings must be added to `IT` (exact
+match) or written with `tf()`. Inside `doTask`/`renderTasks` the local
+task variable shadows `t` — don't call the translator there.
