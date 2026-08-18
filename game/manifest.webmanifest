@@ -1,7 +1,7 @@
 {
-  "name": "Garden Bloom",
-  "short_name": "GardenBloom",
-  "description": "Garden match-3 puzzle — 30 levels, firecracker/bomb/dynamite/TNT power-ups, works offline.",
+  "name": "Aleville",
+  "short_name": "Aleville",
+  "description": "Aleville — garden match-3 puzzle — 30 levels, firecracker/bomb/dynamite/TNT power-ups, works offline.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
