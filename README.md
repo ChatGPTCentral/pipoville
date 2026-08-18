@@ -8,6 +8,9 @@ canvas-painted at boot).
 **Play:** https://pipoville.vercel.app — on iPhone, open in Safari →
 Share → **Add to Home Screen** for the full-screen offline app.
 
+Cloud save: create a **family code** in Settings and your town follows
+you on any device — no email, no password, no personal data.
+
 Available in **English and Italiano** — pick your language on the title
 screen (character names stay the same in both).
 

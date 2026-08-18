@@ -302,3 +302,30 @@ bilinear upscale. `applyCosmetic()` composites at high smoothing quality from
 the already-upscaled base.
 
 Audit lives at `scratchpad/audit-geometry2.js`; keep it green when touching CSS.
+
+
+## v25 — HD cast, living map, cloud saves
+
+**HD character art.** The 74–98px chibi PNGs are gone: each was upscaled 4×
+offline with Real-ESRGAN (anime-6B, official weights, dual-matte alpha
+recovery so transparency survives), quantized with pngquant, and re-embedded
+(~593KB for 15 characters). Accessories now composite at the art's native
+resolution, and every cosmetic was re-seated against a measured coordinate
+grid (glasses on the eyes, scarf at the neck, Cannolio's bandana a proper
+neck kerchief, Ninni's flowers on her head, Winnie's bow a real bow).
+The asset pipeline lives in `scratchpad/upscale.py`.
+
+**Map.** A `.map-terrain` SVG paints per-chapter tint bands (stops emitted
+top-down — SVG gradients need ascending offsets), edge hills, three meander
+rivers, and seeded flora. Fog-of-war: everything past `unlocked + 2` hides
+under drifting `.fog-puff` clouds — nodes, cages, landmarks and chapter
+signs all respect `visLimit`; only the trail teases through.
+
+**Cloud saves ("codice famiglia").** No accounts, no PII: Settings can mint
+a `PIPO-XXXX-XXXX-XXXX` code (crypto-random, ~60 bits) that doubles as the
+credential. Supabase backend (project jclbcymquzpkylscldff, isolated
+`pipoville` schema, deny-all RLS) exposes exactly two SECURITY DEFINER RPCs:
+`pipoville_store(code, jsonb)` and `pipoville_load(code)`. Every `persist()`
+schedules a debounced (2.5s) push; boot adopts the server copy when another
+device pushed a newer one; entering the code on a fresh device restores
+everything. All UI strings via `tf()`.
