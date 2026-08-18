@@ -329,3 +329,30 @@ credential. Supabase backend (project jclbcymquzpkylscldff, isolated
 schedules a debounced (2.5s) push; boot adopts the server copy when another
 device pushed a newer one; entering the code on a fresh device restores
 everything. All UI strings via `tf()`.
+
+
+## v26 — Version control: updates never cost progress
+
+Two version numbers, one contract:
+- `GAME_VERSION` (release number, mirrors the sw.js `CACHE` suffix — bump
+  both on every ship). Shown in Settings; drives the one-time
+  "updated to vN, your town is intact" banner via `save.seenVersion`.
+- `SAVE_VERSION` (save schema). Bump ONLY when the save shape changes, and
+  add a step to the `migrateSave()` chain. Before any migration runs, the
+  untouched save is snapshotted to `candy_garden_save_v1_bak_v{N}` — no
+  update can destroy progress. Saves written by a NEWER app are never
+  rewritten downward.
+
+Cloud sync is version-aware: incoming saves are migrated on arrival; a save
+from a newer app is refused at join (with guidance to update first) and
+skipped at boot adoption.
+
+Update flow: sw.js already `skipWaiting()`s; the page now listens for
+`controllerchange` and reloads once so the fresh version is what's on
+screen. Settings has "Cerca aggiornamenti" (`registration.update()`), and
+the version label. Save data lives in localStorage and the SW never touches
+it.
+
+Shipping checklist: bump `CACHE` in sw.js + `GAME_VERSION`; if the save
+shape changed, bump `SAVE_VERSION` + extend `migrateSave()`; run
+`audit-geometry2.js`, `test-redesign.js`, `test-version.js`.

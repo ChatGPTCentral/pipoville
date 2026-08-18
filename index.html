@@ -936,6 +936,9 @@
     font-family:ui-monospace,Menlo,monospace; font-size:15px; text-transform:uppercase; text-align:center; margin-bottom:7px;
     background:#fff; color:#5e3416; outline:none; }
   .cloud-err { color:#c0392b !important; font-weight:700; }
+  .version-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px;
+    padding:8px 12px; border-radius:14px; background:rgba(43,127,212,.08); }
+  #version-label { font-size:13px; font-weight:800; color:var(--ink2); }
   #story-portrait { margin:10px auto 0; }
   #reset-note { font-size:13px; font-weight:800; color:#a8322a !important; margin-top:8px; }
 
@@ -1179,6 +1182,7 @@
     <div class="switch-row">Sound <button class="btn blue small" id="btn-set-sound">On</button></div>
     <div class="switch-row">Music <button class="btn blue small" id="btn-set-music">On</button></div>
     <div class="cloud-box" id="cloud-box"></div>
+    <div class="version-row"><span id="version-label"></span><button class="btn grey small" id="btn-check-update">Check for updates</button></div>
     <div class="reset-box">
       <button class="btn red small" id="btn-reset">Start from the beginning</button>
       <p id="reset-note" style="display:none;"></p>
@@ -2216,8 +2220,26 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-let save = { stars:{}, unlocked:1, sound:true };
-try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if(s && s.stars) save = Object.assign(save, s); } catch(e){}
+const GAME_VERSION = 26;   // release number: bump on every ship (mirrors sw.js CACHE)
+const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
+function migrateSave(s){
+  const from = s.v || 1;
+  if(from > SAVE_VERSION) return s;   // written by a newer app — never rewrite downward
+  if(from < SAVE_VERSION){
+    // snapshot the pre-migration save so no update can ever destroy progress
+    try { localStorage.setItem(SAVE_KEY + '_bak_v' + from, JSON.stringify(s)); } catch(e){}
+    if(from < 2){
+      // v1 -> v2: legacy Pipo-only cosmetics become the shared wardrobe
+      if(s.cap && !s.cosmetics){ s.cosmetics = { owned: ['cap'], equipped: 'cap' }; delete s.cap; }
+      s.wardrobe = s.wardrobe || {};
+      if(s.cosmetics){ s.wardrobe.pipop = s.cosmetics; delete s.cosmetics; }
+    }
+    s.v = SAVE_VERSION;
+  }
+  return s;
+}
+let save = { stars:{}, unlocked:1, sound:true, v: SAVE_VERSION };
+try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if(s && s.stars) save = Object.assign(save, migrateSave(s)); } catch(e){}
 function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e){} cloudPush(); }
 
 /* ---------------- i18n (English / Italiano) ----------------
@@ -2442,9 +2464,7 @@ const WARDROBE = {
   winnie:    { bow:     { cost: 10, en: 'Sunday bow',        it: 'Fiocco della domenica' } },
   whaeleeno: { keeper:  { cost: 15, en: 'Lighthouse keeper cap', it: 'Berretto da guardiano del faro' } }
 };
-if(save.cap && !save.cosmetics){ save.cosmetics = { owned: ['cap'], equipped: 'cap' }; delete save.cap; }
-save.wardrobe = save.wardrobe || {};
-if(save.cosmetics){ save.wardrobe.pipop = save.cosmetics; delete save.cosmetics; persist(); }
+save.wardrobe = save.wardrobe || {};   // legacy shapes are handled by migrateSave() at load
 Object.keys(WARDROBE).forEach(ch => { save.wardrobe[ch] = save.wardrobe[ch] || { owned: [], equipped: null }; });
 function drawCosmetic(x, kind){
   // painted in the sprite's 100-unit space; the chibi head fills the upper half
@@ -4723,7 +4743,7 @@ document.querySelectorAll('.lang-btn').forEach(b=>{
 $('#btn-play').addEventListener('click', ()=>{
   Snd.ensure(); showScreen('map'); renderMap();
   if(!save.storySeen){ save.storySeen = true; persist(); startIntro(); }
-  else checkDaily();
+  else { checkDaily(); setTimeout(maybeWhatsNew, 600); }
 });
 /* ---- new-player intro: a little play in eight lines, kid-sized ---- */
 const INTRO = [
@@ -4971,7 +4991,12 @@ function renderCloudUI(){
           er.style.display = 'block'; er.textContent = tf('Code not found — check the letters.', 'Codice non trovato — controlla le lettere.');
           b.disabled = false; return;
         }
-        const incoming = res.data;
+        if((res.data.v || 1) > SAVE_VERSION){
+          er.style.display = 'block';
+          er.textContent = tf('This save comes from a newer Pipoville — update the game first (Settings → Check for updates).', 'Questo salvataggio viene da una Pipoville più nuova — prima aggiorna il gioco (Impostazioni → Cerca aggiornamenti).');
+          b.disabled = false; return;
+        }
+        const incoming = migrateSave(res.data);
         incoming.cloud = { code, ts: res.updated_at, at: Date.now() };
         localStorage.setItem(SAVE_KEY, JSON.stringify(incoming));
         location.reload();
@@ -4990,8 +5015,8 @@ function renderCloudUI(){
     if(!res || !res.data) return;
     const remoteTs = Date.parse(res.updated_at) || 0;
     const localTs = save.cloud.ts ? Date.parse(save.cloud.ts) : 0;
-    if(remoteTs > localTs + 1500){
-      const incoming = res.data;
+    if(remoteTs > localTs + 1500 && (res.data.v || 1) <= SAVE_VERSION){
+      const incoming = migrateSave(res.data);
       incoming.cloud = { code: save.cloud.code, ts: res.updated_at, at: Date.now() };
       localStorage.setItem(SAVE_KEY, JSON.stringify(incoming));
       location.reload();
@@ -5169,7 +5194,7 @@ $('#btn-reset').addEventListener('click', ()=>{
   }
   const lang = save.lang; // keep the language choice
   try { localStorage.removeItem(SAVE_KEY); } catch(e){}
-  if(lang){ try { localStorage.setItem(SAVE_KEY, JSON.stringify({ stars:{}, unlocked:1, sound:true, lang })); } catch(e){} }
+  if(lang){ try { localStorage.setItem(SAVE_KEY, JSON.stringify({ stars:{}, unlocked:1, sound:true, lang, v: SAVE_VERSION })); } catch(e){} }
   location.reload();
 });
 
@@ -5178,6 +5203,49 @@ if('serviceWorker' in navigator && location.protocol !== 'file:'){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('sw.js').catch(()=>{});
   });
+  /* when an update finishes installing, the new worker takes control:
+     reload once so the fresh version is what's on screen (save data
+     lives in localStorage and is never touched by this) */
+  let swReloaded = false;
+  navigator.serviceWorker.addEventListener('controllerchange', ()=>{
+    if(swReloaded || !navigator.serviceWorker.controller) return;
+    swReloaded = true;
+    location.reload();
+  });
+}
+/* version label + manual update check in Settings */
+(function versionUI(){
+  const lab = $('#version-label'), btn = $('#btn-check-update');
+  if(lab) lab.textContent = 'Pipoville v' + GAME_VERSION;
+  if(!btn) return;
+  btn.textContent = tf('Check for updates', 'Cerca aggiornamenti');
+  if(!('serviceWorker' in navigator) || location.protocol === 'file:'){ btn.style.display = 'none'; return; }
+  btn.addEventListener('click', async ()=>{
+    btn.disabled = true;
+    btn.textContent = tf('Checking…', 'Controllo…');
+    try { const reg = await navigator.serviceWorker.getRegistration(); if(reg) await reg.update(); } catch(e){}
+    setTimeout(()=>{   // if a new worker took over, controllerchange already reloaded us
+      btn.disabled = false;
+      btn.textContent = tf('You are up to date!', 'Sei già aggiornato!');
+      setTimeout(()=>{ btn.textContent = tf('Check for updates', 'Cerca aggiornamenti'); }, 2500);
+    }, 3000);
+  });
+})();
+/* one cheerful note after an update, progress intact */
+function maybeWhatsNew(){
+  if((save.seenVersion || 0) >= GAME_VERSION){ return; }
+  const firstRun = !save.seenVersion && save.unlocked <= 1;
+  save.seenVersion = GAME_VERSION;
+  persist();
+  if(firstRun) return;   // fresh players don't need an update note
+  const host = $('#map');
+  if(!host) return;
+  const banner = document.createElement('div');
+  banner.className = 'map-banner';
+  banner.textContent = tf(`📦 Pipoville updated to v${GAME_VERSION} — your town is exactly where you left it!`,
+                          `📦 Pipoville aggiornata alla v${GAME_VERSION} — la tua città è rimasta com'era!`);
+  host.appendChild(banner);
+  setTimeout(()=>banner.remove(), 3300);
 }
 
 /* ---- automation hooks for tests ---- */
