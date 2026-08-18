@@ -60,3 +60,11 @@ The repo is a **static site** (`vercel.json` sets no build step). Import
 `ChatGPTCentral/gta-whitepaper` into Vercel from the `main` branch — Vercel serves `index.html`
 at the root and redeploys on every push. The loader then pulls `build/template.html` from GitHub raw
 and the saved edits from Supabase.
+
+## Aleville (match-3 prototype)
+
+`/game` contains **Aleville**, a self-contained offline garden match-3
+prototype (Gardenscapes-style meta, size-tiered explosives, 30 levels).
+Play it at `/game/` on the deployed site, or open `game/index.html`
+directly — it has zero dependencies. See `game/DESIGN.md` for the
+architecture and experimentation guide.
