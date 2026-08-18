@@ -70,6 +70,13 @@
     filter:drop-shadow(0 3px 0 #8a4d00); transform:rotate(1deg); }
   .splash-row { position:relative; z-index:2; font-size:42px; letter-spacing:6px; filter:drop-shadow(0 4px 5px rgba(0,0,0,.35)); }
   #splash .btn, #splash .note { position:relative; z-index:2; }
+  .splash-friends { position:relative; z-index:2; display:flex; flex-wrap:wrap; justify-content:center;
+    gap:0 6px; max-width:min(88vw, 360px); }
+  .splash-friends .char-img { width:50px; height:50px; animation:pipopBob 1.6s ease-in-out infinite; }
+  .splash-friends .char-img:nth-child(2n) { animation-delay:.25s; }
+  .splash-friends .char-img:nth-child(3n) { animation-delay:.5s; }
+  .splash-friends .char-img:nth-child(5n) { animation-delay:.8s; }
+  @media (prefers-reduced-motion: reduce){ .splash-friends .char-img { animation:none; } }
   .lang-row { position:relative; z-index:2; display:flex; gap:10px; margin-bottom:12px; }
   .lang-btn { font:inherit; font-size:14px; font-weight:800; padding:7px 16px; border-radius:999px;
     border:2.5px solid rgba(255,255,255,.75); background:rgba(255,255,255,.28); color:#0e3d0c;
@@ -426,7 +433,7 @@
   .glowtex { position:absolute; z-index:5; pointer-events:none; background-position:center; background-size:contain;
     background-repeat:no-repeat; mix-blend-mode:screen; animation:boomGrow .5s ease-out forwards; }
 
-  /* ---------- Pipop, the mascot ---------- */
+  /* ---------- Pipo, the mascot ---------- */
   #pipop-splash { width:108px; height:108px; position:relative; z-index:2;
     filter:drop-shadow(0 6px 8px rgba(0,0,0,.3)); animation:pipopBob 1.3s ease-in-out infinite; }
   .story-pipop, .win-pipop { width:66px; height:66px; display:block; margin:2px auto 0; }
@@ -443,6 +450,14 @@
   /* ---------- Pipoville cast, rescues, reactions ---------- */
   .char-img { width:60px; height:60px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
   .butler-row .char-img, .butler-row .pipop-img { flex:0 0 auto; width:56px; height:56px; }
+  #story-portrait { width:88px; height:88px; margin:2px auto 0; display:block;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+  .overlay.show #story-portrait { animation:pipopBob 1.3s ease-in-out infinite; }
+  #story-portrait.baddie { filter:drop-shadow(0 0 10px rgba(226,60,60,.55)) drop-shadow(0 3px 4px rgba(0,0,0,.25)); }
+  #ov-story .ribbon.baddie { background:linear-gradient(180deg,#ff8f8f,#e23c3c); border-color:#ffd0d0; }
+  #story-dots { display:flex; gap:7px; justify-content:center; margin-top:12px; }
+  #story-dots .dot { width:9px; height:9px; border-radius:50%; background:#d9b98a; transition:transform .2s, background .2s; }
+  #story-dots .dot.on { background:#3f8f24; transform:scale(1.3); }
   .wanted-row { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px;
     background:rgba(239,68,68,.12); border:2px dashed #ef4444; border-radius:12px; padding:6px 10px; }
   .wanted-label { font-weight:900; color:#b91c1c; font-size:14px; letter-spacing:.05em; }
@@ -488,12 +503,14 @@
   <div class="cloud c1"></div><div class="cloud c2"></div>
   <div class="hill h2"></div>
   <div class="hill h1"></div>
-  <div class="logo">PIPOVILLE<span class="sub">HELP PIPOP RESCUE HIS FRIENDS</span></div>
+  <div class="logo">PIPOVILLE<span class="sub">HELP PIPO RESCUE HIS FRIENDS</span></div>
   <img id="pipop-splash" class="pipop-img" alt="">
-  <div class="splash-row">🍎🍋🌷🦋💧</div>
+  <div class="splash-friends">
+    <img class="char-img" data-char="cannolio" alt=""><img class="char-img" data-char="ninni" alt=""><img class="char-img" data-char="nunu" alt=""><img class="char-img" data-char="sir_saltbread_cane" alt=""><img class="char-img" data-char="winnie" alt=""><img class="char-img" data-char="ms_moomoo" alt=""><img class="char-img" data-char="ms_saltchow" alt=""><img class="char-img" data-char="ms_toni" alt=""><img class="char-img" data-char="mr_bobo" alt=""><img class="char-img" data-char="mayalee" alt=""><img class="char-img" data-char="ovalee" alt=""><img class="char-img" data-char="pancione" alt="">
+  </div>
   <div class="lang-row">
-    <button class="lang-btn" data-lang="en">🇬🇧 English</button>
     <button class="lang-btn" data-lang="it">🇮🇹 Italiano</button>
+    <button class="lang-btn" data-lang="en">🇬🇧 English</button>
   </div>
   <button class="btn" id="btn-play" style="font-size:26px; padding:14px 52px;">Play!</button>
   <div class="note">Works offline · Progress saved on this device</div>
@@ -613,19 +630,14 @@
 
 <div class="overlay" id="ov-story">
   <div class="modal">
-    <div class="ribbon">Emergency!</div>
-    <h2 style="margin-top:12px;">Pipoville</h2>
+    <div class="ribbon" id="story-ribbon">Pipoville</div>
+    <h2 style="margin-top:12px;" id="story-name">Pipo</h2>
+    <img id="story-portrait" alt="">
     <div class="butler-row">
-      <img class="char-img" data-char="sir_saltbread_cane" alt="">
-      <span class="butler-bubble">Pipop! Sheriff Saltbread Cane here. Whaeleeno and Baggu raided the town — they stole the mail and took our friends! Cannolio, Nunu, the whole school... everyone! You're the only one who knows every path in Pipoville. Solve the puzzle boards, follow the trail, and bring them home!</span>
+      <span class="butler-bubble" id="story-text"></span>
     </div>
-    <img class="pipop-img story-pipop" alt="">
-    <div class="wanted-row">
-      <span class="wanted-label">WANTED:</span>
-      <img class="char-img wanted" data-char="whaeleeno" alt="">
-      <img class="char-img wanted" data-char="baggu" alt="">
-    </div>
-    <div class="btns"><button class="btn" id="btn-story">Let's go!</button></div>
+    <div id="story-dots"></div>
+    <div class="btns"><button class="btn" id="btn-story">Next ▶</button></div>
   </div>
 </div>
 
@@ -686,7 +698,7 @@
 <script>
 'use strict';
 /* =====================================================================
-   PIPOVILLE — help Pipop rescue his friends, one match-3 board at a time.
+   PIPOVILLE — help Pipo rescue his friends, one match-3 board at a time.
    Power-up ladder by match size:
      4 pieces  → Firecracker (blast 1 cell in every direction, 3×3)
      5 pieces  → Bomb        (blast radius 2, 5×5)
@@ -1162,7 +1174,7 @@ function kStar(x, cx, cy, r, fill){
 }
 function kGlasses(x, px, py, w){ x.beginPath(); x.rect(px, py, w/2.2, w/2.2); x.rect(px+w/2, py, w/2.2, w/2.2); x.stroke(); }
 const CHARACTERS = {
-  pipop: { name:'Pipop', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+  pipop: { name:'Pipo', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
     kEllipse(x,-12*s,22*s,8*s,4*s,'#facc15'); kEllipse(x,12*s,22*s,8*s,4*s,'#facc15');
     kEllipse(x,0,0,22*s,25*s,'#2dd4bf'); kEllipse(x,0,4*s,16*s,19*s,'#ffffff');
     kEllipse(x,0,-22*s,16*s,6*s,'#0284c7');
@@ -1221,8 +1233,8 @@ const CHARACTERS = {
     kEllipse(x,0,2*s,22*s,22*s,'#64748b'); kRect(x,-16*s,-8*s,32*s,8*s,'#0f172a');
     kCircle(x,14*s,12*s,7*s,'#ca8a04'); x.restore(); } }
 };
-function paintPipop(x){
-  // Pipop the penguin — faithful port of the original canvas drawing
+function paintPipo(x){
+  // Pipo the penguin — faithful port of the original canvas drawing
   const s = 88;
   x.save();
   x.translate(50, 48);
@@ -1381,14 +1393,14 @@ try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if(s && s.stars) sav
 function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e){} }
 
 /* ---------------- i18n (English / Italiano) ----------------
-   Character names (Pipop, Nunu, Cannolio, Whaeleeno, Baggu, ...) are
+   Character names (Pipo, Nunu, Cannolio, Whaeleeno, Baggu, ...) are
    never translated. Static DOM text is swapped once at boot by exact
    match; dynamic strings go through t() (whole string) or tf(en, it)
    (templates with interpolation). Switching language reloads the page. */
-const LANG = save.lang === 'it' ? 'it' : 'en';
+const LANG = save.lang === 'en' ? 'en' : 'it'; // Italiano is the default
 const IT = {
   // splash
-  'HELP PIPOP RESCUE HIS FRIENDS':'AIUTA PIPOP A SALVARE I SUOI AMICI',
+  'HELP PIPO RESCUE HIS FRIENDS':'AIUTA PIPO A SALVARE I SUOI AMICI',
   'Play!':'Gioca!',
   'Works offline · Progress saved on this device':'Funziona offline · Progressi salvati su questo dispositivo',
   // HUD
@@ -1413,11 +1425,8 @@ const IT = {
   // pause modal
   'Paused':'Pausa', 'Sound':'Audio', 'Music':'Musica', 'On':'Sì', 'Off':'No',
   'Resume':'Riprendi', 'Restart':'Ricomincia',
-  // story modal
-  'Emergency!':'Emergenza!',
-  "Pipop! Sheriff Saltbread Cane here. Whaeleeno and Baggu raided the town — they stole the mail and took our friends! Cannolio, Nunu, the whole school... everyone! You're the only one who knows every path in Pipoville. Solve the puzzle boards, follow the trail, and bring them home!":
-    'Pipop! Qui lo sceriffo Sir Saltbread Cane. Whaeleeno e Baggu hanno assaltato la città — hanno rubato la posta e rapito i nostri amici! Cannolio, Nunu, tutta la scuola... tutti quanti! Sei l\'unico che conosce ogni sentiero di Pipoville. Risolvi i tabelloni puzzle, segui le tracce e riportali a casa!',
-  'WANTED:':'RICERCATI:', "Let's go!":'Andiamo!',
+  // story intro
+  "Let's go!":'Andiamo!',
   // tasks modal
   'Rebuild Pipoville':'Ricostruisci Pipoville', 'Day 1':'Giorno 1', 'Day':'Giorno',
   "Let's rebuild Pipoville — win levels to earn stars!":'Ricostruiamo Pipoville — vinci i livelli per guadagnare stelle!',
@@ -1444,30 +1453,30 @@ const IT = {
   'Ch.3 — Main Street':'Cap.3 — Corso Principale',
   'Ch.4 — Town Hall':'Cap.4 — Municipio',
   // rescue dialogue (names stay as-is)
-  'Neigh! Those thieves tied me up in the hay barn. Thank you, Pipop!':
-    'Hiii! Quei ladri mi avevano legata nel fienile. Grazie, Pipop!',
+  'Neigh! Those thieves tied me up in the hay barn. Thank you, Pipo!':
+    'Hiii! Quei ladri mi avevano legata nel fienile. Grazie, Pipo!',
   "Woof woof! I KNEW you'd come! I'll dig for you from now on. (+1 shovel every level)":
     'Bau bau! LO SAPEVO che saresti venuto! D\'ora in poi scavo io per te. (+1 pala ogni livello)',
   'My farm! My Ninni! You saved us all. Take extra moves on the hard roads. (+2 moves on hard levels)':
     'La mia fattoria! La mia Ninni! Ci hai salvati tutti. Prendi mosse extra sulle strade difficili. (+2 mosse nei livelli difficili)',
-  'Moo-st impressive, Pipop! The school owes you one. (Daily gifts upgraded)':
-    'Muu-raviglioso, Pipop! La scuola ti deve un favore. (Regali giornalieri potenziati)',
+  'Moo-st impressive, Pipo! The school owes you one. (Daily gifts upgraded)':
+    'Muu-raviglioso, Pipo! La scuola ti deve un favore. (Regali giornalieri potenziati)',
   'Fascinating! By my calculations, your rainbow wheel now charges faster. (Wheel fills at 50)':
     'Affascinante! Secondo i miei calcoli, la tua ruota arcobaleno ora si carica più in fretta. (La ruota si riempie a 50)',
   'GRRREAT hustle out there, champ! Keep those combos coming!':
     'GRRRANDE grinta, campione! Continua con quelle combo!',
   "The whole school is free! Art class is back — I'll paint your portrait, hero.":
     'Tutta la scuola è libera! L\'ora di arte è tornata — ti farò un ritratto, eroe.',
-  'My groceries! My store! Oink-credible work, Pipop!':
-    'La mia spesa! Il mio negozio! Un lavoro oink-credibile, Pipop!',
+  'My groceries! My store! Oink-credible work, Pipo!':
+    'La mia spesa! Il mio negozio! Un lavoro oink-credibile, Pipo!',
   'Hmph. You rescued Mayalee FIRST?! ...Thank you though. Truly.':
     'Uffa. Hai salvato PRIMA Mayalee?! ...Però grazie. Davvero.',
   'Fresh croissants for the hero! Your streak boosters just got tastier. (Streaks add a Bomb)':
     'Cornetti freschi per l\'eroe! I tuoi bonus serie sono ancora più gustosi. (Le serie aggiungono una Bomba)',
-  'Arf! The sheriff is still locked in the town hall — hurry, Pipop!':
-    'Arf! Lo sceriffo è ancora chiuso in municipio — corri, Pipop!',
-  "Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipop.":
-    'Sceriffo Saltbread Cane, di nuovo in servizio. Finiamo il lavoro, vice Pipop.',
+  'Arf! The sheriff is still locked in the town hall — hurry, Pipo!':
+    'Arf! Lo sceriffo è ancora chiuso in municipio — corri, Pipo!',
+  "Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipo.":
+    'Sceriffo Saltbread Cane, di nuovo in servizio. Finiamo il lavoro, vice Pipo.',
   'Blub... you win, mailbird. Baggu — give back the mail. ALL of it. Pipoville is saved!':
     'Blub... hai vinto, pinguino postino. Baggu — restituisci la posta. TUTTA. Pipoville è salva!',
   // garden tasks
@@ -1589,18 +1598,18 @@ function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 /* ---------------- the rescue of Pipoville ---------------- */
 const CHAPTERS = { 1:t('Ch.1 — Nunu Farms'), 9:t('Ch.2 — Pipoville School'), 17:t('Ch.3 — Main Street'), 25:t('Ch.4 — Town Hall') };
 const RESCUES = {
-  4:  { id:'ninni', line:t('Neigh! Those thieves tied me up in the hay barn. Thank you, Pipop!') },
+  4:  { id:'ninni', line:t('Neigh! Those thieves tied me up in the hay barn. Thank you, Pipo!') },
   6:  { id:'cannolio', line:t("Woof woof! I KNEW you'd come! I'll dig for you from now on. (+1 shovel every level)") },
   8:  { id:'nunu', line:t('My farm! My Ninni! You saved us all. Take extra moves on the hard roads. (+2 moves on hard levels)') },
-  10: { id:'ms_moomoo', line:t('Moo-st impressive, Pipop! The school owes you one. (Daily gifts upgraded)') },
+  10: { id:'ms_moomoo', line:t('Moo-st impressive, Pipo! The school owes you one. (Daily gifts upgraded)') },
   12: { id:'ms_toni', line:t('Fascinating! By my calculations, your rainbow wheel now charges faster. (Wheel fills at 50)') },
   14: { id:'mr_bobo', line:t('GRRREAT hustle out there, champ! Keep those combos coming!') },
   16: { id:'ms_saltchow', line:t("The whole school is free! Art class is back — I'll paint your portrait, hero.") },
-  18: { id:'mayalee', line:t('My groceries! My store! Oink-credible work, Pipop!') },
+  18: { id:'mayalee', line:t('My groceries! My store! Oink-credible work, Pipo!') },
   21: { id:'ovalee', line:t('Hmph. You rescued Mayalee FIRST?! ...Thank you though. Truly.') },
   24: { id:'pancione', line:t('Fresh croissants for the hero! Your streak boosters just got tastier. (Streaks add a Bomb)') },
-  26: { id:'winnie', line:t('Arf! The sheriff is still locked in the town hall — hurry, Pipop!') },
-  28: { id:'sir_saltbread_cane', line:t("Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipop.") },
+  26: { id:'winnie', line:t('Arf! The sheriff is still locked in the town hall — hurry, Pipo!') },
+  28: { id:'sir_saltbread_cane', line:t("Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipo.") },
   30: { id:'whaeleeno', villain:true, line:t('Blub... you win, mailbird. Baggu — give back the mail. ALL of it. Pipoville is saved!') }
 };
 function isRescued(id){ return (save.rescued || []).includes(id); }
@@ -1774,7 +1783,7 @@ function renderMap(){
     sign.style.top = (y + 52) + 'px';
     inner.appendChild(sign);
   });
-  // Pipop lives on the map: he stands at your current level and waddles up newly opened path
+  // Pipo lives on the map: he stands at your current level and waddles up newly opened path
   const cur = Math.min(save.unlocked, n);
   const from = Math.max(1, Math.min(save.pipopAt || 1, cur));
   const av = document.createElement('div');
@@ -2587,7 +2596,7 @@ async function resolveCascades(initial, initialCreations){
     if(maxRad >= 2) await sleep(maxRad >= 4 ? 140 : 80); // hit-stop beat
     Snd.pop(mult);
     if(mult >= 3) toast(t(['Great!','Amazing!','Spectacular!','Unbelievable!'][Math.min(mult-3,3)]));
-    if(mult >= 3 || maxRad >= 2) setPipopMood('cheer', 1400);
+    if(mult >= 3 || maxRad >= 2) setPipoMood('cheer', 1400);
     destroyCells(out, creations, mult);
     updateHUD();
     await sleep(230);
@@ -2631,19 +2640,19 @@ async function afterMove(){
   }
   if(G.movesLeft <= 0){ loseSequence(); return; }
   if(G.movesLeft === 1) toast(t('Last move!'));
-  setPipopMood(pipopBaseline());
+  setPipoMood(pipopBaseline());
   if(!findAnyMove()){ toast(t('Shuffled!')); await sleep(500); shuffleBoard(true); }
   G.busy = false;
   armHint();
 }
 
-/* ---- Pipop stands beside the board and reacts ---- */
+/* ---- Pipo stands beside the board and reacts ---- */
 const EMOTES = { cheer:'🎉', worry:'😰', sad:'😢', no:'🙅', party:'🥳', idle:'' };
 let pipopTimer = null;
 function pipopBaseline(){
   return (!G.over && G.movesLeft <= 3) ? 'worry' : 'idle';
 }
-function setPipopMood(mood, holdMs){
+function setPipoMood(mood, holdMs){
   const el = $('#pipop-side');
   if(!el) return;
   el.className = mood === 'idle' ? '' : mood;
@@ -2652,7 +2661,7 @@ function setPipopMood(mood, holdMs){
   em.style.opacity = EMOTES[mood] ? 1 : 0;
   if(pipopTimer) clearTimeout(pipopTimer);
   if(holdMs){
-    pipopTimer = setTimeout(()=>{ setPipopMood(pipopBaseline()); }, holdMs);
+    pipopTimer = setTimeout(()=>{ setPipoMood(pipopBaseline()); }, holdMs);
   }
 }
 
@@ -2763,7 +2772,7 @@ async function trySwap(r1,c1,r2,c2){
   const res = analyzeMatches([[r1,c1],[r2,c2]]);
   if(!res){
     Snd.bad();
-    setPipopMood('no', 1000);
+    setPipoMood('no', 1000);
     swapInGrid(r1,c1,r2,c2);
     placeCandy(a.el, r1, c1, false);
     placeCandy(b.el, r2, c2, false);
@@ -2863,7 +2872,7 @@ async function winSequence(){
   clearHint();
   endTutorial();
   $('#game').classList.add('winning');
-  setPipopMood('party');
+  setPipoMood('party');
   toast(t('Level Complete!'));
   Snd.win();
   await sleep(700);
@@ -2940,7 +2949,7 @@ function loseSequence(){
   G.over = true;
   clearHint();
   endTutorial();
-  setPipopMood('sad');
+  setPipoMood('sad');
   save.streak = 0;
   save.fails[G.level] = (save.fails[G.level] || 0) + 1;
   persist();
@@ -2992,7 +3001,7 @@ function prepareLevel(){
   G.shovelMode = false;
   G.vineKilled = false;
   $('#btn-shovel').classList.remove('armed');
-  setPipopMood('idle');
+  setPipoMood('idle');
   buildBoard();
   // pre-placed boosters: win streak + hard-level gift + claimed daily gifts
   const boosters = [];
@@ -3054,10 +3063,58 @@ document.querySelectorAll('.lang-btn').forEach(b=>{
 });
 $('#btn-play').addEventListener('click', ()=>{
   Snd.ensure(); showScreen('map'); renderMap();
-  if(!save.storySeen){ save.storySeen = true; persist(); showOverlay('ov-story', true); }
+  if(!save.storySeen){ save.storySeen = true; persist(); startIntro(); }
   else checkDaily();
 });
-$('#btn-story').addEventListener('click', ()=>{ showOverlay('ov-story', false); checkDaily(); });
+/* ---- new-player intro: a little play in eight lines, kid-sized ---- */
+const INTRO = [
+  { id:'pipop', text: tf(
+      "Hi! I'm Pipo, the mail penguin of Pipoville! Every day I bring letters to all my friends.",
+      "Ciao! Sono Pipo, il pinguino postino di Pipoville! Ogni giorno porto le lettere a tutti i miei amici.") },
+  { id:'cannolio', text: tf(
+      "Woof woof! I'm Cannolio, Pipo's best friend. I love digging! But today... something strange happened!",
+      "Bau bau! Io sono Cannolio, il migliore amico di Pipo. Adoro scavare! Ma oggi... è successo qualcosa di strano!") },
+  { id:'sir_saltbread_cane', text: tf(
+      "Emergency! I'm Sheriff Saltbread Cane. Whaeleeno and Baggu stole all the mail and took our friends away!",
+      "Emergenza! Sono lo sceriffo Saltbread Cane. Whaeleeno e Baggu hanno rubato tutta la posta e portato via i nostri amici!") },
+  { id:'whaeleeno', baddie:true, text: tf(
+      "Blub blub! The mail is MINE now! You will never catch me!",
+      "Blub blub! Ora la posta è MIA! Non mi prenderete mai!") },
+  { id:'baggu', baddie:true, text: tf(
+      "Hee hee! And your friends are locked up tight! Good luck finding them!",
+      "Ih ih! E i vostri amici sono chiusi ben bene! Buona fortuna a trovarli!") },
+  { id:'winnie', text: tf(
+      "Arf arf! Help! We are trapped! Somebody save us!",
+      "Arf arf! Aiuto! Siamo in trappola! Qualcuno ci salvi!") },
+  { id:'pipop', text: tf(
+      "Don't worry, friends! I know every path in Pipoville. I will follow the trail and bring everyone home!",
+      "Niente paura, amici! Conosco ogni sentiero di Pipoville. Seguirò le tracce e riporterò tutti a casa!") },
+  { id:'sir_saltbread_cane', text: tf(
+      "Match 3 pieces of the same kind to clear the road. Match 4 or more for a big surprise! Good luck, Pipo!",
+      "Combina 3 pezzi uguali per liberare la strada. Combinane 4 o più per una grande sorpresa! Buona fortuna, Pipo!") }
+];
+let introStep = 0;
+function showIntroStep(){
+  const s = INTRO[introStep];
+  const portrait = $('#story-portrait');
+  portrait.src = SPRITES['c_' + s.id];
+  portrait.classList.toggle('baddie', !!s.baddie);
+  $('#story-ribbon').classList.toggle('baddie', !!s.baddie);
+  $('#story-ribbon').textContent = s.baddie ? tf('Oh no!', 'Oh no!') : 'Pipoville';
+  $('#story-name').textContent = CHARACTERS[s.id].name;
+  $('#story-text').textContent = s.text;
+  $('#btn-story').textContent = introStep === INTRO.length - 1 ? t("Let's go!") : t('Next ▶');
+  $('#story-dots').innerHTML = INTRO.map((_,i)=>`<span class="dot${i===introStep?' on':''}"></span>`).join('');
+  if(window.gsap && !REDUCED){
+    gsap.fromTo('#story-portrait', { scale:.6, y:8 }, { scale:1, y:0, duration:.45, ease:'back.out(2)' });
+    gsap.fromTo('#story-text', { opacity:0, y:6 }, { opacity:1, y:0, duration:.3 });
+  }
+}
+function startIntro(){ introStep = 0; showIntroStep(); showOverlay('ov-story', true); }
+$('#btn-story').addEventListener('click', ()=>{
+  if(introStep < INTRO.length - 1){ introStep++; showIntroStep(); Snd.swap(); return; }
+  showOverlay('ov-story', false); checkDaily();
+});
 $('#btn-win-tasks').addEventListener('click', ()=>{
   showOverlay('ov-win', false);
   showScreen('map'); renderMap();

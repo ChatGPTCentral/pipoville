@@ -1,6 +1,6 @@
 # 🐧 Pipoville
 
-A complete, self-contained match-3 rescue adventure — help Pipop the mail-delivery penguin save his friends from Whaeleeno and Baggu — Gardenscapes-style
+A complete, self-contained match-3 rescue adventure — help Pipo the mail-delivery penguin save his friends from Whaeleeno and Baggu — Gardenscapes-style
 meta on top of a size-tiered explosive match-3, built as a single offline
 HTML file with zero dependencies and zero image assets (every sprite is
 canvas-painted at boot).
