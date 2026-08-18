@@ -218,3 +218,15 @@ reuse the intro dialogue player via `startScene(script, onDone)`; they
 chain between the rescue modal and the win card, play once
 (`save.scenes`), and are fully bilingual. `window.__test.winSequence`
 is exposed for deterministic end-of-level testing.
+
+## Honey layers, the +5 offer, replays
+
+Mask `K` = two-layer honey (deeper tint via `.jelly2`; each clear on
+top removes one layer; `jellyTotal` counts layers). The lose card shows
+a **+5 moves · ★12** offer on near-misses (≥70% done or ≤6 goal items
+left); buying it undoes the loss bookkeeping (`G.lossUndo` restores the
+streak and fail count), resets the flushed quest counters, and resumes
+the round. Completed non-current map nodes carry a `replay-badge`
+(baked `ICONS.replay` circular arrow) and the level sheet shows a
+`Record` line from `save.best` (per-level best score, written in
+`winSequence`).
