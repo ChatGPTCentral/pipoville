@@ -356,3 +356,33 @@ it.
 Shipping checklist: bump `CACHE` in sw.js + `GAME_VERSION`; if the save
 shape changed, bump `SAVE_VERSION` + extend `migrateSave()`; run
 `audit-geometry2.js`, `test-redesign.js`, `test-version.js`.
+
+
+## v27 — Daily Delight (retention layer, part 1)
+
+The first release of the bestseller roadmap: four kid-safe retention systems.
+
+- **Stamp Chest** (`gainStamps()`, `CHEST_NEED` 120, `CHEST_BONUS` 20): every
+  stamp earned anywhere (wins, quests, events, town income, minigame) also
+  fills `save.chest`; at 120 it opens ITSELF — +20 stamps and a rotating
+  booster — with a banner + confetti wherever the player is. All raw
+  `save.stamps +=` gain sites now route through `gainStamps()`; keep it that
+  way. Spending still goes through `spendStamps()` (spending never drains
+  the chest).
+- **Welcome-back letter** (`checkWelcomeBack()`, `save.lastSeen`): ≥3 days
+  away → warm letter, hearts refilled, up to 3 days of town income, a Bomb.
+  The daily-gift ladder never resets on a lapse anymore — it resumes at the
+  same tier (`checkDaily` grace).
+- **Letter of the Day** (`ensureLotd()`, `save.lotd`): one seeded level per
+  day; the first win pays double stamps (💌×2 on the win pill). Card in the
+  Giro view.
+- **"Chi si nasconde?"** (`openCritters()`, `save.critters`): daily
+  hidden-object round in the town diorama — 5 critters (butterfly, gnome,
+  jelly, Cannolio, Baggu) at day-seeded positions, 90s soft timer (no fail:
+  timer only gates the Firecracker speed bonus), +8 stamps. Daily streak
+  shrinks critters and hides them behind buildings. Entries: win screen 🔍
+  button (until played) and a card in the Città view. Exiting hands back the
+  win modal when it came from one.
+
+Save fields are additive (chest/lotd/critters/lastSeen default at runtime) —
+SAVE_VERSION stays 2, no migration needed.
