@@ -10,7 +10,7 @@
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Lilita+One&display=swap" rel="stylesheet">
 <title>Pipoville</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
@@ -845,6 +845,59 @@
   #card-perk img { width:22px; height:22px; }
   #card-perk-text { font-weight:800; font-size:13px; color:#8a5a00; }
   #card-where { color:var(--ink2) !important; }
+
+  /* ================= GARDENSCAPES FONT KIT + LAYOUT FIXES ================= */
+  :root { --font-display:'Lilita One','Baloo 2','Arial Rounded MT Bold',system-ui,sans-serif; }
+  .btn, .modal h2, .modal .ribbon, .vh-title, #moves-num, .lvl-node, #toast, .map-banner,
+  #sheet-lvl, #intro-title, .q-claim, .buy-btn, #btn-more-moves, .modal .score-line,
+  #win-stamps-num, .pill, .next-pill, #chap-name, .sheet-cta, .ev-lvl .ev-n, #btn-back
+    { font-family:var(--font-display); font-weight:400; letter-spacing:.015em; }
+  .modal h2 { font-size:32px; }
+  .vh-title { font-size:24px; }
+  #moves-num { font-size:34px; }
+  #intro-title { font-size:23px; }
+  .modal .ribbon { font-size:20px; padding:8px 28px; }
+  #toast { font-weight:400; }
+  .btn { font-size:23px; }
+  .btn.small { font-size:18px; }
+  .r-title, .a-name, .t-name, .sc-eyebrow, #meta-nav .tab span { letter-spacing:.01em; }
+
+  /* layout: floating banners clear the meta top bar */
+  .map-banner { top:calc(96px + env(safe-area-inset-top)); z-index:40; max-width:92vw; white-space:normal; text-align:center; }
+  /* layout: chapter block never wrestles the gear button */
+  .chap { max-width:118px; }
+  #chap-name { font-size:13.5px; line-height:1.08; }
+  /* layout: delivery panel never clips on multi-goal levels */
+  #goal-chips { gap:8px; }
+  #goal-chips .goal-chip { font-size:15px; }
+  #goal-chips .goal-chip svg, #goal-chips .goal-chip img, #goal-chips .goal-chip .dirt-ico { width:22px; height:22px; }
+  #goal-row { flex-wrap:wrap; row-gap:2px; }
+  #score-row { margin-top:2px; }
+  /* layout: the level sheet scrolls instead of spilling off short screens */
+  .sheet { max-height:86vh; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  /* layout: win-card buttons breathe on narrow phones */
+  @media (max-width:380px){
+    .modal .btns { gap:7px; }
+    .btn.small { font-size:16px; padding:9px 14px; }
+    #btn-win-share { padding:9px 11px; }
+  }
+  /* layout: toast never collides with the top HUD */
+  #toast { top:44%; }
+
+  /* ---------- Pipo's dressing room ---------- */
+  #dress-preview { width:150px; height:150px; display:block; margin:4px auto 0;
+    filter:drop-shadow(0 5px 6px rgba(0,0,0,.28)); animation:pipopBob 1.4s ease-in-out infinite; }
+  .dress-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; margin-top:12px; }
+  .dress-item { border:none; cursor:pointer; font-family:inherit; border-radius:16px; padding:8px 4px 7px;
+    display:flex; flex-direction:column; align-items:center; gap:3px;
+    background:linear-gradient(180deg,#ffffff,#eef5fb); box-shadow:inset 0 3px 0 rgba(255,255,255,.9), 0 5px 0 #cfdeea; }
+  .dress-item .d-name { font-weight:800; font-size:10.5px; line-height:1.1; color:var(--ink); text-align:center; }
+  .dress-item .d-tag { font-weight:800; font-size:11px; color:var(--ink2); }
+  .dress-item.worn { background:linear-gradient(180deg,#fff8e4,#ffdf9a); box-shadow:inset 0 3px 0 rgba(255,255,255,.9), 0 5px 0 #e0b657, 0 0 0 3px #ffc23c; }
+  .dress-item.worn .d-tag { color:#8a5a00; }
+  .dress-item.cant { opacity:.55; }
+  .dress-ico { width:44px; height:44px; display:flex; align-items:center; justify-content:center; }
+  #town-scene .town-pipo { pointer-events:auto; cursor:pointer; }
   #reset-note { font-size:13px; font-weight:800; color:#a8322a !important; margin-top:8px; }
 
 </style>
@@ -1056,6 +1109,15 @@
     <p id="daily-text"></p>
     <p style="font-size:13px;">Come back tomorrow for a bigger gift!</p>
     <div class="btns"><button class="btn" id="btn-daily">Claim!</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-dress">
+  <div class="modal">
+    <div class="ribbon">Dressing room</div>
+    <img id="dress-preview" alt="">
+    <div class="dress-grid" id="dress-grid"></div>
+    <div class="btns"><button class="btn blue small" id="btn-dress-close">Close</button></div>
   </div>
 </div>
 
@@ -2125,6 +2187,7 @@ const IT = {
   'Route':'Percorso', 'Round':'Giro', 'Book':'Album', 'Shop':'Negozio', 'Mailroom':'Posta', 'Town':'Città',
   'Delivery':'Consegna', 'Out of rounds':'Cuori finiti', 'Wait it out':'Aspetta',
   'Settings':'Impostazioni', 'Start from the beginning':'Ricomincia dall\'inizio',
+  'Dressing room':'Camerino',
   // splash
   'HELP PIPO RESCUE HIS FRIENDS':'AIUTA PIPO A SALVARE I SUOI AMICI',
   'Play!':'Gioca!',
@@ -2320,9 +2383,12 @@ function ensureQuests(){
 }
 /* ---- cosmetics: painted straight onto the chibi Pipo sprite ---- */
 const COSMETICS = {
-  cap:    { cost: 15, en: 'Summer cap',    it: 'Cappellino estivo' },
-  scarf:  { cost: 12, en: 'Harbour scarf', it: 'Sciarpa del porto' },
-  sailor: { cost: 18, en: 'Sailor hat',    it: 'Cappello da marinaio' }
+  cap:     { cost: 15, en: 'Summer cap',    it: 'Cappellino estivo' },
+  scarf:   { cost: 12, en: 'Harbour scarf', it: 'Sciarpa del porto' },
+  sailor:  { cost: 18, en: 'Sailor hat',    it: 'Cappello da marinaio' },
+  glasses: { cost: 14, en: 'Cool shades',   it: 'Occhiali da sole' },
+  bowtie:  { cost: 10, en: 'Dandy bow tie', it: 'Papillon elegante' },
+  crown:   { cost: 25, en: "Founder's crown", it: 'Corona del fondatore' }
 };
 /* every friend can dress up, not just Pipo */
 const WARDROBE = {
@@ -2349,13 +2415,13 @@ function drawCosmetic(x, kind){
     x.fillRect(30, 23, 40, 5.5);
   } else if(kind === 'scarf'){
     x.strokeStyle = '#2b7fd4'; x.lineCap = 'round'; x.lineWidth = 9;
-    x.beginPath(); x.moveTo(30, 62); x.quadraticCurveTo(50, 72, 70, 62); x.stroke();
+    x.beginPath(); x.moveTo(35, 55); x.quadraticCurveTo(54, 64, 73, 55); x.stroke();
     x.strokeStyle = '#8fd0ff'; x.lineWidth = 4;
-    x.beginPath(); x.moveTo(30, 62); x.quadraticCurveTo(50, 72, 70, 62); x.stroke();
+    x.beginPath(); x.moveTo(35, 55); x.quadraticCurveTo(54, 64, 73, 55); x.stroke();
     x.strokeStyle = '#2b7fd4'; x.lineWidth = 8;
-    x.beginPath(); x.moveTo(64, 65); x.lineTo(68, 80); x.stroke();
+    x.beginPath(); x.moveTo(40, 59); x.lineTo(37, 74); x.stroke();
     x.fillStyle = '#8fd0ff';
-    x.fillRect(64, 78, 8, 5);
+    x.fillRect(33, 72, 8, 5);
   } else if(kind === 'sailor'){
     x.fillStyle = '#ffffff';
     x.beginPath(); x.ellipse(50, 25, 25, 11, 0, Math.PI, 0); x.fill();
@@ -2365,6 +2431,33 @@ function drawCosmetic(x, kind){
     x.beginPath(); x.ellipse(50, 26, 26, 5, 0, 0, Math.PI * 2); x.fill();
     x.fillStyle = '#ffd21f';
     x.beginPath(); x.arc(50, 19, 2.6, 0, Math.PI * 2); x.fill();
+  } else if(kind === 'glasses'){
+    x.fillStyle = '#1f2a35';
+    const lens = (px)=>{ x.beginPath(); x.roundRect ? x.roundRect(px, 32, 13, 10, 4) : x.rect(px, 32, 13, 10); x.fill(); };
+    lens(41); lens(61);
+    x.strokeStyle = '#1f2a35'; x.lineWidth = 2.4;
+    x.beginPath(); x.moveTo(54, 36); x.lineTo(61, 36); x.stroke();
+    x.beginPath(); x.moveTo(41, 35); x.lineTo(35, 32); x.stroke();
+    x.beginPath(); x.moveTo(74, 35); x.lineTo(79, 32); x.stroke();
+    x.fillStyle = 'rgba(255,255,255,.45)';
+    x.beginPath(); x.ellipse(45, 35, 3, 2, -0.5, 0, 7); x.fill();
+    x.beginPath(); x.ellipse(65, 35, 3, 2, -0.5, 0, 7); x.fill();
+  } else if(kind === 'bowtie'){
+    x.fillStyle = '#f2564b';
+    x.beginPath(); x.moveTo(54, 57); x.lineTo(40, 50); x.lineTo(40, 64); x.closePath(); x.fill();
+    x.beginPath(); x.moveTo(54, 57); x.lineTo(68, 50); x.lineTo(68, 64); x.closePath(); x.fill();
+    x.strokeStyle = '#98241b'; x.lineWidth = 1.8;
+    x.beginPath(); x.moveTo(54, 57); x.lineTo(40, 50); x.lineTo(40, 64); x.closePath(); x.stroke();
+    x.beginPath(); x.moveTo(54, 57); x.lineTo(68, 50); x.lineTo(68, 64); x.closePath(); x.stroke();
+    x.fillStyle = '#ffd21f';
+    x.beginPath(); x.arc(54, 57, 3.6, 0, 7); x.fill();
+  } else if(kind === 'crown'){
+    const band = new Path2D('M35 24 L35 12 L42 19 L49 8 L56 19 L64 10 L71 24 Z');
+    x.fillStyle = '#ffd21f'; x.fill(band);
+    x.strokeStyle = '#b8860b'; x.lineWidth = 2.2; x.lineJoin = 'round'; x.stroke(band);
+    x.fillStyle = '#f2564b'; x.beginPath(); x.arc(49, 8, 2.4, 0, 7); x.fill();
+    x.fillStyle = '#2e9bf0'; x.beginPath(); x.arc(42, 20.5, 1.8, 0, 7); x.fill();
+    x.fillStyle = '#2e9bf0'; x.beginPath(); x.arc(64, 12, 1.8, 0, 7); x.fill();
   }
 }
 function drawFriendAccessory(x, ch, kind){
@@ -2745,6 +2838,8 @@ function renderMailroom(){
     ${rows}
     ${last ? `<div class="keeper-card"><img src="${SPRITES.pipop}" alt=""><div class="k-line">${last.line}</div></div>` : ''}`;
   $('#mailroom-body').querySelectorAll('.t-do').forEach(b=>b.addEventListener('click', ()=>doTask(b.dataset.id)));
+  const townPipo = $('#mailroom-body .town-pipo');
+  if(townPipo) townPipo.addEventListener('click', ()=>{ Snd.ensure(); openDressRoom(); });
   const collect = $('#btn-town-collect');
   if(collect) collect.addEventListener('click', ()=>{
     if(save.townDay === new Date().toDateString()) return;
@@ -2931,6 +3026,10 @@ function renderShop(){
       <div class="shop-card"><img src="${SPRITES.p_bomb}" alt=""><div class="s-name">${tf('Bomb ×2', 'Bomba ×2')}</div>
         <button class="buy-btn" id="shop-bomb" ${save.stamps < 9 ? 'disabled' : ''}>★9</button></div>
     </div>
+    <div class="pv-row shop-cosmetic"><img class="r-icon" src="${SPRITES.pipop}" alt="">
+      <div class="r-main"><div class="r-title">${tf("Pipo's dressing room", "Il camerino di Pipo")}</div>
+      <div class="r-sub">${tf('Try on every gadget with a live preview', 'Prova ogni gadget con anteprima dal vivo')}</div></div>
+      <button class="buy-btn purple" id="shop-dress">▸</button></div>
     ${(()=>{
       const met = metSet();
       return Object.keys(WARDROBE).filter(ch => ch === 'pipop' || met.has(ch)).map(ch=>
@@ -2958,6 +3057,8 @@ function renderShop(){
   buy('shop-refill', ()=>{ if(!heartsFull && spendStamps(8)) save.hearts = HEART_MAX; });
   buy('shop-fire', ()=>{ if(spendStamps(6)) save.pending = (save.pending || []).concat(['fire','fire','fire']); });
   buy('shop-bomb', ()=>{ if(spendStamps(9)) save.pending = (save.pending || []).concat(['bomb','bomb']); });
+  const dressBtn = $('#shop-dress');
+  if(dressBtn) dressBtn.addEventListener('click', ()=>{ Snd.ensure(); openDressRoom(); });
   $('#shop-body').querySelectorAll('.shop-cos').forEach(b=>{
     b.addEventListener('click', ()=>{
       const ch = b.dataset.ch, ck = b.dataset.c;
@@ -4787,6 +4888,43 @@ function openSettings(){
 $('#btn-settings').addEventListener('click', ()=>{ Snd.ensure(); openSettings(); });
 $('#btn-settings-close').addEventListener('click', ()=>showOverlay('ov-settings', false));
 $('#btn-card-close').addEventListener('click', ()=>showOverlay('ov-card', false));
+$('#btn-dress-close').addEventListener('click', ()=>showOverlay('ov-dress', false));
+/* ---- Pipo's dressing room: every gadget, live preview ---- */
+const DRESS_ICON = { cap:'🧢', scarf:'🧣', sailor:'⚓', glasses:'🕶️', bowtie:'🎀', crown:'👑' };
+function renderDressRoom(){
+  $('#dress-preview').src = SPRITES.pipop;
+  const state = save.wardrobe.pipop;
+  $('#dress-grid').innerHTML = Object.keys(COSMETICS).map(ck=>{
+    const c = COSMETICS[ck];
+    const owned = state.owned.includes(ck);
+    const worn = state.equipped === ck;
+    const cant = !owned && save.stamps < c.cost;
+    const tag = worn ? tf('worn', 'indossato') : owned ? tf('tap to wear', 'tocca e indossa') : '★' + c.cost;
+    return `<button class="dress-item${worn ? ' worn' : ''}${cant ? ' cant' : ''}" data-c="${ck}">
+      <span class="dress-ico" style="font-size:30px">${DRESS_ICON[ck] || '🎁'}</span>
+      <span class="d-name">${LANG === 'it' ? c.it : c.en}</span>
+      <span class="d-tag">${tag}</span></button>`;
+  }).join('');
+  $('#dress-grid').querySelectorAll('.dress-item').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const ck = b.dataset.c, c = COSMETICS[ck];
+      if(!state.owned.includes(ck)){
+        if(!spendStamps(c.cost)){ Snd.bad(); return; }
+        state.owned.push(ck);
+        state.equipped = ck;
+        confetti();
+      } else {
+        state.equipped = state.equipped === ck ? null : ck;
+      }
+      persist();
+      applyCosmetic();
+      if(!Snd.play('task', 1, .6)) Snd.special();
+      renderMeta();
+      setTimeout(renderDressRoom, 120); // let the composite land, then refresh the preview
+    });
+  });
+}
+function openDressRoom(){ renderDressRoom(); showOverlay('ov-dress', true); }
 $('#btn-reset').addEventListener('click', ()=>{
   if(!resetArmed){
     resetArmed = true;
