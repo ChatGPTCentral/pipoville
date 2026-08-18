@@ -1,5 +1,5 @@
 /* Aleville — offline cache */
-const CACHE = 'aleville-v5';
+const CACHE = 'aleville-v6';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
