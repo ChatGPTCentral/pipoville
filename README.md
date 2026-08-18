@@ -13,7 +13,7 @@ screen (character names stay the same in both).
 
 ## What's inside
 
-- 50 levels across six chapters on a winding map, 12 badged hard levels
+- 70 levels across eight chapters on a winding map, badged hard levels
 - Six painted pieces (apple, lemon, leaf, drop, flower, butterfly)
 - Explosive ladder by match size: 4 → Firecracker (3×3), 5 → Bomb (5×5),
   6 → Dynamite (7×7), 7+ → TNT (9×9); tap to detonate, swap two for a

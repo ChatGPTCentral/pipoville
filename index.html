@@ -898,6 +898,21 @@
   .dress-item.cant { opacity:.55; }
   .dress-ico { width:44px; height:44px; display:flex; align-items:center; justify-content:center; }
   #town-scene .town-pipo { pointer-events:auto; cursor:pointer; }
+
+  /* ================= V24 GEOMETRY PASS ================= */
+  /* full-bleed bottom nav: no see-through gap under the floating bar */
+  body.in-meta #meta-nav { left:0; right:0; bottom:0; border-radius:26px 26px 0 0;
+    padding:8px 10px calc(10px + env(safe-area-inset-bottom));
+    background:linear-gradient(180deg,#ffffff,#e0effc); }
+  .view-pad { padding-bottom:calc(104px + env(safe-area-inset-bottom)); }
+  /* task banner floats over the diorama, not over the view header text */
+  .map-banner { top:calc(178px + env(safe-area-inset-top)); }
+  /* level nodes paint above the friends/cages standing beside them */
+  .lvl-holder { z-index:3; }
+  .friend { z-index:1; }
+  .win-pipop { margin:12px auto 0; }
+  #route-hint { background:linear-gradient(180deg,#ffffff,#e8f3ff); }
+  #story-portrait { margin:10px auto 0; }
   #reset-note { font-size:13px; font-weight:800; color:#a8322a !important; margin-top:8px; }
 
 </style>
@@ -1964,6 +1979,65 @@ function applyIcons(root){
 }
 applyIcons();
 setTimeout(applyCosmetic, 0); // composite the equipped cosmetic onto Pipo once art is ready
+/* The chibi PNGs are 74-98px natives; phones show them at up to ~450 device px.
+   Resample each once to 256px with stepped high-quality smoothing so every later
+   scale is a downscale (crisp) instead of the browser's cheap bilinear upscale. */
+function sharpenCanvas(cv, k){
+  // mild premultiplied unsharp mask: restores edge definition lost to resampling
+  const x = cv.getContext('2d'), W = cv.width, H = cv.height;
+  const img = x.getImageData(0, 0, W, H), d = img.data, N = W * H;
+  const pm = new Float32Array(N * 4);
+  for(let i = 0; i < N; i++){
+    const a = d[i*4+3] / 255;
+    pm[i*4] = d[i*4] * a; pm[i*4+1] = d[i*4+1] * a; pm[i*4+2] = d[i*4+2] * a; pm[i*4+3] = d[i*4+3];
+  }
+  for(let y = 0; y < H; y++) for(let c = 0; c < W; c++){
+    const i = y * W + c;
+    const up = y ? i - W : i, dn = y < H-1 ? i + W : i, lf = c ? i - 1 : i, rt = c < W-1 ? i + 1 : i;
+    const px = ch => pm[i*4+ch] * (1 + 4*k) - k * (pm[up*4+ch] + pm[dn*4+ch] + pm[lf*4+ch] + pm[rt*4+ch]);
+    const a = Math.max(0, Math.min(255, px(3)));
+    d[i*4+3] = a;
+    const inv = a > 1 ? 255 / a : 0;
+    d[i*4] = Math.max(0, Math.min(255, px(0) * inv));
+    d[i*4+1] = Math.max(0, Math.min(255, px(1) * inv));
+    d[i*4+2] = Math.max(0, Math.min(255, px(2) * inv));
+  }
+  x.putImageData(img, 0, 0);
+}
+(function upscaleCast(){
+  const SIZE = 256, keys = Object.keys(CAST_META);
+  let left = keys.length;
+  keys.forEach(k=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let srcCv = img, w = img.width;
+      while(w * 2 < SIZE){
+        const c = document.createElement('canvas');
+        c.width = c.height = w * 2;
+        const cx = c.getContext('2d');
+        cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+        cx.drawImage(srcCv, 0, 0, w * 2, w * 2);
+        srcCv = c; w *= 2;
+      }
+      const c = document.createElement('canvas');
+      c.width = c.height = SIZE;
+      const cx = c.getContext('2d');
+      cx.imageSmoothingEnabled = true; cx.imageSmoothingQuality = 'high';
+      cx.drawImage(srcCv, 0, 0, SIZE, SIZE);
+      sharpenCanvas(c, .22);
+      const url = c.toDataURL('image/png');
+      CAST_META[k].src = url;
+      SPRITES['c_' + k] = url;
+      if(k === 'pipop') SPRITES.pipop = url;
+      if(--left === 0){
+        document.querySelectorAll('.char-img').forEach(el=>{ el.src = SPRITES['c_' + el.dataset.char]; });
+        document.querySelectorAll('.pipop-img').forEach(el=>{ el.src = SPRITES.pipop; });
+        applyCosmetic();
+      }
+    };
+    img.src = CAST_META[k].src;
+  });
+})();
 function paintJelly(x){
   const body = new Path2D('M50 14 C74 14 88 32 88 54 C88 78 72 90 50 90 C28 90 12 78 12 54 C12 32 26 14 50 14 Z');
   shadeBody(x, body, ['#ffc9dd','#ff5c9e','#a8195c'], {cx:38, cy:34});
@@ -2514,6 +2588,7 @@ function applyCosmetic(){
       const cv = document.createElement('canvas');
       cv.width = 256; cv.height = 256;
       const x = cv.getContext('2d');
+      x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
       x.drawImage(img, 0, 0, 256, 256);
       x.save();
       x.scale(2.56, 2.56);
@@ -3183,8 +3258,8 @@ function renderMap(){
     const [x, y] = pts[lv-1];
     const el = document.createElement('div');
     el.className = 'friend ' + (isRescued(rescue.id) ? 'freed' : 'caged');
-    const side = (lv % 2) ? -1 : 1;
-    el.style.left = `calc(${x}% + ${side * 62}px)`;
+    const side = x > 62 ? -1 : x < 38 ? 1 : ((lv % 2) ? -1 : 1);
+    el.style.left = `calc(${x}% + ${side * 74}px)`;
     el.style.top = (y - 8) + 'px';
     el.innerHTML = `<img src="${SPRITES['c_' + rescue.id]}" alt="">`;
     inner.appendChild(el);
