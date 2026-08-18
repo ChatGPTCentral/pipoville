@@ -820,6 +820,31 @@
   .ev-tier .q-claim { padding:8px 13px; font-size:13px; }
   .ev-tier .q-claimed { padding:7px 10px; color:#8fd88f; }
   #btn-win-share { padding:10px 14px; }
+  #town-scene { position:relative; height:238px; border-radius:22px; overflow:hidden; flex:0 0 auto;
+    background:linear-gradient(180deg,#bdedff 0%,#8fdcf5 22%,#bfeea0 40%,#7fce62 58%,#4fae4b 82%,#2f8f3f 100%);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.5), inset 0 -6px 0 rgba(18,58,46,.18), 0 6px 0 #1f6b2c, 0 12px 18px rgba(18,58,46,.3); }
+  .town-sun { position:absolute; right:-24px; top:-24px; width:110px; height:110px; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle at 42% 38%, rgba(255,255,255,.95), rgba(255,236,150,.55) 45%, rgba(255,214,90,0) 72%); }
+  .town-el { position:absolute; transform:translate(-50%,-58%); line-height:1;
+    filter:drop-shadow(0 3px 3px rgba(0,0,0,.25)); pointer-events:none; }
+  .town-el.built { animation:bornPop .55s cubic-bezier(.2,1.7,.4,1) backwards; }
+  .town-el.ghost { opacity:.42; filter:grayscale(1); }
+  .town-el.ghost b { position:absolute; left:50%; bottom:-14px; transform:translateX(-50%); white-space:nowrap;
+    font-size:10px; font-weight:800; font-family:inherit; color:#8a5a00; padding:1px 7px; border-radius:999px;
+    background:var(--cream); box-shadow:0 2px 0 #f0d9a8; filter:none; opacity:1; }
+  .town-pipo { position:absolute; left:44%; top:86%; width:42px; height:42px; transform:translate(-50%,-70%); z-index:99;
+    filter:drop-shadow(0 3px 4px rgba(0,0,0,.3)); animation:pipopBob 1.4s ease-in-out infinite; }
+  .income-row { background:var(--cream) !important; box-shadow:inset 0 3px 0 rgba(255,255,255,.95), 0 6px 0 #f0d9a8, 0 12px 18px rgba(18,58,46,.16) !important; }
+  .income-row .r-title { color:#8a5a00; }
+  .income-row .r-sub { color:#c19a4a; }
+  #card-portrait { width:110px; height:110px; display:block; margin:8px auto 0;
+    filter:drop-shadow(0 4px 5px rgba(0,0,0,.25)); }
+  #card-lore { color:var(--ink) !important; font-size:14.5px !important; }
+  #card-perk { display:flex; align-items:center; justify-content:center; gap:7px; margin-top:8px;
+    padding:8px 14px; border-radius:14px; background:var(--cream); box-shadow:0 4px 0 #f0d9a8; }
+  #card-perk img { width:22px; height:22px; }
+  #card-perk-text { font-weight:800; font-size:13px; color:#8a5a00; }
+  #card-where { color:var(--ink2) !important; }
   #reset-note { font-size:13px; font-weight:800; color:#a8322a !important; margin-top:8px; }
 
 </style>
@@ -924,7 +949,7 @@
   <button class="tab" data-view="quests"><img data-ico="quest" alt=""><span data-nav="round">Round</span></button>
   <button class="tab" data-view="album"><img data-ico="stamp" alt=""><span data-nav="book">Book</span></button>
   <button class="tab" data-view="shop"><img data-ico="gift" alt=""><span data-nav="shop">Shop</span></button>
-  <button class="tab" data-view="mailroom"><img data-ico="letter" alt=""><span data-nav="mailroom">Mailroom</span></button>
+  <button class="tab" data-view="mailroom"><img data-ico="letter" alt=""><span data-nav="mailroom">Town</span></button>
 </div>
 
 <!-- MODALS -->
@@ -1031,6 +1056,18 @@
     <p id="daily-text"></p>
     <p style="font-size:13px;">Come back tomorrow for a bigger gift!</p>
     <div class="btns"><button class="btn" id="btn-daily">Claim!</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-card">
+  <div class="modal">
+    <div class="ribbon" id="card-name">Pipo</div>
+    <img id="card-portrait" alt="">
+    <div class="cream-pill" id="card-role" style="display:inline-block;margin-top:4px;">Role</div>
+    <p id="card-lore" style="text-align:left; line-height:1.5; margin-top:12px;"></p>
+    <div id="card-perk" style="display:none;"><img data-ico="medal" alt=""><span id="card-perk-text"></span></div>
+    <p id="card-where" style="font-size:12.5px;"></p>
+    <div class="btns"><button class="btn blue small" id="btn-card-close">Close</button></div>
   </div>
 </div>
 
@@ -2085,7 +2122,7 @@ function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); 
 const LANG = save.lang === 'en' ? 'en' : 'it'; // Italiano is the default
 const IT = {
   // meta chrome
-  'Route':'Percorso', 'Round':'Giro', 'Book':'Album', 'Shop':'Negozio', 'Mailroom':'Posta',
+  'Route':'Percorso', 'Round':'Giro', 'Book':'Album', 'Shop':'Negozio', 'Mailroom':'Posta', 'Town':'Città',
   'Delivery':'Consegna', 'Out of rounds':'Cuori finiti', 'Wait it out':'Aspetta',
   'Settings':'Impostazioni', 'Start from the beginning':'Ricomincia dall\'inizio',
   // splash
@@ -2186,13 +2223,29 @@ const IT = {
   'Clean the swan pond':'Pulisci lo stagno dei cigni', 'The swans are back!':'I cigni sono tornati!',
   'Hang the lanterns':'Appendi le lanterne', 'How magical at dusk!':'Che magia al tramonto!',
   'Repair the carousel':'Ripara la giostra', 'Round and round it goes!':'Gira che ti rigira!',
+  'Rehang the school bell':'Riappendi la campanella', 'Ding dong — lessons are back!':'Din don — le lezioni sono tornate!',
+  'Restock the bakery':'Rifornisci il forno', 'Warm croissants all round!':'Cornetti caldi per tutti!',
+  'Reopen the grocery':'Riapri la bottega', 'Mayalee is back in business!':'Mayalee è tornata in affari!',
+  'Rebuild the post office':'Ricostruisci l\'ufficio postale', 'The heart of Pipoville beats again!':'Il cuore di Pipoville batte di nuovo!',
+  'Repair the harbour pier':'Ripara il molo', 'Boats bob happily again.':'Le barche ondeggiano felici.',
+  'Relight the lighthouse':'Riaccendi il faro', 'A beam across the bay!':'Un fascio di luce sulla baia!',
+  'Raise the market tent':'Monta il tendone del mercato', 'Fresh fish, fresh news!':'Pesce fresco, notizie fresche!',
+  'Wind the clock tower':'Carica la torre dell\'orologio', 'Right on time, Pipoville!':'Puntuale, Pipoville!',
+  'Seed the sunflower field':'Semina il campo di girasoli', 'A thousand little suns.':'Mille piccoli soli.',
+  'Set up the music stage':'Monta il palco della musica', 'Concerts every Sunday!':'Concerti ogni domenica!',
+  "Carve the founder's statue":'Scolpisci la statua del fondatore', 'It looks just like you, Pipo!':'È identica a te, Pipo!',
+  'Build the ferris wheel':'Costruisci la ruota panoramica', 'The whole town fits in one view!':'Tutta la città in un colpo d\'occhio!',
   'Reopen the manor':'Riapri la villa', 'Pipoville is shining again!':'Pipoville splende di nuovo!'
 };
 const IT_TASK_DONE = {
   bench:'Panchina riparata!', flowerbed:'Aiuola piantata!', fountain:'Fontana restaurata!',
   path:'Vialetto ripavimentato!', oak:'Quercia rinvigorita!', house:'Casetta ridipinta!',
   bridge:'Ponte sistemato!', tent:'Tenda montata!', pond:'Stagno pulito!',
-  lights:'Lanterne appese!', carousel:'Giostra riparata!', manor:'Villa riaperta!'
+  lights:'Lanterne appese!', carousel:'Giostra riparata!', manor:'Villa riaperta!',
+  school_bell:'Campanella riappesa!', bakery:'Forno rifornito!', grocery:'Bottega riaperta!',
+  postoffice:'Ufficio postale ricostruito!', pier:'Molo riparato!', beacon:'Faro riacceso!',
+  market:'Mercato montato!', clock:'Orologio caricato!', sunflowers:'Girasoli seminati!',
+  stage:'Palco montato!', statue:'Statua scolpita!', ferris:'Ruota costruita!'
 };
 const t = s => LANG === 'it' ? (IT[s] || s) : s;
 const tf = (en, it) => LANG === 'it' ? it : en;
@@ -2267,12 +2320,22 @@ function ensureQuests(){
 }
 /* ---- cosmetics: painted straight onto the chibi Pipo sprite ---- */
 const COSMETICS = {
-  cap:    { cost: 15, en: "Pipo's summer cap",  it: 'Il cappellino estivo di Pipo' },
-  scarf:  { cost: 12, en: 'Harbour scarf',      it: 'La sciarpa del porto' },
-  sailor: { cost: 18, en: 'Sailor hat',         it: 'Il cappello da marinaio' }
+  cap:    { cost: 15, en: 'Summer cap',    it: 'Cappellino estivo' },
+  scarf:  { cost: 12, en: 'Harbour scarf', it: 'Sciarpa del porto' },
+  sailor: { cost: 18, en: 'Sailor hat',    it: 'Cappello da marinaio' }
 };
-if(save.cap && !save.cosmetics){ save.cosmetics = { owned: ['cap'], equipped: 'cap' }; delete save.cap; persist(); }
-save.cosmetics = save.cosmetics || { owned: [], equipped: null };
+/* every friend can dress up, not just Pipo */
+const WARDROBE = {
+  pipop:     COSMETICS,
+  cannolio:  { bandana: { cost: 12, en: 'Adventure bandana', it: 'Bandana da avventura' } },
+  ninni:     { crown:   { cost: 12, en: 'Flower crown',      it: 'Corona di fiori' } },
+  winnie:    { bow:     { cost: 10, en: 'Sunday bow',        it: 'Fiocco della domenica' } },
+  whaeleeno: { keeper:  { cost: 15, en: 'Lighthouse keeper cap', it: 'Berretto da guardiano del faro' } }
+};
+if(save.cap && !save.cosmetics){ save.cosmetics = { owned: ['cap'], equipped: 'cap' }; delete save.cap; }
+save.wardrobe = save.wardrobe || {};
+if(save.cosmetics){ save.wardrobe.pipop = save.cosmetics; delete save.cosmetics; persist(); }
+Object.keys(WARDROBE).forEach(ch => { save.wardrobe[ch] = save.wardrobe[ch] || { owned: [], equipped: null }; });
 function drawCosmetic(x, kind){
   // painted in the sprite's 100-unit space; the chibi head fills the upper half
   if(kind === 'cap'){
@@ -2304,29 +2367,69 @@ function drawCosmetic(x, kind){
     x.beginPath(); x.arc(50, 19, 2.6, 0, Math.PI * 2); x.fill();
   }
 }
-function applyCosmetic(){
-  const eq = save.cosmetics.equipped;
-  const base = CAST_META.pipop.src;
-  const done = url => {
+function drawFriendAccessory(x, ch, kind){
+  if(ch === 'pipop'){ drawCosmetic(x, kind); return; }
+  if(kind === 'bandana'){
+    x.strokeStyle = '#f2564b'; x.lineCap = 'round'; x.lineWidth = 8;
+    x.beginPath(); x.moveTo(30, 60); x.quadraticCurveTo(50, 70, 70, 60); x.stroke();
+    x.fillStyle = '#f2564b';
+    x.beginPath(); x.moveTo(62, 64); x.lineTo(74, 76); x.lineTo(58, 74); x.closePath(); x.fill();
+    x.strokeStyle = '#98241b'; x.lineWidth = 1.6;
+    x.beginPath(); x.moveTo(30, 60); x.quadraticCurveTo(50, 70, 70, 60); x.stroke();
+  } else if(kind === 'crown'){
+    [[36, 16], [50, 11], [64, 16]].forEach(([px, py])=>{
+      for(let a = 0; a < 5; a++){
+        x.fillStyle = '#ff8ac2';
+        x.beginPath(); x.ellipse(px + Math.cos(a * 1.257) * 4.6, py + Math.sin(a * 1.257) * 4.6, 3.2, 3.2, 0, 0, 7); x.fill();
+      }
+      x.fillStyle = '#ffd21f';
+      x.beginPath(); x.arc(px, py, 2.8, 0, 7); x.fill();
+    });
+  } else if(kind === 'bow'){
+    x.fillStyle = '#f2564b';
+    x.beginPath(); x.ellipse(30, 22, 8, 5.5, -0.5, 0, 7); x.fill();
+    x.beginPath(); x.ellipse(44, 22, 8, 5.5, 0.5, 0, 7); x.fill();
+    x.beginPath(); x.arc(37, 23, 3.4, 0, 7); x.fill();
+    x.strokeStyle = '#98241b'; x.lineWidth = 1.6;
+    x.beginPath(); x.ellipse(30, 22, 8, 5.5, -0.5, 0, 7); x.stroke();
+    x.beginPath(); x.ellipse(44, 22, 8, 5.5, 0.5, 0, 7); x.stroke();
+  } else if(kind === 'keeper'){
+    x.fillStyle = '#2b3a49';
+    x.beginPath(); x.ellipse(38, 18, 17, 8, -0.1, Math.PI, 0); x.fill();
+    x.fillStyle = '#1f2a35';
+    x.beginPath(); x.ellipse(38, 19, 18, 3.6, -0.1, 0, 7); x.fill();
+    x.fillStyle = '#ffd21f';
+    x.beginPath(); x.arc(38, 13.5, 2.2, 0, 7); x.fill();
+  }
+}
+function refreshCharImgs(ch, url){
+  SPRITES['c_' + ch] = url;
+  if(ch === 'pipop'){
     SPRITES.pipop = url;
-    SPRITES['c_pipop'] = url;
     document.querySelectorAll('.pipop-img').forEach(el => { el.src = url; });
-    document.querySelectorAll('.char-img[data-char="pipop"]').forEach(el => { el.src = url; });
-  };
-  if(!eq){ done(base); return; }
-  const img = new Image();
-  img.onload = () => {
-    const cv = document.createElement('canvas');
-    cv.width = 256; cv.height = 256;
-    const x = cv.getContext('2d');
-    x.drawImage(img, 0, 0, 256, 256);
-    x.save();
-    x.scale(2.56, 2.56);
-    drawCosmetic(x, eq);
-    x.restore();
-    done(cv.toDataURL('image/png'));
-  };
-  img.src = base;
+  }
+  document.querySelectorAll(`.char-img[data-char="${ch}"]`).forEach(el => { el.src = url; });
+}
+function applyCosmetic(){
+  Object.keys(WARDROBE).forEach(ch=>{
+    const state = save.wardrobe[ch];
+    const base = CAST_META[ch].src;
+    if(!state || !state.equipped){ refreshCharImgs(ch, base); return; }
+    const kind = state.equipped;
+    const img = new Image();
+    img.onload = () => {
+      const cv = document.createElement('canvas');
+      cv.width = 256; cv.height = 256;
+      const x = cv.getContext('2d');
+      x.drawImage(img, 0, 0, 256, 256);
+      x.save();
+      x.scale(2.56, 2.56);
+      drawFriendAccessory(x, ch, kind);
+      x.restore();
+      refreshCharImgs(ch, cv.toDataURL('image/png'));
+    };
+    img.src = base;
+  });
 }
 
 /* ---- Fog Race: Fri-Sun score attack over three rotating deliveries ---- */
@@ -2568,37 +2671,89 @@ const TASKS = [
   { id:'lights',   cost:2, emoji:'🏮', name:t('Hang the lanterns'),       line:t('How magical at dusk!') },
   { id:'carousel', cost:3, emoji:'🎠', name:t('Repair the carousel'),     line:t('Round and round it goes!') },
   { id:'manor',    cost:4, emoji:'🏰', name:t('Reopen the manor'),        line:t('Pipoville is shining again!') },
+  /* wave 2 — the town proper, unlocked once the garden is whole */
+  { id:'school_bell', wave:2, cost:5, emoji:'🔔', name:t('Rehang the school bell'),      line:t('Ding dong — lessons are back!') },
+  { id:'bakery',      wave:2, cost:5, emoji:'🥐', name:t('Restock the bakery'),          line:t('Warm croissants all round!') },
+  { id:'grocery',     wave:2, cost:5, emoji:'🛒', name:t('Reopen the grocery'),          line:t('Mayalee is back in business!') },
+  { id:'postoffice',  wave:2, cost:6, emoji:'📮', name:t('Rebuild the post office'),     line:t('The heart of Pipoville beats again!') },
+  { id:'pier',        wave:2, cost:5, emoji:'🛶', name:t('Repair the harbour pier'),     line:t('Boats bob happily again.') },
+  { id:'beacon',      wave:2, cost:6, emoji:'🗼', name:t('Relight the lighthouse'),      line:t('A beam across the bay!') },
+  { id:'market',      wave:2, cost:5, emoji:'🎪', name:t('Raise the market tent'),       line:t('Fresh fish, fresh news!') },
+  { id:'clock',       wave:2, cost:6, emoji:'🕰️', name:t('Wind the clock tower'),        line:t('Right on time, Pipoville!') },
+  { id:'sunflowers',  wave:2, cost:5, emoji:'🌻', name:t('Seed the sunflower field'),    line:t('A thousand little suns.') },
+  { id:'stage',       wave:2, cost:6, emoji:'🎻', name:t('Set up the music stage'),      line:t('Concerts every Sunday!') },
+  { id:'statue',      wave:2, cost:7, emoji:'🗿', name:t("Carve the founder's statue"),  line:t('It looks just like you, Pipo!') },
+  { id:'ferris',      wave:2, cost:8, emoji:'🎡', name:t('Build the ferris wheel'),      line:t('The whole town fits in one view!') },
 ];
+/* where each project stands in the town scene: [x%, y%, font px] */
+const TOWN_SPOTS = {
+  manor:[50,20,44], bakery:[13,26,30], grocery:[84,24,30], school_bell:[30,16,24], clock:[68,14,26],
+  house:[20,44,34], lights:[37,38,22], carousel:[67,42,32], oak:[89,44,38], postoffice:[50,44,30],
+  tent:[7,58,26], fountain:[46,60,32], stage:[79,60,28], statue:[59,68,24], bench:[13,72,24],
+  flowerbed:[31,78,24], path:[50,80,26], bridge:[68,76,30], pond:[87,76,28], sunflowers:[93,62,24],
+  pier:[10,90,28], market:[58,92,30], beacon:[3,16,32], ferris:[93,10,34]
+};
+function taskYield(x){ return x.cost; }
+function townIncome(){ return TASKS.filter(x=>save.done.includes(x.id)).reduce((sum, x)=>sum + taskYield(x), 0); }
+function wave1Done(){ return TASKS.filter(x=>!x.wave).every(x=>save.done.includes(x.id)); }
+function renderTownScene(){
+  const nextT = nextTask();
+  const spots = TASKS.map(x=>{
+    const [px, py, sz] = TOWN_SPOTS[x.id] || [50, 50, 24];
+    const built = save.done.includes(x.id);
+    const isNext = !built && nextT && nextT.id === x.id;
+    if(!built && !isNext) return '';
+    return `<span class="town-el ${built ? 'built' : 'ghost'}" style="left:${px}%; top:${py}%; font-size:${sz}px; z-index:${Math.round(py)}">${x.emoji}${built ? '' : `<b>★${taskStamps(x)}</b>`}</span>`;
+  }).join('');
+  return `<div id="town-scene">
+    <div class="town-sun"></div>
+    ${spots}
+    <img class="town-pipo" src="${SPRITES.pipop}" alt="">
+  </div>`;
+}
 function starsEarnedTotal(){ let t = 0; for(const k in save.stars) t += save.stars[k]; return t; }
 function starsAvailable(){ return starsEarnedTotal() - (save.spent || 0); }
-function nextTask(){ return TASKS.find(t => !save.done.includes(t.id)); }
+function nextTask(){ return TASKS.find(x => !save.done.includes(x.id) && (!x.wave || wave1Done())); }
 function taskStamps(x){ return x.cost * 8; }
 function renderMailroom(){
   ensureQuests();
-  const open = TASKS.filter(x=>!save.done.includes(x.id)).slice(0, 3);
+  const open = TASKS.filter(x=>!save.done.includes(x.id) && (!x.wave || wave1Done())).slice(0, 3);
   const doneTasks = TASKS.filter(x=>save.done.includes(x.id));
   const last = doneTasks[doneTasks.length - 1];
-  const ch = chapterFor(save.unlocked);
+  const income = townIncome();
+  const today = new Date().toDateString();
+  const collected = save.townDay === today;
   const rows = open.length ? open.map(x=>`
     <div class="pv-row"><span class="r-icon" style="font-size:34px;display:flex;align-items:center;justify-content:center">${x.emoji}</span>
-      <div class="r-main"><div class="r-title">${x.name}</div><div class="r-sub">${tf('Rebuild Pipoville', 'Ricostruisci Pipoville')}</div></div>
+      <div class="r-main"><div class="r-title">${x.name}</div>
+      <div class="r-sub">${x.wave ? tf('Town project', 'Progetto cittadino') : tf('Garden project', 'Progetto del giardino')} · +${taskYield(x)}<img src="${ICONS.stamp}" style="width:13px;height:13px;vertical-align:-2px" alt="">/${tf('day', 'giorno')}</div></div>
       <button class="buy-btn blue t-do" data-id="${x.id}" ${save.stamps >= taskStamps(x) ? '' : 'disabled'}>★${taskStamps(x)}</button></div>`).join('')
-    : `<div class="pv-row"><div class="r-main"><div class="r-title">${t('The whole garden is restored! 🌸')}</div></div></div>`;
-  const doneRows = doneTasks.slice(-2).map(x=>`
-    <div class="pv-row task-done-row"><span class="r-icon" style="font-size:34px;display:flex;align-items:center;justify-content:center">${x.emoji}</span>
-      <div class="r-main"><div class="r-title">${x.name}</div></div>
-      <div class="task-done"><img src="${ICONS.medal}" alt="">${tf('done', 'fatto')}</div></div>`).join('');
+    : `<div class="pv-row"><div class="r-main"><div class="r-title">${tf('All of Pipoville is rebuilt! 🌸', 'Tutta Pipoville è ricostruita! 🌸')}</div></div></div>`;
   $('#mailroom-body').innerHTML = `
     <div class="view-head"><img class="hicon" src="${ICONS.letter}" alt="">
-      <div style="flex:1"><div class="vh-title">${tf('The mailroom', 'La posta')}</div>
-      <div class="vh-sub">${tf('Spend stamps · rebuild the town', 'Spendi francobolli · ricostruisci la città')}</div></div>
+      <div style="flex:1"><div class="vh-title">${tf('Pipoville Town', 'La Città di Pipoville')}</div>
+      <div class="vh-sub">${doneTasks.length}/${TASKS.length} ${tf('built', 'costruiti')} · ${tf('every delivery rebuilds it', 'ogni consegna la ricostruisce')}</div></div>
       <div class="cream-pill" style="display:flex;align-items:center;gap:5px"><img src="${ICONS.stamp}" style="width:18px;height:18px" alt="">${save.stamps}</div></div>
-    <div class="story-card"><img class="w" src="${SPRITES['c_whaeleeno']}" alt=""><img class="b" src="${SPRITES['c_baggu']}" alt="">
-      <div style="flex:1"><div class="sc-eyebrow">${(tf('Chapter', 'Capitolo') + ' ' + ch + ' · ' + tf('the missing cart', 'il carretto sparito')).toUpperCase()}</div>
-      <div class="sc-body">${tf("Whaeleeno's crew rolled the mail cart into the fog. Every task you finish puts another street back on Pipo's round.", "La banda di Whaeleeno ha spinto il carretto della posta nella nebbia. Ogni lavoretto completato riapre una strada sul giro di Pipo.")}</div></div></div>
-    ${rows}${doneRows}
+    ${renderTownScene()}
+    <div class="pv-row income-row"><img class="r-icon" src="${ICONS.mailbox}" alt="">
+      <div class="r-main"><div class="r-title">${tf('Town post income', 'Rendita postale della città')}</div>
+      <div class="r-sub">${income ? '+' + income + ' ' + tf('stamps every day', 'francobolli al giorno') : tf('Build something and the town pays you back', 'Costruisci qualcosa e la città ti ripaga')}</div></div>
+      ${income ? (collected ? `<div class="task-done"><img src="${ICONS.medal}" alt="">${tf('collected', 'ritirata')}</div>`
+        : `<button class="q-claim" id="btn-town-collect">★${income}</button>`) : ''}</div>
+    ${!wave1Done() ? '' : `<div class="keeper-card"><img src="${SPRITES['c_sir_saltbread_cane']}" alt="">
+      <div class="k-line">${tf('The garden is whole — now the town itself! Big projects, big pay.', 'Il giardino è completo — ora la città! Grandi progetti, grande rendita.')}</div></div>`}
+    ${rows}
     ${last ? `<div class="keeper-card"><img src="${SPRITES.pipop}" alt=""><div class="k-line">${last.line}</div></div>` : ''}`;
   $('#mailroom-body').querySelectorAll('.t-do').forEach(b=>b.addEventListener('click', ()=>doTask(b.dataset.id)));
+  const collect = $('#btn-town-collect');
+  if(collect) collect.addEventListener('click', ()=>{
+    if(save.townDay === new Date().toDateString()) return;
+    save.townDay = new Date().toDateString();
+    save.stamps += townIncome();
+    persist(); confetti();
+    if(!Snd.play('task', 1, .6)) Snd.win();
+    renderMeta(); renderMailroom();
+  });
 }
 function doTask(id){
   const task = TASKS.find(x=>x.id === id);
@@ -2614,7 +2769,7 @@ function doTask(id){
   banner.className = 'map-banner';
   banner.textContent = LANG === 'it'
     ? `${task.emoji} ${IT_TASK_DONE[task.id] || task.name + '!'}`
-    : `${task.emoji} ${task.name.replace(/^\w+/, m=>({'Fix':'Fixed','Plant':'Planted','Restore':'Restored','Repave':'Repaved','Revive':'Revived','Repaint':'Repainted','Mend':'Mended','Pitch':'Pitched','Clean':'Cleaned','Hang':'Hung','Repair':'Repaired','Reopen':'Reopened'}[m] || m))}!`;
+    : `${task.emoji} ${task.name.replace(/^\w+/, m=>({'Fix':'Fixed','Plant':'Planted','Restore':'Restored','Repave':'Repaved','Revive':'Revived','Repaint':'Repainted','Mend':'Mended','Pitch':'Pitched','Clean':'Cleaned','Hang':'Hung','Repair':'Repaired','Reopen':'Reopened','Rehang':'Rehung','Restock':'Restocked','Rebuild':'Rebuilt','Relight':'Relit','Raise':'Raised','Wind':'Wound','Seed':'Seeded','Set':'Set up','Carve':'Carved','Build':'Built'}[m] || m))}!`;
   $('#mailroom').appendChild(banner);
   setTimeout(()=>banner.remove(), 3300);
 }
@@ -2667,6 +2822,66 @@ function metSet(){
   if(met.has('whaeleeno')) met.add('baggu');
   return met;
 }
+const CAST_LORE = {
+  pipop: ['Born on the iciest iceberg but hatched with a warm heart, Pipo chose the mail bag over the fishing boat. He has never lost a letter — only, sometimes, his hat.',
+          'Nato sull\'iceberg più gelido ma con un cuore caldo, Pipo ha scelto la borsa della posta invece della barca da pesca. Non ha mai perso una lettera — solo, a volte, il cappello.'],
+  cannolio: ['Pipo found Cannolio as a puppy, asleep inside an empty mailbox. Now he digs shortcuts through every garden in town — with permission, mostly.',
+             'Pipo trovò Cannolio da cucciolo, addormentato in una cassetta della posta vuota. Ora scava scorciatoie in tutti i giardini — quasi sempre con permesso.'],
+  ninni: ['Ninni loves two things: fresh hay and racing the mail cart downhill. Her pink spots glow a little brighter when she is happy.',
+          'Ninni ama due cose: il fieno fresco e le gare in discesa col carretto della posta. Le sue macchie rosa brillano un po\' di più quando è felice.'],
+  nunu: ['Nunu grows the biggest pumpkins in the valley and gives every single one a name. She saves the funny-shaped vegetables for Pipo\'s soup.',
+         'Nunu coltiva le zucche più grandi della valle e dà un nome a ognuna. Le verdure dalle forme buffe le tiene per la zuppa di Pipo.'],
+  sir_saltbread_cane: ['The Sheriff earned his title by returning a lost crown... found inside a loaf of bread. He still checks every loaf, just in case.',
+                       'Lo sceriffo si guadagnò il titolo restituendo una corona perduta... trovata dentro una pagnotta. Controlla ancora ogni pagnotta, non si sa mai.'],
+  winnie: ['Winnie can smell trouble three streets away. Her tail wags in Morse code — the Sheriff swears he can read it.',
+           'Winnie fiuta i guai a tre strade di distanza. La sua coda scodinzola in codice Morse — lo sceriffo giura di saperlo leggere.'],
+  ms_moomoo: ['Principal MooMoo rings the school bell with her tail and remembers every student\'s birthday. Her mooo-rning announcements are legendary.',
+              'La preside MooMoo suona la campanella con la coda e ricorda il compleanno di ogni alunno. I suoi annunci del mu-attino sono leggendari.'],
+  ms_saltchow: ['Art professor Saltchow paints with both paws at once. Half the town\'s postcards are hers — the colourful half.',
+                'La prof di arte Saltchow dipinge con entrambe le zampe. Metà delle cartoline della città sono sue — la metà colorata.'],
+  ms_toni: ['Science professor Toni once built a telescope out of jam jars. She is teaching the rainbow wheel to spin a little faster.',
+            'La prof di scienze Toni una volta costruì un telescopio con barattoli di marmellata. Sta insegnando alla ruota arcobaleno a girare più in fretta.'],
+  mr_bobo: ['PE professor Bobo warms up by juggling watermelons. His whistle can be heard from the lighthouse — underwater.',
+            'Il prof di ginnastica Bobo si riscalda facendo il giocoliere con le angurie. Il suo fischietto si sente dal faro — anche sott\'acqua.'],
+  mayalee: ['Mayalee knows what you need before you do, and slips a sweet into every tenth grocery bag. Count your bags.',
+            'Mayalee sa cosa ti serve prima di te, e infila una caramella ogni dieci sacchetti della spesa. Conta i tuoi sacchetti.'],
+  ovalee: ['Ovalee can fix anything with three nails and a song. She and Mayalee are rivals at checkers, best friends everywhere else.',
+           'Ovalee aggiusta tutto con tre chiodi e una canzone. Lei e Mayalee sono rivali a dama, migliori amiche ovunque altro.'],
+  pancione: ['Pancione starts baking before the stars go to bed. His croissant recipe is a secret shared only with the morning fog.',
+             'Pancione inizia a infornare prima che le stelle vadano a dormire. La ricetta dei suoi cornetti è un segreto condiviso solo con la nebbia del mattino.'],
+  whaeleeno: ['Whaeleeno was never really bad — just lonely at the bottom of the bay. Now his spout delivers sea-mail every Tuesday.',
+              'Whaeleeno non è mai stato davvero cattivo — solo solo, in fondo alla baia. Ora il suo soffio consegna la posta del mare ogni martedì.'],
+  baggu: ['Baggu used to collect shiny things that were not his. These days he collects thank-you letters — and he has never been richer.',
+          'Baggu collezionava cose luccicanti che non erano sue. Oggi colleziona lettere di ringraziamento — e non è mai stato così ricco.']
+};
+const CAST_PERKS = {
+  cannolio: ['+1 shovel every level', '+1 pala ogni livello'],
+  nunu: ['+2 moves on hard levels', '+2 mosse nei livelli difficili'],
+  ms_moomoo: ['Daily gifts upgraded', 'Regali giornalieri potenziati'],
+  ms_toni: ['Rainbow wheel fills at 50', 'La ruota arcobaleno si riempie a 50'],
+  pancione: ['Win streaks add a Bomb', 'Le serie di vittorie aggiungono una Bomba']
+};
+function rescueLevelOf(id){
+  for(const lv of Object.keys(RESCUES)) if(RESCUES[lv].id === id) return +lv;
+  return null;
+}
+function openCastCard(k){
+  const lore = CAST_LORE[k];
+  const perk = CAST_PERKS[k];
+  const rl = rescueLevelOf(k);
+  $('#card-name').textContent = CHARACTERS[k] ? CHARACTERS[k].name : CAST_META[k].name;
+  $('#card-portrait').src = SPRITES['c_' + k];
+  const noMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  $('#card-portrait').style.animation = noMotion ? '' : CAST_META[k].idle;
+  $('#card-role').textContent = castRole(k);
+  $('#card-lore').textContent = lore ? (LANG === 'it' ? lore[1] : lore[0]) : '';
+  $('#card-perk').style.display = perk ? 'flex' : 'none';
+  if(perk) $('#card-perk-text').textContent = LANG === 'it' ? perk[1] : perk[0];
+  $('#card-where').textContent = rl
+    ? tf('Rescued at delivery ', 'Salvato alla consegna ') + rl + ' · ' + chapterName(chapterFor(rl))
+    : tf('A friend from the very first day', 'Un amico dal primissimo giorno');
+  showOverlay('ov-card', true);
+}
 const CAST_ROLES = {
   pipop:['Mail delivery penguin','Pinguino postino'], cannolio:["Pipo's dog",'Il cane di Pipo'],
   ninni:['Nice horsey','Cavallina gentile'], nunu:['Owner, Nunu Farms','Proprietaria, Fattorie Nunu'],
@@ -2682,7 +2897,7 @@ function renderAlbum(){
   const met = metSet();
   const keys = Object.keys(CAST_META);
   const slots = keys.map(k=>`
-    <div class="album-slot ${met.has(k) ? 'met' : 'unmet'}"><img src="${SPRITES['c_' + k]}" alt="">
+    <div class="album-slot ${met.has(k) ? 'met' : 'unmet'}" ${met.has(k) ? `data-card="${k}"` : ''}><img src="${SPRITES['c_' + k]}" alt="">
       <div class="a-name">${met.has(k) ? (CHARACTERS[k] ? CHARACTERS[k].name : CAST_META[k].name) : '???'}</div>
       <div class="a-role">${met.has(k) ? castRole(k) : tf('not met', 'mai visto')}</div></div>`).join('');
   $('#album-body').innerHTML = `
@@ -2690,7 +2905,11 @@ function renderAlbum(){
       <div style="flex:1"><div class="vh-title">${tf('Stamp book', 'Album dei francobolli')}</div>
       <div class="vh-sub">${met.size} ${tf('of', 'su')} ${keys.length} ${tf('townsfolk met', 'abitanti incontrati')} · ★ ${starsEarnedTotal()}/${LEVELS.length * 3}</div></div>
       <div class="cream-pill">${tf('Chapter', 'Capitolo')} ${chapterFor(save.unlocked)}</div></div>
-    <div class="album-grid">${slots}</div>`;
+    <div class="album-grid">${slots}</div>
+    <div class="shop-note">${tf('Tap a friend to read their story.', 'Tocca un amico per leggere la sua storia.')}</div>`;
+  $('#album-body').querySelectorAll('.album-slot[data-card]').forEach(el=>{
+    el.addEventListener('click', ()=>{ Snd.ensure(); Snd.swap(); openCastCard(el.dataset.card); });
+  });
 }
 
 /* ---------------- shop (Mayalee's counter) ---------------- */
@@ -2712,17 +2931,24 @@ function renderShop(){
       <div class="shop-card"><img src="${SPRITES.p_bomb}" alt=""><div class="s-name">${tf('Bomb ×2', 'Bomba ×2')}</div>
         <button class="buy-btn" id="shop-bomb" ${save.stamps < 9 ? 'disabled' : ''}>★9</button></div>
     </div>
-    ${Object.keys(COSMETICS).map(ck=>{
-      const c = COSMETICS[ck];
-      const owned = save.cosmetics.owned.includes(ck);
-      const worn = save.cosmetics.equipped === ck;
-      const label = worn ? tf('worn', 'indossato') : owned ? tf('wear', 'indossa') : '★' + c.cost;
-      const off = !owned && save.stamps < c.cost;
-      return `<div class="pv-row shop-cosmetic"><img class="r-icon" src="${SPRITES.pipop}" alt="">
+    ${(()=>{
+      const met = metSet();
+      return Object.keys(WARDROBE).filter(ch => ch === 'pipop' || met.has(ch)).map(ch=>
+        Object.keys(WARDROBE[ch]).map(ck=>{
+          const c = WARDROBE[ch][ck];
+          const state = save.wardrobe[ch];
+          const owned = state.owned.includes(ck);
+          const worn = state.equipped === ck;
+          const label = worn ? tf('worn', 'indossato') : owned ? tf('wear', 'indossa') : '★' + c.cost;
+          const off = !owned && save.stamps < c.cost;
+          const who = CHARACTERS[ch] ? CHARACTERS[ch].name : CAST_META[ch].name;
+          return `<div class="pv-row shop-cosmetic"><img class="r-icon" src="${SPRITES['c_' + ch]}" alt="">
       <div class="r-main"><div class="r-title">${LANG === 'it' ? c.it : c.en}</div>
-      <div class="r-sub">${tf('Cosmetic · Pipo wears it everywhere', 'Cosmetico · Pipo lo indossa ovunque')}</div></div>
-      <button class="buy-btn purple shop-cos" data-c="${ck}" ${off ? 'disabled' : ''}>${label}</button></div>`;
-    }).join('')}
+      <div class="r-sub">${who} · ${tf('worn everywhere they appear', 'indossato ovunque appaia')}</div></div>
+      <button class="buy-btn purple shop-cos" data-ch="${ch}" data-c="${ck}" ${off ? 'disabled' : ''}>${label}</button></div>`;
+        }).join('')
+      ).join('');
+    })()}
     <div class="shop-note">${tf('Hearts refill on their own, five at a time — the counter never blocks a chapter.', 'I cuori si ricaricano da soli, cinque alla volta — il banco non blocca mai un capitolo.')}</div>`;
   const buy = (id, fn)=>{ const el = $('#' + id); if(el) el.addEventListener('click', ()=>{
     fn(); persist(); confetti();
@@ -2734,14 +2960,16 @@ function renderShop(){
   buy('shop-bomb', ()=>{ if(spendStamps(9)) save.pending = (save.pending || []).concat(['bomb','bomb']); });
   $('#shop-body').querySelectorAll('.shop-cos').forEach(b=>{
     b.addEventListener('click', ()=>{
-      const ck = b.dataset.c, c = COSMETICS[ck];
-      if(!save.cosmetics.owned.includes(ck)){
+      const ch = b.dataset.ch, ck = b.dataset.c;
+      const c = WARDROBE[ch][ck];
+      const state = save.wardrobe[ch];
+      if(!state.owned.includes(ck)){
         if(!spendStamps(c.cost)){ Snd.bad(); return; }
-        save.cosmetics.owned.push(ck);
-        save.cosmetics.equipped = ck;
+        state.owned.push(ck);
+        state.equipped = ck;
         confetti();
       } else {
-        save.cosmetics.equipped = save.cosmetics.equipped === ck ? null : ck;
+        state.equipped = state.equipped === ck ? null : ck;
       }
       persist();
       applyCosmetic();
@@ -4073,7 +4301,7 @@ async function winSequence(){
   $('#btn-win-next').style.display = G.level < LEVELS.length ? '' : 'none';
   const nt = nextTask();
   const canTask = nt && save.stamps >= nt.cost * 8;
-  $('#btn-win-tasks').textContent = tf('Mailroom', 'Posta');
+  $('#btn-win-tasks').textContent = tf('Town', 'Città');
   $('#btn-win-tasks').style.display = canTask ? '' : 'none';
   $('#win-task-note').textContent = tf('⭐ You can afford a mailroom task!', '⭐ Puoi permetterti un lavoretto in posta!');
   $('#win-task-note').style.display = canTask ? '' : 'none';
@@ -4558,6 +4786,7 @@ function openSettings(){
 }
 $('#btn-settings').addEventListener('click', ()=>{ Snd.ensure(); openSettings(); });
 $('#btn-settings-close').addEventListener('click', ()=>showOverlay('ov-settings', false));
+$('#btn-card-close').addEventListener('click', ()=>showOverlay('ov-card', false));
 $('#btn-reset').addEventListener('click', ()=>{
   if(!resetArmed){
     resetArmed = true;
