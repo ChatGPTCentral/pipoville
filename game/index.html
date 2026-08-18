@@ -248,6 +248,18 @@
     box-shadow:0 4px 0 #3d2008, 0 6px 10px rgba(0,0,0,.4), inset 0 2px 3px rgba(255,255,255,.35);
   }
   #btn-pause:active { transform:translateY(3px); }
+  #btn-shovel {
+    position:absolute; right:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:6;
+    width:52px; height:52px; border-radius:50%; border:3px solid #d9a066; cursor:pointer; font-size:20px;
+    background:radial-gradient(circle at 35% 30%, #a97142, #7c4a24 60%, #5e3416);
+    box-shadow:0 4px 0 #3d2008, 0 6px 10px rgba(0,0,0,.4), inset 0 2px 3px rgba(255,255,255,.35);
+  }
+  #btn-shovel:active { transform:translateY(3px); }
+  #btn-shovel.armed { animation:pulse .8s infinite; border-color:#ffe98a; box-shadow:0 4px 0 #3d2008, 0 0 14px rgba(255,220,120,.9), inset 0 2px 3px rgba(255,255,255,.35); }
+  #shovel-count { position:absolute; top:-6px; right:-6px; min-width:20px; height:20px; border-radius:50%;
+    background:#3f8f24; color:#fff; font-weight:900; font-size:13px; line-height:20px; text-align:center;
+    border:2px solid #fff; }
+  #shovel-count:empty { display:none; }
 
   .float-score {
     position:absolute; z-index:5; pointer-events:none; font-weight:900; font-size:18px; color:#ffe98a;
@@ -456,6 +468,7 @@
   </div>
   <div id="board-wrap"><div id="board"></div></div>
   <button id="btn-pause">⏸</button>
+  <button id="btn-shovel">⛏️<span id="shovel-count">3</span></button>
   <div id="toast"></div>
   <div id="flash"></div>
 </div>
@@ -861,6 +874,62 @@ function paintIce(x){
   x.stroke(body);
   specBlob(x, 32, 30, 8, 5.5, -30, .8);
 }
+function paintGnome(x){
+  // boots
+  x.fillStyle = '#4a2c12';
+  x.beginPath(); x.ellipse(40, 90, 8, 5, 0, 0, 7); x.fill();
+  x.beginPath(); x.ellipse(60, 90, 8, 5, 0, 0, 7); x.fill();
+  // body
+  x.fillStyle = lgrad(x, 0, 50, 0, 90, [[0,'#4a90d6'],[1,'#2b5e9e']]);
+  const body = new Path2D('M32 88 Q28 58 40 50 L60 50 Q72 58 68 88 Z');
+  x.fill(body); x.strokeStyle = '#1c4070'; x.lineWidth = 3; x.stroke(body);
+  // beard
+  x.fillStyle = '#f4f4f4';
+  x.beginPath(); x.ellipse(50, 58, 17, 13, 0, 0, 7); x.fill();
+  x.strokeStyle = '#cfcfcf'; x.lineWidth = 2; x.stroke();
+  // face + nose
+  x.fillStyle = '#f0c8a0';
+  x.beginPath(); x.arc(50, 46, 10, 0, 7); x.fill();
+  x.fillStyle = '#e8a87a';
+  x.beginPath(); x.arc(50, 51, 4.5, 0, 7); x.fill();
+  // eyes
+  x.fillStyle = '#2a2a2a';
+  x.beginPath(); x.arc(45.5, 44, 1.6, 0, 7); x.fill();
+  x.beginPath(); x.arc(54.5, 44, 1.6, 0, 7); x.fill();
+  // hat
+  const hat = new Path2D('M30 42 L50 4 L70 42 Z');
+  x.fillStyle = lgrad(x, 0, 4, 0, 42, [[0,'#ff7a5c'],[.5,'#e8402a'],[1,'#9c1608']]);
+  x.fill(hat); x.strokeStyle = '#7a1204'; x.lineWidth = 3; x.stroke(hat);
+  x.fillStyle = '#c62f1b';
+  x.beginPath(); x.ellipse(50, 42, 22, 5, 0, 0, 7); x.fill();
+  x.strokeStyle = '#7a1204'; x.lineWidth = 2.4; x.stroke();
+  specBlob(x, 44, 22, 5, 9, 12, .4);
+}
+function paintVine(x){
+  x.fillStyle = 'rgba(20,60,10,.28)';
+  x.beginPath(); x.arc(50, 52, 34, 0, 7); x.fill();
+  x.lineCap = 'round';
+  x.strokeStyle = '#2a6412'; x.lineWidth = 7;
+  x.beginPath(); x.arc(40, 44, 20, .4, 4.2); x.stroke();
+  x.beginPath(); x.arc(60, 58, 17, 2.2, 5.8); x.stroke();
+  x.strokeStyle = '#3d7f2c'; x.lineWidth = 5;
+  x.beginPath(); x.arc(50, 50, 27, .8, 5.4); x.stroke();
+  // thorns
+  x.fillStyle = '#1d5410';
+  [[24,38,-30],[70,32,40],[34,74,210],[76,64,130]].forEach(([px,py,a])=>{
+    x.save(); x.translate(px,py); x.rotate(a*Math.PI/180);
+    x.beginPath(); x.moveTo(0,0); x.lineTo(8,-3); x.lineTo(3,6); x.closePath(); x.fill();
+    x.restore();
+  });
+  // leaf cluster
+  [[50,34,0],[38,56,-40],[62,54,40]].forEach(([px,py,a])=>{
+    x.save(); x.translate(px,py); x.rotate(a*Math.PI/180);
+    x.fillStyle = rgrad(x, 0, -3, 1, 10, [[0,'#8fd15e'],[1,'#3d7f2c']]);
+    x.beginPath(); x.ellipse(0, 0, 6, 9, 0, 0, 7); x.fill();
+    x.strokeStyle = '#1d5410'; x.lineWidth = 1.6; x.stroke();
+    x.restore();
+  });
+}
 function bake(fn){
   const cv = document.createElement('canvas');
   cv.width = cv.height = SPR;
@@ -883,6 +952,8 @@ function bake(fn){
   SPRITES.p_tnt = bake(paintTNT);
   SPRITES.p_rainbow = bake(paintRainbow);
   SPRITES.ice = bake(paintIce);
+  SPRITES.gnome = bake(paintGnome);
+  SPRITES.vine = bake(paintVine);
   const orb = document.getElementById('wheel-orb');
   if(orb) orb.src = SPRITES.p_rainbow;
 })();
@@ -890,6 +961,8 @@ function spriteImg(k){ return `<img src="${SPRITES[k]}" alt="" draggable="false"
 function chipIcon(g){
   if(g.type === 'dirt') return `<span class="dirt-ico"></span>`;
   if(g.type === 'block') return spriteImg('ice');
+  if(g.type === 'gnome') return spriteImg('gnome');
+  if(g.type === 'vine') return spriteImg('vine');
   return spriteImg(g.kind);
 }
 
@@ -911,7 +984,7 @@ const LEVELS = [
     goals:[{type:'kind', kind:'apple', count:28},{type:'kind', kind:'drop', count:28}] },
   { moves:26, colors:5, mask:[ '........','.JJJJJJ.','.J....J.','.J....J.','.J....J.','.J....J.','.JJJJJJ.','........' ],
     goals:[{type:'dirt'}] },
-  { moves:26, colors:5, mask:[ '.........','.........','.........','.........','.........','.........','.........','.........','.........' ],
+  { moves:26, colors:5, mask:[ '...G.G...','.........','.........','.........','.........','.........','.........','.........','.........' ],
     goals:[{type:'kind', kind:'lemon', count:40}] },
   { moves:24, colors:5, mask:[ 'XXX...XXX','XX.....XX','X.......X','.........','.........','.........','X.......X','XX.....XX','XXX...XXX' ],
     goals:[{type:'kind', kind:'leaf', count:25},{type:'kind', kind:'flower', count:25}], hard:true },
@@ -921,7 +994,7 @@ const LEVELS = [
     goals:[{type:'dirt'}] },
   { moves:26, colors:6, mask:[ 'XXXX.XXXX','XXX...XXX','XX.....XX','X.......X','.........','X.......X','XX.....XX','XXX...XXX','XXXX.XXXX' ],
     goals:[{type:'kind', kind:'apple', count:30},{type:'kind', kind:'drop', count:30}], hard:true },
-  { moves:26, colors:6, mask:[ '.........','.........','.........','.........','.........','.........','.........','.........','.........' ],
+  { moves:26, colors:6, mask:[ '..G.G.G..','.........','.........','.........','.........','.........','.........','.........','.........' ],
     goals:[{type:'kind', kind:'leaf', count:45}] },
   { moves:28, colors:6, mask:[ '.........','.........','.........','.........','.........','.........','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ' ],
     goals:[{type:'dirt'}] },
@@ -939,7 +1012,7 @@ const LEVELS = [
     goals:[{type:'dirt'}] },
   { moves:26, colors:6, mask:[ '.........','.........','.........','.........','...BBB...','.........','.........','.........','.........' ],
     goals:[{type:'kind', kind:'drop', count:50}] },
-  { moves:26, colors:5, mask:[ 'XXX...XXX','XXX...XXX','XXXJJJXXX','.........','...JJJ...','.........','XXXJJJXXX','XXX...XXX','XXX...XXX' ],
+  { moves:26, colors:5, mask:[ 'XXX...XXX','XXX...XXX','XXXJJJXXX','.........','...JVJ...','.........','XXXJJJXXX','XXX...XXX','XXX...XXX' ],
     goals:[{type:'dirt'},{type:'kind', kind:'lemon', count:30}] },
   { moves:28, colors:6, mask:[ '.........','.........','..B...B..','.........','....B....','.........','B.......B','.........','.........' ],
     goals:[{type:'kind', kind:'apple', count:25},{type:'kind', kind:'flower', count:25},{type:'kind', kind:'drop', count:25}] },
@@ -953,7 +1026,7 @@ const LEVELS = [
     goals:[{type:'dirt'}], hard:true },
   { moves:30, colors:6, mask:[ '.........','...B.B...','.........','...JJJ...','...JJJ...','...JJJ...','.........','.........','.........' ],
     goals:[{type:'kind', kind:'butterfly', count:30},{type:'kind', kind:'apple', count:30},{type:'dirt'}] },
-  { moves:30, colors:6, mask:[ '.........','.X.....X.','..X...X..','...X.X...','....X....','...X.X...','..X...X..','.X.....X.','.........' ],
+  { moves:30, colors:6, mask:[ '....V....','.X.....X.','..X...X..','...X.X...','....X....','...X.X...','..X...X..','.X.....X.','.........' ],
     goals:[{type:'kind', kind:'drop', count:40},{type:'kind', kind:'flower', count:40}], hard:true },
   { moves:36, colors:6, mask:[ 'JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ' ],
     goals:[{type:'kind', kind:'apple', count:40},{type:'kind', kind:'lemon', count:40},{type:'dirt'}], hard:true },
@@ -962,8 +1035,12 @@ LEVELS.forEach((L,i)=>{
   L.rows = L.mask.length; L.cols = L.mask[0].length;
   L.dirtTotal = L.mask.join('').split('J').length - 1;
   L.blockTotal = L.mask.join('').split('B').length - 1;
+  L.gnomeTotal = L.mask.join('').split('G').length - 1;
+  L.vineTotal = L.mask.join('').split('V').length - 1;
   L.goals.forEach(g=>{ if(g.type==='dirt') g.count = L.dirtTotal; });
   if(L.blockTotal) L.goals.push({type:'block', count:L.blockTotal});
+  if(L.gnomeTotal) L.goals.push({type:'gnome', count:L.gnomeTotal});
+  if(L.vineTotal) L.goals.push({type:'vine', count:L.vineTotal});
   const base = L.moves * 260 + i * 900;
   L.starScores = [base, Math.round(base*1.7), Math.round(base*2.5)];
 });
@@ -1181,7 +1258,7 @@ function renderMap(){
 function goalChipHTML(g, remaining){
   const done = remaining <= 0;
   const txt = done ? '✔' : remaining;
-  const gk = g.type === 'dirt' ? 'dirt' : (g.type === 'block' ? 'block' : g.kind);
+  const gk = g.type === 'kind' ? g.kind : g.type;
   return `<div class="goal-chip ${done?'done':''}" data-gk="${gk}">${chipIcon(g)}<span class="cnt">${txt}</span></div>`;
 }
 
@@ -1244,6 +1321,22 @@ function makeBlock(){
   boardEl.appendChild(p.el);
   return p;
 }
+function makeGnome(){
+  const p = { kind:null, power:null, gnome:true, id: ++G.idSeq, el: document.createElement('div') };
+  p.el.className = 'candy gnome';
+  p.el.innerHTML = spriteImg('gnome');
+  sizeCandy(p.el);
+  boardEl.appendChild(p.el);
+  return p;
+}
+function makeVine(){
+  const p = { kind:null, power:null, vine:true, id: ++G.idSeq, el: document.createElement('div') };
+  p.el.className = 'candy vine';
+  p.el.innerHTML = spriteImg('vine');
+  sizeCandy(p.el);
+  boardEl.appendChild(p.el);
+  return p;
+}
 function setPower(p, power){
   p.power = power;
   p.kind = null;
@@ -1287,8 +1380,9 @@ function buildBoard(){
   });
   for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
     if(!G.playable[r][c]) continue;
-    if(G.L.mask[r][c] === 'B'){
-      const p = makeBlock();
+    const ch = G.L.mask[r][c];
+    if(ch === 'B' || ch === 'G' || ch === 'V'){
+      const p = ch === 'B' ? makeBlock() : ch === 'G' ? makeGnome() : makeVine();
       G.grid[r][c] = p;
       placeCandy(p.el, r, c, true);
       continue;
@@ -1413,6 +1507,7 @@ function expandDestroy(initialKeys){
     const [r,c] = unkey(k);
     const p = pieceAt(r,c);
     if(!p) continue;
+    if(p.gnome) continue; // gnomes survive blasts — they must reach the bottom
     out.add(k);
     if(p.power === 'rainbow'){
       effects.push({type:'boom', r, c, rad:2});
@@ -1501,7 +1596,9 @@ function flyToGoal(gk, r, c, flights){
   const d = document.createElement('div');
   d.className = 'fly';
   d.innerHTML = gk === 'dirt' ? '<span class="dirt-ico" style="width:100%;height:100%;display:block;"></span>'
-              : gk === 'block' ? spriteImg('ice') : spriteImg(gk);
+              : gk === 'block' ? spriteImg('ice')
+              : gk === 'gnome' ? spriteImg('gnome')
+              : gk === 'vine' ? spriteImg('vine') : spriteImg(gk);
   const size = Math.max(22, Math.round(G.cellPx * .6));
   d.style.width = d.style.height = size + 'px';
   d.style.left = (bRect.left - gRect.left + c*G.cellPx + (G.cellPx-size)/2) + 'px';
@@ -1578,6 +1675,9 @@ function destroyCells(keys, creations, mult){
       const g = G.goals.find(g => g.type==='block' && g.remaining > 0);
       if(g){ g.remaining--; flyToGoal('block', r, c, flights); }
       if(bursts < 36){ spawnBurst(r, c, ['#d8f4ff','#8fc8ee','#fff'], 6); bursts++; }
+    } else if(p.vine){
+      G.vineKilled = true;
+      if(bursts < 36){ spawnBurst(r, c, ['#3d7f2c','#8fd15e','#1d5410'], 6); bursts++; }
     } else if(p.kind){
       const g = G.goals.find(g => g.type==='kind' && g.kind === p.kind && g.remaining > 0);
       if(g){ g.remaining--; flyToGoal(p.kind, r, c, flights); }
@@ -1660,6 +1760,73 @@ function applyGravity(){
   return moved;
 }
 
+/* ---- gnomes: collected when they reach the bottom of their column ---- */
+function collectGnomesOnce(){
+  let got = 0;
+  for(let c=0;c<G.L.cols;c++){
+    let bottom = -1;
+    for(let r=G.L.rows-1;r>=0;r--) if(G.playable[r][c]){ bottom = r; break; }
+    if(bottom < 0) continue;
+    const p = G.grid[bottom][c];
+    if(p && p.gnome){
+      const g = G.goals.find(g => g.type==='gnome' && g.remaining > 0);
+      if(g){ g.remaining--; flyToGoal('gnome', bottom, c, null); }
+      spawnBurst(bottom, c, ['#f4f4f4','#e8402a','#4a90d6'], 7);
+      removePieceEl(p);
+      G.grid[bottom][c] = null;
+      got++;
+    }
+  }
+  return got;
+}
+async function settleGnomes(){
+  let total = 0;
+  while(true){
+    const got = collectGnomesOnce();
+    if(!got) break;
+    total += got;
+    Snd.special(); vibrate(20);
+    updateHUD();
+    await sleep(230);
+    applyGravity();
+    await sleep(430);
+  }
+  return total;
+}
+/* ---- vines: spread to a neighbor every move you don't cut one ---- */
+function liveVines(){
+  let n = 0;
+  for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
+    const p = pieceAt(r,c);
+    if(p && p.vine) n++;
+  }
+  return n;
+}
+function spreadVine(){
+  const vines = [];
+  for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
+    const p = pieceAt(r,c);
+    if(p && p.vine) vines.push([r,c]);
+  }
+  if(!vines.length) return;
+  for(let tries=0; tries<40; tries++){
+    const [r,c] = vines[rnd(vines.length)];
+    const [dr,dc] = [[1,0],[-1,0],[0,1],[0,-1]][rnd(4)];
+    const q = pieceAt(r+dr, c+dc);
+    if(q && q.kind && !q.power){
+      removePieceEl(q);
+      const v = makeVine();
+      G.grid[r+dr][c+dc] = v;
+      placeCandy(v.el, r+dr, c+dc, true);
+      v.el.classList.add('born');
+      setTimeout(()=>v.el.classList.remove('born'), 520);
+      Snd.bad();
+      updateHUD();
+      return;
+    }
+  }
+}
+
 /* ---- moves / hints / shuffle ---- */
 function swapInGrid(r1,c1,r2,c2){
   const t = G.grid[r1][c1]; G.grid[r1][c1] = G.grid[r2][c2]; G.grid[r2][c2] = t;
@@ -1681,7 +1848,7 @@ function findAnyMove(){
     for(const [dr,dc] of [[0,1],[1,0]]){
       const r2 = r+dr, c2 = c+dc;
       const q = pieceAt(r2,c2);
-      if(!q || p.block || q.block) continue;
+      if(!q || p.block || q.block || p.gnome || q.gnome || p.vine || q.vine) continue;
       if(p.power && q.power) return [[r,c],[r2,c2]];
       if(wouldMatch(r,c,r2,c2)) return [[r,c],[r2,c2]];
     }
@@ -1694,7 +1861,7 @@ function shuffleBoard(silent){
     const cells = [];
     for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
       const p = pieceAt(r,c);
-      if(p && !p.power && !p.block) cells.push([r,c]);
+      if(p && !p.power && !p.block && !p.gnome && !p.vine) cells.push([r,c]);
     }
     for(let i=cells.length-1;i>0;i--){
       const j = rnd(i+1);
@@ -1740,7 +1907,13 @@ function updateHUD(){
   const mn = $('#moves-num');
   mn.textContent = G.movesLeft;
   mn.classList.toggle('low', G.movesLeft <= 5);
+  G.goals.forEach(g=>{ if(g.type === 'vine') g.remaining = liveVines(); });
   $('#goal-chips').innerHTML = G.goals.map(g=>goalChipHTML(g, g.remaining)).join('');
+  const sh = $('#btn-shovel');
+  if(sh){
+    $('#shovel-count').textContent = G.shovels > 0 ? G.shovels : '';
+    sh.style.opacity = G.shovels > 0 ? '' : '.45';
+  }
   $('#score-val').textContent = G.score.toLocaleString();
   const ring = $('#wheel-ring');
   if(ring){
@@ -1787,7 +1960,7 @@ async function resolveCascades(initial, initialCreations){
       const [r,c] = unkey(k);
       [[1,0],[-1,0],[0,1],[0,-1]].forEach(([dr,dc])=>{
         const q = pieceAt(r+dr, c+dc);
-        if(q && q.block) out.add(key(r+dr, c+dc));
+        if(q && (q.block || q.vine)) out.add(key(r+dr, c+dc));
       });
     });
     const maxRad = playEffects(effects);
@@ -1799,14 +1972,22 @@ async function resolveCascades(initial, initialCreations){
     await sleep(230);
     applyGravity();
     await sleep(430);
+    await settleGnomes();
     mult++;
     if(mult > 30) break; // safety
   }
 }
 async function afterMove(){
+  await settleGnomes();
   updateHUD();
   const goalsDone = G.goals.every(g => g.remaining <= 0);
   if(goalsDone){ await winSequence(); return; }
+  // vines spread whenever a move passes without cutting one
+  if(G.L.vineTotal && !G.vineKilled && liveVines() > 0){
+    spreadVine();
+  }
+  G.vineKilled = false;
+  updateHUD();
   // full rainbow wheel drops an orb onto the board
   if(G.charge >= CHARGE_MAX){
     for(let tries = 0; tries < 60; tries++){
@@ -1833,6 +2014,24 @@ async function afterMove(){
   G.busy = false;
   armHint();
 }
+
+/* ---- shovel: dig out any single tile, no move cost ---- */
+async function digCell(r,c){
+  G.busy = true;
+  clearHint();
+  endTutorial();
+  deselect();
+  Snd.boom(false);
+  await resolveCascades(new Set([key(r,c)]), []);
+  await afterMove();
+}
+$('#btn-shovel').addEventListener('click', ()=>{
+  if(G.busy || G.over || G.shovels <= 0) return;
+  Snd.ensure();
+  G.shovelMode = !G.shovelMode;
+  $('#btn-shovel').classList.toggle('armed', G.shovelMode);
+  Snd.swap();
+});
 
 /* ---- power-up activation ---- */
 async function activatePower(r, c){
@@ -1872,7 +2071,7 @@ async function trySwap(r1,c1,r2,c2){
   if(G.busy || G.over) return;
   const a = pieceAt(r1,c1), b = pieceAt(r2,c2);
   if(!a || !b) return;
-  if(a.block || b.block){ Snd.bad(); return; }
+  if(a.block || b.block || a.gnome || b.gnome || a.vine || b.vine){ Snd.bad(); return; }
   if(Math.abs(r1-r2) + Math.abs(c1-c2) !== 1) return;
   G.busy = true;
   clearHint();
@@ -1986,7 +2185,17 @@ boardEl.addEventListener('pointerup', e=>{
     deselect();
   }
   const p = pieceAt(r,c);
-  if(!p || p.block) return;
+  if(!p) return;
+  if(G.shovelMode){
+    if(p.gnome){ Snd.bad(); return; }
+    G.shovelMode = false;
+    $('#btn-shovel').classList.remove('armed');
+    G.shovels--;
+    updateHUD();
+    digCell(r,c);
+    return;
+  }
+  if(p.block || p.gnome || p.vine) return;
   if(p.power){ activatePower(r,c); return; } // tap to detonate, garden-style
   G.sel = [r,c]; p.el.classList.add('sel'); Snd.swap();
 });
@@ -2085,6 +2294,8 @@ function openLevel(n){
   const notes = [];
   if(save.streak >= 3) notes.push(`🔥 ${save.streak}-win streak — booster head start!`);
   if(G.L.hard) notes.push('🎁 Hard level gift: free Bomb on the board');
+  if(G.L.gnomeTotal) notes.push('🧙 Guide the gnomes to the bottom of the board!');
+  if(G.L.vineTotal) notes.push('🌿 Vines spread every move you ignore them — cut fast!');
   if(save.pending && save.pending.length) notes.push('🎁 Daily gift planted on the board!');
   if((save.fails[n] || 0) >= 3) notes.push('💚 +' + Math.min(4, Math.floor((save.fails[n]||0)/3)*2) + ' bonus moves');
   $('#intro-note').innerHTML = notes.join('<br>');
@@ -2103,6 +2314,10 @@ function prepareLevel(){
   G.sel = null;
   G.goals = G.L.goals.map(g=>({ ...g, remaining: g.count }));
   G.charge = 0;
+  G.shovels = 3;
+  G.shovelMode = false;
+  G.vineKilled = false;
+  $('#btn-shovel').classList.remove('armed');
   buildBoard();
   // pre-placed boosters: win streak + hard-level gift + claimed daily gifts
   const boosters = [];
@@ -2199,7 +2414,8 @@ window.__test = {
   findAnyMove,
   levels: LEVELS,
   isBusy: () => G.busy,
-  save: () => save
+  save: () => save,
+  spreadVine, liveVines, collectGnomesOnce, settleGnomes, applyGravity, digCell
 };
 </script>
 </body>
