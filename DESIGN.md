@@ -165,3 +165,34 @@ Rules: character names (Pipo, Nunu, Whaeleeno, ...) are NEVER
 translated. New user-facing strings must be added to `IT` (exact
 match) or written with `tf()`. Inside `doTask`/`renderTasks` the local
 task variable shadows `t` — don't call the translator there.
+
+## Toy-plastic redesign & mail-run meta (design handoff)
+
+The chrome follows the "soft toy-plastic" design system from the Pipoville
+design handoff: every raised surface is the plastic recipe (top gloss inset,
+hard offset edge, contact shadow — no texture), sky/ground gradient
+background, Baloo 2 type, and the postal-blue/grass-green/amber/stamp-red
+button ramps. Kenney 9-slice buttons and all emoji chrome are replaced by
+nine canvas-baked icons (`ICONS`: heart, stamp, letter, mailbox, medal,
+gift, quest, spade, clock) painted through the same `shadeBody()` pass as
+the pieces.
+
+Cast art is the chibi sheet (`CAST_META`, base64-inlined ~226KB); it
+overrides `SPRITES['c_*']`/`SPRITES.pipop` in `bakeAll`, and each character
+carries a signature idle loop (waddleIdle, waggle, prance, breathe, sniff,
+sneak...). `CHARACTERS` keeps names and dialogue.
+
+Meta loop: **Mail Stamps** are the wallet (`save.stamps`, earned per level
+via `G.runStamps` = destroyed/3 capped at 24; existing saves seed at
+unspent stars × 8); stars are demoted to per-level medals. **Hearts**
+(`save.hearts`, cap 5, one per level start from the sheet, +1 per 30 min,
+retry/restart free, ★8 refill). **Daily quests** (`QUEST_DEFS`, progress in
+`save.quests`), **stamp book** (met = base four + `save.rescued`), **shop**
+(hearts refill / booster packs into `save.pending` / cosmetic cap), and the
+**mailroom** (the old task board, costs = `cost × 8` stamps). Five-tab
+bottom nav + hearts/stamps top bar show on meta views only
+(`body.in-meta`, `META_VIEWS`). Level entry is a bottom sheet with booster
+arming (`G.armed`, fire ★3 / bomb ★5 / spade ★2).
+
+The match-3 engine, obstacles, rainbow wheel, shovel, rescue plot, i18n and
+PWA setup are unchanged. All new UI strings go through `tf(en, it)`.
