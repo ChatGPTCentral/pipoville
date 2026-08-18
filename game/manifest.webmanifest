@@ -1,0 +1,16 @@
+{
+  "name": "Aleville",
+  "short_name": "Aleville",
+  "description": "Aleville — garden match-3 puzzle — 30 levels, firecracker/bomb/dynamite/TNT power-ups, works offline.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#2f6e2b",
+  "theme_color": "#3f8f3b",
+  "icons": [
+    { "src": "icon.svg", "sizes": "192x192", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" },
+    { "src": "apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
