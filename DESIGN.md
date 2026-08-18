@@ -108,3 +108,13 @@ satisfy `KINDS.indexOf(g.kind) < L.colors`.
    `document.querySelectorAll('.part,.ring,.rays,.fly').length === 0` after
    play and zero console errors.
 3. Deploy = merge to `main` (Vercel serves the repo root at aleville.vercel.app).
+
+## Third-party assets
+
+- **Kenney.nl** (CC0 / public domain, no attribution required — kept here as a courtesy):
+  UI Pack (button 9-slices), Interface Sounds + Digital Audio (embedded OGG samples),
+  Particle Pack (star/spark/magic/light textures). All embedded as base64.
+- **GSAP 3.15** (GreenSock/Webflow standard no-charge license) — inlined; drives the
+  fly-to-goal arcs, toast pops, win score counter, and task-board pulses.
+  Board-piece physics deliberately stay on CSS transforms — never point GSAP at
+  `.candy` elements or the two systems will fight over `transform`.
