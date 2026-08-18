@@ -118,3 +118,13 @@ satisfy `KINDS.indexOf(g.kind) < L.colors`.
   fly-to-goal arcs, toast pops, win score counter, and task-board pulses.
   Board-piece physics deliberately stay on CSS transforms — never point GSAP at
   `.candy` elements or the two systems will fight over `transform`.
+
+## Pipop
+
+The mascot penguin (teal body, white belly, yellow feet/beak — ported from the
+original canvas drawing) is baked as `SPRITES.pipop` via `paintPipop`. He
+stands on the current map node (`.pipop-av`, bobbing), and when new levels
+unlock, `renderMap` walks him node-by-node along the path with a GSAP timeline
+(waddle rotation on the inner img, movement on the wrapper — never both on one
+element), finishing with a heart burst. `save.pipopAt` tracks the node he was
+last seen on. Cameos: splash screen, story intro, win screen.
