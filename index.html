@@ -11,7 +11,7 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
-<title>Aleville</title>
+<title>Pipoville</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
   html,body { height:100%; overflow:hidden; overscroll-behavior:none; }
@@ -434,6 +434,40 @@
   @keyframes heartFly { to { transform:translate(var(--dx), var(--dy)) scale(.4); opacity:0; } }
   @media (prefers-reduced-motion: reduce){ #pipop-splash, .pipop-av img, .overlay.show .win-pipop, .overlay.show .story-pipop { animation:none; } }
 
+  /* ---------- Pipoville cast, rescues, reactions ---------- */
+  .char-img { width:60px; height:60px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
+  .butler-row .char-img, .butler-row .pipop-img { flex:0 0 auto; width:56px; height:56px; }
+  .wanted-row { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:10px;
+    background:rgba(239,68,68,.12); border:2px dashed #ef4444; border-radius:12px; padding:6px 10px; }
+  .wanted-label { font-weight:900; color:#b91c1c; font-size:14px; letter-spacing:.05em; }
+  .wanted-row .char-img { width:48px; height:48px; }
+  #rescue-portrait { width:110px; height:110px; display:block; margin:4px auto;
+    filter:drop-shadow(0 4px 6px rgba(0,0,0,.25)); animation:pipopParty .8s ease-in-out infinite; }
+  .friend { position:absolute; z-index:2; width:52px; height:52px; margin-left:-26px; margin-top:-26px; pointer-events:none; }
+  .friend img { width:100%; height:100%; filter:drop-shadow(0 3px 3px rgba(0,0,0,.3)); }
+  .friend.caged img { filter:grayscale(1) brightness(.75); }
+  .friend.caged::after { content:''; position:absolute; inset:-4px; border-radius:8px; border:2.5px solid #475569;
+    background:repeating-linear-gradient(90deg, rgba(51,65,85,.85) 0 3px, transparent 3px 11px); }
+  .friend.caged::before { content:'🔒'; position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:13px; z-index:2; }
+  .friend.freed img { animation:pipopBob 1.6s ease-in-out infinite; }
+  .chapter-sign { position:absolute; z-index:2; transform:translateX(-50%); white-space:nowrap; pointer-events:none;
+    background:linear-gradient(180deg,#a97142,#7c4a24); color:#ffe9c9; font-weight:900; font-size:13px;
+    padding:5px 14px; border-radius:10px; border:2.5px solid #d9a066; box-shadow:0 3px 6px rgba(0,0,0,.3); }
+  #pipop-side { position:absolute; left:50%; transform:translateX(-50%);
+    bottom:calc(4px + env(safe-area-inset-bottom)); z-index:6; width:58px; height:58px; pointer-events:none; }
+  #pipop-side img { width:100%; height:100%; filter:drop-shadow(0 3px 4px rgba(0,0,0,.35)); animation:pipopBob 1.5s ease-in-out infinite; }
+  #pipop-emote { position:absolute; top:-16px; right:-12px; font-size:19px; opacity:0; transition:opacity .2s;
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.3)); }
+  #pipop-side.cheer img { animation:sideCheer .45s ease-in-out infinite; }
+  @keyframes sideCheer { 0%,100%{transform:translateY(0) rotate(-8deg)} 50%{transform:translateY(-13px) rotate(8deg)} }
+  #pipop-side.worry img { animation:sideWorry .28s ease-in-out infinite; }
+  @keyframes sideWorry { 0%,100%{transform:translateX(-2px) rotate(-3deg)} 50%{transform:translateX(2px) rotate(3deg)} }
+  #pipop-side.sad img { animation:none; transform:rotate(14deg) translateY(6px); filter:grayscale(.5) drop-shadow(0 3px 4px rgba(0,0,0,.35)); }
+  #pipop-side.no img { animation:sideNo .3s ease-in-out 3; }
+  @keyframes sideNo { 0%,100%{transform:rotate(0)} 33%{transform:rotate(-14deg)} 66%{transform:rotate(14deg)} }
+  #pipop-side.party img { animation:pipopParty .6s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce){ #pipop-side img, .friend.freed img, #rescue-portrait { animation:none; } }
+
   #confetti-layer { position:absolute; inset:0; pointer-events:none; z-index:25; overflow:hidden; }
   .conf { position:absolute; width:11px; height:11px; top:-20px; border-radius:50% 0 50% 50%; animation:confFall linear forwards; }
   @keyframes confFall { to { transform:translateY(110vh) rotate(720deg); } }
@@ -448,7 +482,7 @@
   <div class="cloud c1"></div><div class="cloud c2"></div>
   <div class="hill h2"></div>
   <div class="hill h1"></div>
-  <div class="logo">ALEVILLE<span class="sub">A GARDEN PUZZLE</span></div>
+  <div class="logo">PIPOVILLE<span class="sub">HELP PIPOP RESCUE HIS FRIENDS</span></div>
   <img id="pipop-splash" class="pipop-img" alt="">
   <div class="splash-row">🍎🍋🌷🦋💧</div>
   <button class="btn" id="btn-play" style="font-size:26px; padding:14px 52px;">Play!</button>
@@ -458,7 +492,7 @@
 <!-- LEVEL MAP -->
 <div id="map" class="screen">
   <div class="map-top">
-    <div class="map-title">🌻 Aleville</div>
+    <div class="map-title">🐧 Pipoville</div>
     <div class="map-streak" id="map-streak"></div>
     <button id="btn-tasks">🔨<span id="tasks-badge"></span></button>
     <div class="map-stars" id="total-stars">★ 0/45</div>
@@ -504,6 +538,7 @@
   <div id="board-wrap"><div id="board"></div></div>
   <button id="btn-pause">⏸</button>
   <button id="btn-shovel">⛏️<span id="shovel-count">3</span></button>
+  <div id="pipop-side"><span id="pipop-emote"></span><img class="pipop-img" alt=""></div>
   <div id="toast"></div>
   <div id="flash"></div>
 </div>
@@ -568,28 +603,46 @@
 
 <div class="overlay" id="ov-story">
   <div class="modal">
-    <div class="ribbon">Welcome!</div>
-    <h2 style="margin-top:12px;">Aleville</h2>
+    <div class="ribbon">Emergency!</div>
+    <h2 style="margin-top:12px;">Pipoville</h2>
     <div class="butler-row">
-      <img class="keeper-img" alt="">
-      <span class="butler-bubble">Ah, you made it! I'm Barnaby, the groundskeeper — and this bouncy little penguin is Pipop, your guide. This old garden was magnificent once. Win puzzle levels to earn stars, follow Pipop up the path, and we'll restore it together!</span>
+      <img class="char-img" data-char="sir_saltbread_cane" alt="">
+      <span class="butler-bubble">Pipop! Sheriff Saltbread Cane here. Whaeleeno and Baggu raided the town — they stole the mail and took our friends! Cannolio, Nunu, the whole school... everyone! You're the only one who knows every path in Pipoville. Solve the puzzle boards, follow the trail, and bring them home!</span>
     </div>
     <img class="pipop-img story-pipop" alt="">
+    <div class="wanted-row">
+      <span class="wanted-label">WANTED:</span>
+      <img class="char-img wanted" data-char="whaeleeno" alt="">
+      <img class="char-img wanted" data-char="baggu" alt="">
+    </div>
     <div class="btns"><button class="btn" id="btn-story">Let's go!</button></div>
   </div>
 </div>
 
 <div class="overlay" id="ov-tasks">
   <div class="modal">
-    <div class="ribbon">Garden Tasks</div>
+    <div class="ribbon">Rebuild Pipoville</div>
     <h2 style="margin-top:12px;" id="tasks-day">Day 1</h2>
     <div class="butler-row">
-      <img class="keeper-img" alt="">
-      <span class="butler-bubble" id="butler-line">Let's fix up this garden — win levels to earn stars!</span>
+      <img class="pipop-img" alt="">
+      <span class="butler-bubble" id="butler-line">Let's rebuild Pipoville — win levels to earn stars!</span>
     </div>
     <div id="task-list"></div>
     <p id="task-stars" style="font-weight:900; color:#b8860b;">★ 0 to spend</p>
     <div class="btns"><button class="btn blue small" id="btn-tasks-close">Close</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-rescue">
+  <div class="modal">
+    <div class="ribbon" id="rescue-ribbon">Rescued!</div>
+    <h2 style="margin-top:12px;" id="rescue-name">Friend</h2>
+    <img id="rescue-portrait" alt="">
+    <div class="butler-row">
+      <img class="pipop-img" alt="">
+      <span class="butler-bubble" id="rescue-line"></span>
+    </div>
+    <div class="btns"><button class="btn" id="btn-rescue">Hooray!</button></div>
   </div>
 </div>
 
@@ -623,7 +676,7 @@
 <script>
 'use strict';
 /* =====================================================================
-   ALEVILLE — a garden match-3 in the style of garden puzzlers.
+   PIPOVILLE — help Pipop rescue his friends, one match-3 board at a time.
    Power-up ladder by match size:
      4 pieces  → Firecracker (blast 1 cell in every direction, 3×3)
      5 pieces  → Bomb        (blast radius 2, 5×5)
@@ -717,7 +770,7 @@ const KIND_HUE = {
   butterfly:['#ffd9a0','#ff9f1c','#b35400']
 };
 const POWERS = { fire:{rad:1}, bomb:{rad:2}, dyna:{rad:3}, tnt:{rad:4} };
-const CHARGE_MAX = 60; // pieces destroyed to fill the rainbow wheel
+let CHARGE_MAX = 60; // pieces destroyed to fill the rainbow wheel (50 once Ms Toni is rescued)
 /* =====================================================================
    BAKED BITMAP SPRITES
    Each piece and power-up is painted once at boot onto a 256px canvas
@@ -1082,6 +1135,82 @@ function paintVine(x){
     x.restore();
   });
 }
+/* ---------------- Pipoville character engine (ported from the original registry) ---------------- */
+function kStyle(x){ x.lineWidth = 3; x.strokeStyle = '#1e293b'; x.lineCap = 'round'; x.lineJoin = 'round'; }
+function kEllipse(x, px, py, rx, ry, fill){ x.fillStyle = fill; x.beginPath(); x.ellipse(px, py, rx, ry, 0, 0, 7); x.fill(); x.stroke(); }
+function kCircle(x, px, py, r, fill){ x.fillStyle = fill; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill(); x.stroke(); }
+function kRect(x, px, py, w, h, fill){ x.fillStyle = fill; x.beginPath(); x.rect(px, py, w, h); x.fill(); x.stroke(); }
+function kTri(x, x1, y1, x2, y2, x3, y3, fill){ x.fillStyle = fill; x.beginPath(); x.moveTo(x1, y1); x.lineTo(x2, y2); x.lineTo(x3, y3); x.closePath(); x.fill(); x.stroke(); }
+function kArcEye(x, px, py, r){ x.beginPath(); x.arc(px, py, r, Math.PI, 0); x.stroke(); }
+function kStar(x, cx, cy, r, fill){
+  x.fillStyle = fill; x.beginPath();
+  for(let i=0;i<5;i++){
+    x.lineTo(Math.cos((18+i*72)*Math.PI/180)*r+cx, -Math.sin((18+i*72)*Math.PI/180)*r+cy);
+    x.lineTo(Math.cos((54+i*72)*Math.PI/180)*(r/2)+cx, -Math.sin((54+i*72)*Math.PI/180)*(r/2)+cy);
+  }
+  x.closePath(); x.fill(); x.stroke();
+}
+function kGlasses(x, px, py, w){ x.beginPath(); x.rect(px, py, w/2.2, w/2.2); x.rect(px+w/2, py, w/2.2, w/2.2); x.stroke(); }
+const CHARACTERS = {
+  pipop: { name:'Pipop', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,-12*s,22*s,8*s,4*s,'#facc15'); kEllipse(x,12*s,22*s,8*s,4*s,'#facc15');
+    kEllipse(x,0,0,22*s,25*s,'#2dd4bf'); kEllipse(x,0,4*s,16*s,19*s,'#ffffff');
+    kEllipse(x,0,-22*s,16*s,6*s,'#0284c7');
+    kArcEye(x,-8*s,-4*s,4*s); kArcEye(x,8*s,-4*s,4*s);
+    kEllipse(x,0,2*s,5*s,3*s,'#facc15'); kEllipse(x,12*s,10*s,8*s,6*s,'#b45309'); x.restore(); } },
+  cannolio: { name:'Cannolio', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kTri(x,-18*s,-20*s,-10*s,-32*s,-2*s,-18*s,'#fb923c'); kTri(x,2*s,-18*s,10*s,-32*s,18*s,-20*s,'#fb923c');
+    kEllipse(x,0,2*s,24*s,20*s,'#fb923c'); kEllipse(x,0,8*s,16*s,12*s,'#ffffff');
+    kCircle(x,-8*s,-4*s,2.5*s,'#1e293b'); kCircle(x,8*s,-4*s,2.5*s,'#1e293b');
+    kEllipse(x,0,0,6*s,4*s,'#ffffff'); kCircle(x,0,-1*s,2*s,'#1e293b'); x.restore(); } },
+  ninni: { name:'Ninni', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,5*s,22*s,18*s,'#f8fafc'); kCircle(x,8*s,8*s,4*s,'#f472b6'); kCircle(x,12*s,0,3*s,'#f472b6');
+    kEllipse(x,-10*s,-12*s,14*s,12*s,'#f8fafc'); kEllipse(x,-18*s,-18*s,6*s,12*s,'#f472b6');
+    kArcEye(x,-12*s,-14*s,3.5*s); x.restore(); } },
+  nunu: { name:'Nunu', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kRect(x,-12*s,0,24*s,24*s,'#2563eb'); kCircle(x,0,-12*s,14*s,'#fed7aa');
+    kEllipse(x,0,-22*s,24*s,6*s,'#fde047'); kEllipse(x,0,-26*s,14*s,8*s,'#fde047');
+    kCircle(x,-5*s,-12*s,2*s,'#1e293b'); kCircle(x,5*s,-12*s,2*s,'#1e293b'); x.restore(); } },
+  sir_saltbread_cane: { name:'Sir Saltbread Cane', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,6*s,28*s,15*s,'#78350f'); kEllipse(x,-16*s,-6*s,12*s,10*s,'#78350f');
+    kEllipse(x,-12*s,-2*s,5*s,10*s,'#451a03'); kStar(x,4*s,6*s,6*s,'#facc15');
+    kCircle(x,-20*s,-8*s,2.5*s,'#1e293b'); x.restore(); } },
+  winnie: { name:'Winnie the Weenie', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,6*s,24*s,12*s,'#a16207'); kEllipse(x,-14*s,-4*s,10*s,8*s,'#a16207');
+    kEllipse(x,-10*s,0,4*s,8*s,'#713f12'); kCircle(x,-16*s,-6*s,2*s,'#1e293b');
+    kRect(x,-12*s,2*s,4*s,8*s,'#ef4444'); x.restore(); } },
+  ms_moomoo: { name:'Ms MooMoo', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,4*s,22*s,22*s,'#f8fafc'); kCircle(x,-10*s,0,6*s,'#334155'); kCircle(x,10*s,10*s,5*s,'#334155');
+    kEllipse(x,0,6*s,10*s,6*s,'#fbcfe8'); kGlasses(x,-6*s,-4*s,12*s); x.restore(); } },
+  ms_saltchow: { name:'Ms Saltchow', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,4*s,22*s,22*s,'#e2e8f0'); kEllipse(x,0,-20*s,16*s,6*s,'#ef4444');
+    kEllipse(x,16*s,10*s,8*s,6*s,'#b45309'); kCircle(x,14*s,9*s,1.5*s,'#3b82f6'); kCircle(x,18*s,11*s,1.5*s,'#ef4444'); x.restore(); } },
+  ms_toni: { name:'Ms Toni', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,4*s,22*s,18*s,'#15803d'); kCircle(x,-18*s,-2*s,10*s,'#4ade80');
+    kCircle(x,-20*s,-4*s,2.5*s,'#1e293b'); kTri(x,14*s,16*s,20*s,16*s,17*s,4*s,'#c084fc'); x.restore(); } },
+  mr_bobo: { name:'Mr Bobo', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,6*s,22*s,22*s,'#16a34a'); kCircle(x,0,-14*s,14*s,'#854d0e');
+    kCircle(x,-12*s,-24*s,4*s,'#854d0e'); kCircle(x,12*s,-24*s,4*s,'#854d0e');
+    kRect(x,-3*s,-2*s,6*s,4*s,'#cbd5e1'); x.restore(); } },
+  mayalee: { name:'Mayalee', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,2*s,22*s,22*s,'#f472b6'); kEllipse(x,0,2*s,7*s,5*s,'#f43f5e');
+    kCircle(x,-7*s,-6*s,2.5*s,'#1e293b'); kCircle(x,7*s,-6*s,2.5*s,'#1e293b');
+    kRect(x,10*s,6*s,10*s,14*s,'#d97706'); x.restore(); } },
+  ovalee: { name:'Ovalee', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,2*s,22*s,22*s,'#92400e'); kEllipse(x,0,2*s,7*s,5*s,'#78350f');
+    kCircle(x,-7*s,-6*s,2.5*s,'#1e293b'); kCircle(x,7*s,-6*s,2.5*s,'#1e293b');
+    kRect(x,12*s,4*s,4*s,14*s,'#94a3b8'); x.restore(); } },
+  pancione: { name:'Pancione', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,4*s,22*s,22*s,'#ffffff'); kCircle(x,-12*s,-20*s,5*s,'#0f172a'); kCircle(x,12*s,-20*s,5*s,'#0f172a');
+    kEllipse(x,-8*s,-6*s,5*s,4*s,'#0f172a'); kEllipse(x,8*s,-6*s,5*s,4*s,'#0f172a');
+    kEllipse(x,0,-24*s,14*s,8*s,'#ffffff'); x.restore(); } },
+  whaeleeno: { name:'Whaeleeno', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,0,28*s,20*s,'#3b82f6'); kTri(x,22*s,0,34*s,-8*s,34*s,8*s,'#3b82f6');
+    kRect(x,-20*s,-6*s,22*s,8*s,'#0f172a'); x.restore(); } },
+  baggu: { name:'Baggu', draw:(x,px,py,s)=>{ x.save(); x.translate(px,py); kStyle(x);
+    kEllipse(x,0,2*s,22*s,22*s,'#64748b'); kRect(x,-16*s,-8*s,32*s,8*s,'#0f172a');
+    kCircle(x,14*s,12*s,7*s,'#ca8a04'); x.restore(); } }
+};
 function paintPipop(x){
   // Pipop the penguin — faithful port of the original canvas drawing
   const s = 88;
@@ -1142,8 +1271,9 @@ function bake(fn){
   SPRITES.keeper = bake(paintKeeper);
   const orb = document.getElementById('wheel-orb');
   if(orb) orb.src = SPRITES.p_rainbow;
-  SPRITES.pipop = bake(paintPipop);
-  document.querySelectorAll('.keeper-img').forEach(el=>{ el.src = SPRITES.keeper; });
+  SPRITES.pipop = bake(x => CHARACTERS.pipop.draw(x, 50, 50, 1.32));
+  Object.keys(CHARACTERS).forEach(k => { SPRITES['c_' + k] = bake(x => CHARACTERS[k].draw(x, 50, 50, 1.28)); });
+  document.querySelectorAll('.char-img').forEach(el=>{ el.src = SPRITES['c_' + el.dataset.char]; });
   document.querySelectorAll('.pipop-img').forEach(el=>{ el.src = SPRITES.pipop; });
 })();
 function spriteImg(k){ return `<img src="${SPRITES[k]}" alt="" draggable="false">`; }
@@ -1273,6 +1403,7 @@ save.decorSeen = save.decorSeen || [];
 save.spent = save.spent || 0;
 save.done = save.done || [];
 save.pipopAt = save.pipopAt || 0;
+save.rescued = save.rescued || [];
 /* iOS WebAudio unlock: resume + silent buffer on the first touch release */
 function unlockAudio(){
   Snd.ensure();
@@ -1319,6 +1450,25 @@ function showScreen(id){
 }
 function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 
+/* ---------------- the rescue of Pipoville ---------------- */
+const CHAPTERS = { 1:'Ch.1 — Nunu Farms', 9:'Ch.2 — Pipoville School', 17:'Ch.3 — Main Street', 25:'Ch.4 — Town Hall' };
+const RESCUES = {
+  4:  { id:'ninni', line:'Neigh! Those thieves tied me up in the hay barn. Thank you, Pipop!' },
+  6:  { id:'cannolio', line:"Woof woof! I KNEW you'd come! I'll dig for you from now on. (+1 shovel every level)" },
+  8:  { id:'nunu', line:'My farm! My Ninni! You saved us all. Take extra moves on the hard roads. (+2 moves on hard levels)' },
+  10: { id:'ms_moomoo', line:'Moo-st impressive, Pipop! The school owes you one. (Daily gifts upgraded)' },
+  12: { id:'ms_toni', line:'Fascinating! By my calculations, your rainbow wheel now charges faster. (Wheel fills at 50)' },
+  14: { id:'mr_bobo', line:'GRRREAT hustle out there, champ! Keep those combos coming!' },
+  16: { id:'ms_saltchow', line:"The whole school is free! Art class is back — I'll paint your portrait, hero." },
+  18: { id:'mayalee', line:'My groceries! My store! Oink-credible work, Pipop!' },
+  21: { id:'ovalee', line:'Hmph. You rescued Mayalee FIRST?! ...Thank you though. Truly.' },
+  24: { id:'pancione', line:'Fresh croissants for the hero! Your streak boosters just got tastier. (Streaks add a Bomb)' },
+  26: { id:'winnie', line:'Arf! The sheriff is still locked in the town hall — hurry, Pipop!' },
+  28: { id:'sir_saltbread_cane', line:"Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipop." },
+  30: { id:'whaeleeno', villain:true, line:'Blub... you win, mailbird. Baggu — give back the mail. ALL of it. Pipoville is saved!' }
+};
+function isRescued(id){ return (save.rescued || []).includes(id); }
+
 /* ---------------- garden restoration meta ----------------
    Stars are currency: spend them on tasks, Gardenscapes-style. */
 const TASKS = [
@@ -1333,7 +1483,7 @@ const TASKS = [
   { id:'pond',     cost:3, emoji:'🦢', name:'Clean the swan pond',     line:'The swans are back!' },
   { id:'lights',   cost:2, emoji:'🏮', name:'Hang the lanterns',       line:'How magical at dusk!' },
   { id:'carousel', cost:3, emoji:'🎠', name:'Repair the carousel',     line:'Round and round it goes!' },
-  { id:'manor',    cost:4, emoji:'🏰', name:'Reopen the manor',        line:'Aleville is blooming again!' },
+  { id:'manor',    cost:4, emoji:'🏰', name:'Reopen the manor',        line:'Pipoville is shining again!' },
 ];
 function starsEarnedTotal(){ let t = 0; for(const k in save.stars) t += save.stars[k]; return t; }
 function starsAvailable(){ return starsEarnedTotal() - (save.spent || 0); }
@@ -1378,7 +1528,7 @@ function checkDaily(){
   const yesterday = new Date(Date.now() - 864e5).toDateString();
   save.dailyDay = save.lastDaily === yesterday ? (save.dailyDay || 0) + 1 : 1;
   save.lastDaily = today;
-  const [pw, name] = DAILY_GIFTS[Math.min(save.dailyDay - 1, DAILY_GIFTS.length - 1)];
+  const [pw, name] = DAILY_GIFTS[Math.min(save.dailyDay - 1 + (isRescued('ms_moomoo') ? 1 : 0), DAILY_GIFTS.length - 1)]; // Ms MooMoo upgrades gifts
   save.pending = (save.pending || []).concat([pw]);
   persist();
   $('#daily-title').textContent = 'Day ' + save.dailyDay;
@@ -1390,7 +1540,7 @@ function checkDaily(){
 const MAP_DECOS = ['🌳','🌷','🌻','🌼','🪻','🌿','🍄','🌲'];
 function renderMap(){
   const inner = $('#map-inner');
-  inner.querySelectorAll('.lvl-node, .lvl-holder, .map-deco, .decor, .pipop-av, .heart-pop').forEach(n=>n.remove());
+  inner.querySelectorAll('.lvl-node, .lvl-holder, .map-deco, .decor, .pipop-av, .heart-pop, .friend, .chapter-sign').forEach(n=>n.remove());
   const n = LEVELS.length;
   const H = 170 * n + 160;
   inner.style.height = H + 'px';
@@ -1465,6 +1615,27 @@ function renderMap(){
   const affordable = nt && starsAvailable() >= nt.cost;
   $('#btn-tasks').classList.toggle('attn', !!affordable);
   $('#tasks-badge').textContent = affordable ? '!' : '';
+  // rescued friends and captured cages along the path + chapter signs
+  Object.keys(RESCUES).forEach(lv=>{
+    const rescue = RESCUES[lv];
+    const [x, y] = pts[lv-1];
+    const el = document.createElement('div');
+    el.className = 'friend ' + (isRescued(rescue.id) ? 'freed' : 'caged');
+    const side = (lv % 2) ? -1 : 1;
+    el.style.left = `calc(${x}% + ${side * 62}px)`;
+    el.style.top = (y - 8) + 'px';
+    el.innerHTML = `<img src="${SPRITES['c_' + rescue.id]}" alt="">`;
+    inner.appendChild(el);
+  });
+  Object.keys(CHAPTERS).forEach(lv=>{
+    const [x, y] = pts[lv-1];
+    const sign = document.createElement('div');
+    sign.className = 'chapter-sign';
+    sign.textContent = CHAPTERS[lv];
+    sign.style.left = '50%';
+    sign.style.top = (y + 52) + 'px';
+    inner.appendChild(sign);
+  });
   // Pipop lives on the map: he stands at your current level and waddles up newly opened path
   const cur = Math.min(save.unlocked, n);
   const from = Math.max(1, Math.min(save.pipopAt || 1, cur));
@@ -2278,6 +2449,7 @@ async function resolveCascades(initial, initialCreations){
     if(maxRad >= 2) await sleep(maxRad >= 4 ? 140 : 80); // hit-stop beat
     Snd.pop(mult);
     if(mult >= 3) toast(['Great!','Amazing!','Spectacular!','Unbelievable!'][Math.min(mult-3,3)]);
+    if(mult >= 3 || maxRad >= 2) setPipopMood('cheer', 1400);
     destroyCells(out, creations, mult);
     updateHUD();
     await sleep(230);
@@ -2321,9 +2493,29 @@ async function afterMove(){
   }
   if(G.movesLeft <= 0){ loseSequence(); return; }
   if(G.movesLeft === 1) toast('Last move!');
+  setPipopMood(pipopBaseline());
   if(!findAnyMove()){ toast('Shuffled!'); await sleep(500); shuffleBoard(true); }
   G.busy = false;
   armHint();
+}
+
+/* ---- Pipop stands beside the board and reacts ---- */
+const EMOTES = { cheer:'🎉', worry:'😰', sad:'😢', no:'🙅', party:'🥳', idle:'' };
+let pipopTimer = null;
+function pipopBaseline(){
+  return (!G.over && G.movesLeft <= 3) ? 'worry' : 'idle';
+}
+function setPipopMood(mood, holdMs){
+  const el = $('#pipop-side');
+  if(!el) return;
+  el.className = mood === 'idle' ? '' : mood;
+  const em = $('#pipop-emote');
+  em.textContent = EMOTES[mood] || '';
+  em.style.opacity = EMOTES[mood] ? 1 : 0;
+  if(pipopTimer) clearTimeout(pipopTimer);
+  if(holdMs){
+    pipopTimer = setTimeout(()=>{ setPipopMood(pipopBaseline()); }, holdMs);
+  }
 }
 
 /* ---- shovel: dig out any single tile, no move cost ---- */
@@ -2433,6 +2625,7 @@ async function trySwap(r1,c1,r2,c2){
   const res = analyzeMatches([[r1,c1],[r2,c2]]);
   if(!res){
     Snd.bad();
+    setPipopMood('no', 1000);
     swapInGrid(r1,c1,r2,c2);
     placeCandy(a.el, r1, c1, false);
     placeCandy(b.el, r2, c2, false);
@@ -2532,6 +2725,7 @@ async function winSequence(){
   clearHint();
   endTutorial();
   $('#game').classList.add('winning');
+  setPipopMood('party');
   toast('Level Complete!');
   Snd.win();
   await sleep(700);
@@ -2587,12 +2781,28 @@ async function winSequence(){
   const canTask = nt && starsAvailable() >= nt.cost;
   $('#btn-win-tasks').style.display = canTask ? '' : 'none';
   $('#win-task-note').style.display = canTask ? '' : 'none';
+  const rescue = RESCUES[G.level];
+  if(rescue && !isRescued(rescue.id)){
+    save.rescued = save.rescued || [];
+    save.rescued.push(rescue.id);
+    persist();
+    const ch = CHARACTERS[rescue.id];
+    $('#rescue-ribbon').textContent = rescue.villain ? 'Pipoville is saved!' : 'Rescued!';
+    $('#rescue-name').textContent = ch.name;
+    $('#rescue-portrait').src = SPRITES['c_' + rescue.id];
+    $('#rescue-line').textContent = rescue.line;
+    G.pendingWin = true;
+    if(!Snd.play('task', 1, .6)) Snd.win();
+    showOverlay('ov-rescue', true);
+    return;
+  }
   showOverlay('ov-win', true);
 }
 function loseSequence(){
   G.over = true;
   clearHint();
   endTutorial();
+  setPipopMood('sad');
   save.streak = 0;
   save.fails[G.level] = (save.fails[G.level] || 0) + 1;
   persist();
@@ -2617,8 +2827,10 @@ function openLevel(n){
   const notes = [];
   if(save.streak >= 3) notes.push(`🔥 ${save.streak}-win streak — booster head start!`);
   if(G.L.hard) notes.push('🎁 Hard level gift: free Bomb on the board');
-  if(G.L.gnomeTotal) notes.push('🧙 Guide the gnomes to the bottom of the board!');
-  if(G.L.vineTotal) notes.push('🌿 Vines spread every move you ignore them — cut fast!');
+  if(G.L.gnomeTotal) notes.push('🧙 Guide the trapped gnomes to the bottom of the board!');
+  if(G.L.blockTotal) notes.push("🧊 Baggu froze pieces in ice locks — crack them with nearby matches!");
+  if(RESCUES[n] && !isRescued(RESCUES[n].id)) notes.push('💚 ' + CHARACTERS[RESCUES[n].id].name + ' is trapped at the end of this level!');
+  if(G.L.vineTotal) notes.push("🌊 Whaeleeno's ink weeds spread every move you ignore them — cut fast!");
   if(save.pending && save.pending.length) notes.push('🎁 Daily gift planted on the board!');
   if((save.fails[n] || 0) >= 3) notes.push('💚 +' + Math.min(4, Math.floor((save.fails[n]||0)/3)*2) + ' bonus moves');
   $('#intro-note').innerHTML = notes.join('<br>');
@@ -2630,21 +2842,24 @@ function openLevel(n){
 function prepareLevel(){
   endTutorial();
   const fails = save.fails[G.level] || 0;
-  G.movesLeft = G.L.moves + Math.min(4, Math.floor(fails/3)*2); // soft pity
+  G.movesLeft = G.L.moves + Math.min(4, Math.floor(fails/3)*2) + (G.L.hard && isRescued('nunu') ? 2 : 0); // soft pity + Nunu's perk
   G.score = 0;
   G.over = false;
   G.busy = false;
   G.sel = null;
   G.goals = G.L.goals.map(g=>({ ...g, remaining: g.count }));
+  CHARGE_MAX = isRescued('ms_toni') ? 50 : 60;
   G.charge = 0;
-  G.shovels = 3;
+  G.shovels = 3 + (isRescued('cannolio') ? 1 : 0); // Cannolio digs too
   G.shovelMode = false;
   G.vineKilled = false;
   $('#btn-shovel').classList.remove('armed');
+  setPipopMood('idle');
   buildBoard();
   // pre-placed boosters: win streak + hard-level gift + claimed daily gifts
   const boosters = [];
   if(save.streak >= 3) boosters.push(...(save.streak >= 7 ? ['fire','bomb','dyna'] : save.streak >= 5 ? ['fire','bomb'] : ['fire']));
+  if(save.streak >= 3 && isRescued('pancione')) boosters.push('bomb'); // Pancione's croissant special
   if(G.L.hard) boosters.push('bomb');
   if(save.pending && save.pending.length){ boosters.push(...save.pending); save.pending = []; persist(); }
   boosters.forEach(pw=>{
@@ -2703,6 +2918,11 @@ $('#btn-win-tasks').addEventListener('click', ()=>{
   renderTasks(); showOverlay('ov-tasks', true);
 });
 $('#btn-daily').addEventListener('click', ()=>showOverlay('ov-daily', false));
+$('#btn-rescue').addEventListener('click', ()=>{
+  showOverlay('ov-rescue', false);
+  confetti();
+  if(G.pendingWin){ G.pendingWin = false; showOverlay('ov-win', true); }
+});
 $('#btn-tasks').addEventListener('click', ()=>{ Snd.ensure(); renderTasks(); showOverlay('ov-tasks', true); });
 $('#btn-tasks-close').addEventListener('click', ()=>showOverlay('ov-tasks', false));
 $('#btn-start').addEventListener('click', ()=>{ Snd.ensure(); startLevel(); });

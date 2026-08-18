@@ -128,3 +128,17 @@ unlock, `renderMap` walks him node-by-node along the path with a GSAP timeline
 (waddle rotation on the inner img, movement on the wrapper — never both on one
 element), finishing with a heart burst. `save.pipopAt` tracks the node he was
 last seen on. Cameos: splash screen, story intro, win screen.
+
+
+## Pipoville cast & rescue plot
+
+`CHARACTERS` is a vector registry of all 16 inhabitants (ported from the
+original character engine); each is baked to `SPRITES.c_<id>`. `RESCUES`
+maps level number → captured friend: beating that level plays a rescue
+cutscene (`ov-rescue`), frees the character on the map (caged silhouette →
+bobbing friend), and may grant a companion perk — Cannolio +1 shovel,
+Nunu +2 moves on hard levels, Ms Toni wheel fills at 50, Ms MooMoo daily
+gift tier up, Pancione streak bomb. `CHAPTERS` labels map zones. In-level,
+`#pipop-side` stands under the board; `setPipopMood(mood, holdMs)` drives
+reactions (cheer/worry/sad/no/party) with an emote bubble, reverting to a
+moves-aware baseline.
