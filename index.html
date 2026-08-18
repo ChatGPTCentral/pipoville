@@ -420,6 +420,20 @@
   .glowtex { position:absolute; z-index:5; pointer-events:none; background-position:center; background-size:contain;
     background-repeat:no-repeat; mix-blend-mode:screen; animation:boomGrow .5s ease-out forwards; }
 
+  /* ---------- Pipop, the mascot ---------- */
+  #pipop-splash { width:108px; height:108px; position:relative; z-index:2;
+    filter:drop-shadow(0 6px 8px rgba(0,0,0,.3)); animation:pipopBob 1.3s ease-in-out infinite; }
+  .story-pipop, .win-pipop { width:66px; height:66px; display:block; margin:2px auto 0; }
+  .overlay.show .win-pipop, .overlay.show .story-pipop { animation:pipopParty .7s ease-in-out infinite; }
+  @keyframes pipopBob { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-6px) rotate(2deg)} }
+  @keyframes pipopParty { 0%,100%{transform:rotate(-8deg)} 25%{transform:translateY(-6px) rotate(0deg)} 50%{transform:rotate(8deg)} 75%{transform:translateY(-6px) rotate(0deg)} }
+  .pipop-av { position:absolute; width:62px; height:62px; margin-left:-31px; margin-top:-88px; z-index:3; pointer-events:none; }
+  .pipop-av img { width:100%; height:100%; filter:drop-shadow(0 4px 4px rgba(0,0,0,.3)); animation:pipopBob 1.3s ease-in-out infinite; }
+  .heart-pop { position:absolute; z-index:4; margin-left:-31px; margin-top:-88px; color:#f43f5e; font-size:19px;
+    pointer-events:none; text-shadow:0 1px 2px rgba(0,0,0,.3); animation:heartFly .85s ease-out forwards; }
+  @keyframes heartFly { to { transform:translate(var(--dx), var(--dy)) scale(.4); opacity:0; } }
+  @media (prefers-reduced-motion: reduce){ #pipop-splash, .pipop-av img, .overlay.show .win-pipop, .overlay.show .story-pipop { animation:none; } }
+
   #confetti-layer { position:absolute; inset:0; pointer-events:none; z-index:25; overflow:hidden; }
   .conf { position:absolute; width:11px; height:11px; top:-20px; border-radius:50% 0 50% 50%; animation:confFall linear forwards; }
   @keyframes confFall { to { transform:translateY(110vh) rotate(720deg); } }
@@ -435,6 +449,7 @@
   <div class="hill h2"></div>
   <div class="hill h1"></div>
   <div class="logo">ALEVILLE<span class="sub">A GARDEN PUZZLE</span></div>
+  <img id="pipop-splash" class="pipop-img" alt="">
   <div class="splash-row">🍎🍋🌷🦋💧</div>
   <button class="btn" id="btn-play" style="font-size:26px; padding:14px 52px;">Play!</button>
   <div class="note">Works offline · Progress saved on this device</div>
@@ -512,6 +527,7 @@
   <div class="modal">
     <div class="ribbon">Level Complete!</div>
     <h2 style="margin-top:12px;" id="win-title">Blooming!</h2>
+    <img class="pipop-img win-pipop" alt="">
     <div class="big-stars" id="win-stars">★★★</div>
     <div class="score-line" id="win-score">Score: 0</div>
     <p id="win-task-note" style="display:none; color:#c9722a;">⭐ You can afford a garden task!</p>
@@ -556,8 +572,9 @@
     <h2 style="margin-top:12px;">Aleville</h2>
     <div class="butler-row">
       <img class="keeper-img" alt="">
-      <span class="butler-bubble">Ah, you made it! I'm Barnaby, the groundskeeper. This old garden was magnificent once — win puzzle levels to earn stars, and we'll restore it together, one task at a time!</span>
+      <span class="butler-bubble">Ah, you made it! I'm Barnaby, the groundskeeper — and this bouncy little penguin is Pipop, your guide. This old garden was magnificent once. Win puzzle levels to earn stars, follow Pipop up the path, and we'll restore it together!</span>
     </div>
+    <img class="pipop-img story-pipop" alt="">
     <div class="btns"><button class="btn" id="btn-story">Let's go!</button></div>
   </div>
 </div>
@@ -1065,6 +1082,38 @@ function paintVine(x){
     x.restore();
   });
 }
+function paintPipop(x){
+  // Pipop the penguin — faithful port of the original canvas drawing
+  const s = 88;
+  x.save();
+  x.translate(50, 48);
+  x.strokeStyle = '#1e293b';
+  x.lineWidth = 3.5;
+  x.lineCap = 'round'; x.lineJoin = 'round';
+  // feet
+  x.fillStyle = '#facc15';
+  x.beginPath();
+  x.ellipse(-s*.25, s*.45, s*.16, s*.09, 0, 0, 7);
+  x.ellipse(s*.25, s*.45, s*.16, s*.09, 0, 0, 7);
+  x.fill(); x.stroke();
+  // body
+  x.fillStyle = '#2dd4bf';
+  x.beginPath(); x.ellipse(0, 0, s*.45, s*.5, 0, 0, 7); x.fill(); x.stroke();
+  // white belly / face patch
+  x.fillStyle = '#ffffff';
+  x.beginPath(); x.ellipse(0, s*.08, s*.33, s*.38, 0, 0, 7); x.fill();
+  // happy arc eyes
+  x.beginPath(); x.arc(-s*.16, -s*.05, s*.08, Math.PI, 0); x.stroke();
+  x.beginPath(); x.arc(s*.16, -s*.05, s*.08, Math.PI, 0); x.stroke();
+  // beak
+  x.fillStyle = '#facc15';
+  x.beginPath(); x.ellipse(0, s*.05, s*.1, s*.07, 0, 0, 7); x.fill(); x.stroke();
+  // flippers
+  x.fillStyle = '#2dd4bf';
+  x.beginPath(); x.ellipse(-s*.42, s*.1, s*.1, s*.22, Math.PI/6, 0, 7); x.fill(); x.stroke();
+  x.beginPath(); x.ellipse(s*.42, s*.1, s*.1, s*.22, -Math.PI/6, 0, 7); x.fill(); x.stroke();
+  x.restore();
+}
 function bake(fn){
   const cv = document.createElement('canvas');
   cv.width = cv.height = SPR;
@@ -1093,7 +1142,9 @@ function bake(fn){
   SPRITES.keeper = bake(paintKeeper);
   const orb = document.getElementById('wheel-orb');
   if(orb) orb.src = SPRITES.p_rainbow;
+  SPRITES.pipop = bake(paintPipop);
   document.querySelectorAll('.keeper-img').forEach(el=>{ el.src = SPRITES.keeper; });
+  document.querySelectorAll('.pipop-img').forEach(el=>{ el.src = SPRITES.pipop; });
 })();
 function spriteImg(k){ return `<img src="${SPRITES[k]}" alt="" draggable="false">`; }
 function chipIcon(g){
@@ -1221,6 +1272,7 @@ save.pending = save.pending || [];
 save.decorSeen = save.decorSeen || [];
 save.spent = save.spent || 0;
 save.done = save.done || [];
+save.pipopAt = save.pipopAt || 0;
 /* iOS WebAudio unlock: resume + silent buffer on the first touch release */
 function unlockAudio(){
   Snd.ensure();
@@ -1338,7 +1390,7 @@ function checkDaily(){
 const MAP_DECOS = ['🌳','🌷','🌻','🌼','🪻','🌿','🍄','🌲'];
 function renderMap(){
   const inner = $('#map-inner');
-  inner.querySelectorAll('.lvl-node, .lvl-holder, .map-deco, .decor').forEach(n=>n.remove());
+  inner.querySelectorAll('.lvl-node, .lvl-holder, .map-deco, .decor, .pipop-av, .heart-pop').forEach(n=>n.remove());
   const n = LEVELS.length;
   const H = 170 * n + 160;
   inner.style.height = H + 'px';
@@ -1413,6 +1465,42 @@ function renderMap(){
   const affordable = nt && starsAvailable() >= nt.cost;
   $('#btn-tasks').classList.toggle('attn', !!affordable);
   $('#tasks-badge').textContent = affordable ? '!' : '';
+  // Pipop lives on the map: he stands at your current level and waddles up newly opened path
+  const cur = Math.min(save.unlocked, n);
+  const from = Math.max(1, Math.min(save.pipopAt || 1, cur));
+  const av = document.createElement('div');
+  av.className = 'pipop-av';
+  av.innerHTML = `<img src="${SPRITES.pipop}" alt="">`;
+  av.style.left = pts[from-1][0] + '%';
+  av.style.top = pts[from-1][1] + 'px';
+  inner.appendChild(av);
+  if(cur > from && window.gsap && !REDUCED){
+    const tl = gsap.timeline({ delay: .35, onComplete: ()=>{
+      save.pipopAt = cur; persist();
+      for(let i=0;i<8;i++){
+        const h = document.createElement('span');
+        h.className = 'heart-pop';
+        h.textContent = '❤';
+        h.style.left = av.style.left; h.style.top = av.style.top;
+        h.style.setProperty('--dx', (rnd(90)-45) + 'px');
+        h.style.setProperty('--dy', (-30 - rnd(50)) + 'px');
+        inner.appendChild(h);
+        setTimeout(()=>h.remove(), 900);
+      }
+      if(!Snd.play('pluck', 1.25, .5)) Snd.special();
+    }});
+    for(let i=from; i<cur; i++){
+      tl.to(av, { left: pts[i][0] + '%', top: pts[i][1] + 'px', duration: .55, ease: 'power1.inOut' });
+    }
+    const img = av.querySelector('img');
+    gsap.fromTo(img, { rotation: -7 }, { rotation: 7, duration: .16, yoyo: true,
+      repeat: Math.max(3, (cur - from) * 4), ease: 'sine.inOut', delay: .35,
+      onComplete: ()=>gsap.set(img, { rotation: 0 }) });
+  } else if(cur !== (save.pipopAt || 1)){
+    save.pipopAt = cur; persist();
+    av.style.left = pts[cur-1][0] + '%';
+    av.style.top = pts[cur-1][1] + 'px';
+  }
   requestAnimationFrame(()=>{
     const sc = $('#map-scroll');
     const target = pts[Math.min(save.unlocked, n)-1][1];
