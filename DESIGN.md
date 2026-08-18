@@ -274,3 +274,31 @@ backstories EN+IT, `CAST_PERKS`, rescue chapter via `rescueLevelOf`).
 crown), Winnie (bow), and Whaeleeno (keeper cap) composite onto their
 chibi sprites via `drawFriendAccessory` and render everywhere,
 including story cards. Shop shows only met friends' items.
+
+## v24 — Geometry audit + graphics quality pass
+
+A programmatic layout auditor (Playwright, 3 viewports × ~20 UI states) sweeps
+every pair of visible text-bearing elements for unexpected intersections,
+whitelisting intentional stacks (badges, diorama collage, floating toast).
+Everything it caught is fixed:
+
+- **Bottom nav is full-bleed and fully opaque.** The floating bar left a
+  see-through gap at the screen edges and its 95%-alpha gradient let row text
+  ghost through. Now `left/right/bottom:0`, rounded top corners only, solid
+  gradient. `#route-hint` got the same opacity treatment.
+- **Town build banner** (`.map-banner`) now drops in over the diorama
+  (`top:178px`) instead of covering the view header text.
+- **Caged/freed friends on the map** stand clear of level nodes: offset 62→74px,
+  side flips toward the screen centre near the map edges, and nodes paint above
+  friends (`.lvl-holder z-index:3`, `.friend z-index:1`).
+- **Win/story portraits** no longer bob into their titles (margin bumps).
+
+Graphics quality: the chibi cast PNGs are 74–98px natives shown at up to
+~450 device px. `upscaleCast()` now resamples each once at boot to 256px via
+stepped 2× draws with `imageSmoothingQuality:'high'`, then applies a mild
+premultiplied unsharp mask (`sharpenCanvas`, k=.22) so contours stay defined.
+Every later scale is a downscale — crisp — instead of the browser's cheap
+bilinear upscale. `applyCosmetic()` composites at high smoothing quality from
+the already-upscaled base.
+
+Audit lives at `scratchpad/audit-geometry2.js`; keep it green when touching CSS.
