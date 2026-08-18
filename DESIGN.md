@@ -230,3 +230,27 @@ the round. Completed non-current map nodes carry a `replay-badge`
 (baked `ICONS.replay` circular arrow) and the level sheet shows a
 `Record` line from `save.best` (per-level best score, written in
 `winSequence`).
+
+## The big seven (v21)
+
+- **Rainbow tier**: `powerForSize` returns 'rainbow' for 9+ merged
+  matches — the wheel orb, craftable on the board.
+- **Chapters 7-8**: levels 51-70 (Whaeleeno's Reef, The Deep), story
+  continues underwater; scenes at 50 (rewritten hook), 60, 70.
+- **Music moods**: `Music.MOODS` — one scale/tempo/voice/bass per
+  chapter, switched by `Music.setMood(chapterFor(level))` in
+  prepareLevel. `Snd.squelch()` / `Snd.chainSnap()` for the blockers.
+- **Reaction poses**: cheerPose/slumpPose keyframes; cutscene portraits
+  animate with each character's CAST_META idle.
+- **Fog Race** (`EVENT_TIERS`, `eventLevels()`, `save.event`): Fri-Sun,
+  three deterministic level picks from the unlocked range (seeded by
+  the Friday date), best-score sum vs three prize tiers, rendered atop
+  the Round view; weekday teaser with countdown.
+- **Cosmetics** (`COSMETICS`, `save.cosmetics`): cap/scarf/sailor
+  painted onto the chibi Pipo via canvas composite (`applyCosmetic`),
+  shown everywhere Pipo appears; buy/wear/worn cycle in the shop.
+  Legacy `save.cap` migrates.
+- **Share cards**: `buildShareCard()` renders a 1080×1350 PNG (logo,
+  chapter, medals, score, Pipo with cosmetic); `shareWin()` uses
+  navigator.share with download fallback; `G.lastWin` captured in
+  winSequence.

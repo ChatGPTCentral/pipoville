@@ -804,6 +804,22 @@
   #sheet-best b { color:var(--ink); }
   #btn-more-moves { font-size:19px; padding:13px 26px !important; }
   #btn-more-moves:disabled { filter:grayscale(.7); opacity:.55; }
+  .ev-card { flex-wrap:wrap; }
+  .ev-lvls { display:flex; gap:8px; margin-top:9px; }
+  .ev-lvl { flex:1; border:none; cursor:pointer; font-family:inherit; padding:8px 4px; border-radius:14px;
+    display:flex; flex-direction:column; align-items:center; gap:1px;
+    background:rgba(255,255,255,.14); box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.28); }
+  .ev-lvl .ev-n { font-weight:800; font-size:19px; color:#fff; }
+  .ev-lvl .ev-b { font-weight:700; font-size:10.5px; color:#9fc6e8; }
+  .ev-total { font-weight:800; font-size:14px; color:#dceaf6; margin-top:9px; }
+  .ev-total b { color:#ffd21f; }
+  .ev-tier { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:7px;
+    padding:7px 10px; border-radius:14px; background:rgba(255,255,255,.1); }
+  .ev-need { font-weight:800; font-size:14px; color:#dceaf6; }
+  .ev-tier .q-pending { padding:7px 12px; font-size:13px; background:rgba(255,255,255,.16); color:#9fc6e8; box-shadow:none; }
+  .ev-tier .q-claim { padding:8px 13px; font-size:13px; }
+  .ev-tier .q-claimed { padding:7px 10px; color:#8fd88f; }
+  #btn-win-share { padding:10px 14px; }
   #reset-note { font-size:13px; font-weight:800; color:#a8322a !important; margin-top:8px; }
 
 </style>
@@ -943,6 +959,7 @@
     <div id="win-letter" style="display:none;"><img id="win-letter-img" alt=""><div id="win-letter-text"></div></div>
     <p id="win-task-note" style="display:none;"></p>
     <div class="btns">
+      <button class="btn blue small" id="btn-win-share"><img data-ico="share" alt="" style="width:20px;height:20px;vertical-align:-4px"> </button>
       <button class="btn blue small" id="btn-win-map">Map</button>
       <button class="btn orange small" id="btn-win-tasks" style="display:none;">Garden 🔨</button>
       <button class="btn orange small" id="btn-win-replay">Replay</button>
@@ -1803,6 +1820,17 @@ const ICONS = {};
     x.beginPath(); x.arc(50, 50, 12, 0, Math.PI * 2); x.fill();
     specBlob(x, 38, 36, 11, 7, -24, .7);
   }
+  function paintShareI(x){
+    const tray = new Path2D('M18 52 h14 v22 h36 v-22 h14 v34 a6 6 0 0 1 -6 6 h-52 a6 6 0 0 1 -6 -6 Z');
+    shadeBody(x, tray, ['#d8ecff','#8fb4d0','#3b5b74'], {cx:38, cy:60});
+    x.strokeStyle = '#14477f'; x.lineWidth = 9; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(50, 56); x.lineTo(50, 16); x.stroke();
+    x.strokeStyle = '#8fd0ff'; x.lineWidth = 5;
+    x.beginPath(); x.moveTo(50, 54); x.lineTo(50, 18); x.stroke();
+    const head = new Path2D('M50 6 L34 26 L66 26 Z');
+    x.fillStyle = '#2b7fd4'; x.fill(head);
+    x.strokeStyle = '#14477f'; x.lineWidth = 5; x.lineJoin = 'round'; x.stroke(head);
+  }
   function paintReplayI(x){
     const ring = new Path2D();
     ring.arc(50, 52, 30, -0.5, Math.PI * 1.35);
@@ -1826,7 +1854,7 @@ const ICONS = {};
     specBlob(x, 36, 34, 12, 7, -22, .7);
   }
   const P = { heart:paintHeart, stamp:paintStampI, letter:paintLetterI, mailbox:paintMailboxI,
-    medal:paintMedal, gift:paintGift, quest:paintQuest, spade:paintSpade, clock:paintClock, gear:paintGearI, replay:paintReplayI };
+    medal:paintMedal, gift:paintGift, quest:paintQuest, spade:paintSpade, clock:paintClock, gear:paintGearI, replay:paintReplayI, share:paintShareI };
   Object.keys(P).forEach(k => { ICONS[k] = bake(P[k]); });
 })();
 function applyIcons(root){
@@ -1836,6 +1864,7 @@ function applyIcons(root){
   });
 }
 applyIcons();
+setTimeout(applyCosmetic, 0); // composite the equipped cosmetic onto Pipo once art is ready
 function paintJelly(x){
   const body = new Path2D('M50 14 C74 14 88 32 88 54 C88 78 72 90 50 90 C28 90 12 78 12 54 C12 32 26 14 50 14 Z');
   shadeBody(x, body, ['#ffc9dd','#ff5c9e','#a8195c'], {cx:38, cy:34});
@@ -2236,6 +2265,182 @@ function ensureQuests(){
     persist();
   }
 }
+/* ---- cosmetics: painted straight onto the chibi Pipo sprite ---- */
+const COSMETICS = {
+  cap:    { cost: 15, en: "Pipo's summer cap",  it: 'Il cappellino estivo di Pipo' },
+  scarf:  { cost: 12, en: 'Harbour scarf',      it: 'La sciarpa del porto' },
+  sailor: { cost: 18, en: 'Sailor hat',         it: 'Il cappello da marinaio' }
+};
+if(save.cap && !save.cosmetics){ save.cosmetics = { owned: ['cap'], equipped: 'cap' }; delete save.cap; persist(); }
+save.cosmetics = save.cosmetics || { owned: [], equipped: null };
+function drawCosmetic(x, kind){
+  // painted in the sprite's 100-unit space; the chibi head fills the upper half
+  if(kind === 'cap'){
+    x.fillStyle = '#f5d76e';
+    x.beginPath(); x.ellipse(50, 28, 30, 8.5, 0, 0, Math.PI * 2); x.fill();
+    x.strokeStyle = '#b8860b'; x.lineWidth = 2.4; x.stroke();
+    const dome = new Path2D('M28 27 Q30 11 50 11 Q70 11 72 27 Q60 33 50 33 Q40 33 28 27 Z');
+    x.fillStyle = '#ffe9a0'; x.fill(dome);
+    x.strokeStyle = '#b8860b'; x.stroke(dome);
+    x.fillStyle = '#f2564b';
+    x.fillRect(30, 23, 40, 5.5);
+  } else if(kind === 'scarf'){
+    x.strokeStyle = '#2b7fd4'; x.lineCap = 'round'; x.lineWidth = 9;
+    x.beginPath(); x.moveTo(30, 62); x.quadraticCurveTo(50, 72, 70, 62); x.stroke();
+    x.strokeStyle = '#8fd0ff'; x.lineWidth = 4;
+    x.beginPath(); x.moveTo(30, 62); x.quadraticCurveTo(50, 72, 70, 62); x.stroke();
+    x.strokeStyle = '#2b7fd4'; x.lineWidth = 8;
+    x.beginPath(); x.moveTo(64, 65); x.lineTo(68, 80); x.stroke();
+    x.fillStyle = '#8fd0ff';
+    x.fillRect(64, 78, 8, 5);
+  } else if(kind === 'sailor'){
+    x.fillStyle = '#ffffff';
+    x.beginPath(); x.ellipse(50, 25, 25, 11, 0, Math.PI, 0); x.fill();
+    x.strokeStyle = '#39424e'; x.lineWidth = 2.2;
+    x.beginPath(); x.ellipse(50, 25, 25, 11, 0, Math.PI, 0); x.stroke();
+    x.fillStyle = '#2b3a49';
+    x.beginPath(); x.ellipse(50, 26, 26, 5, 0, 0, Math.PI * 2); x.fill();
+    x.fillStyle = '#ffd21f';
+    x.beginPath(); x.arc(50, 19, 2.6, 0, Math.PI * 2); x.fill();
+  }
+}
+function applyCosmetic(){
+  const eq = save.cosmetics.equipped;
+  const base = CAST_META.pipop.src;
+  const done = url => {
+    SPRITES.pipop = url;
+    SPRITES['c_pipop'] = url;
+    document.querySelectorAll('.pipop-img').forEach(el => { el.src = url; });
+    document.querySelectorAll('.char-img[data-char="pipop"]').forEach(el => { el.src = url; });
+  };
+  if(!eq){ done(base); return; }
+  const img = new Image();
+  img.onload = () => {
+    const cv = document.createElement('canvas');
+    cv.width = 256; cv.height = 256;
+    const x = cv.getContext('2d');
+    x.drawImage(img, 0, 0, 256, 256);
+    x.save();
+    x.scale(2.56, 2.56);
+    drawCosmetic(x, eq);
+    x.restore();
+    done(cv.toDataURL('image/png'));
+  };
+  img.src = base;
+}
+
+/* ---- Fog Race: Fri-Sun score attack over three rotating deliveries ---- */
+const EVENT_TIERS = [
+  { need: 20000, rw: { stamps: 10 } },
+  { need: 45000, rw: { stamps: 20, hearts: 1 } },
+  { need: 80000, rw: { stamps: 30, boosters: ['bomb', 'bomb'] } }
+];
+function eventFriday(now){
+  const d = new Date(now); d.setHours(0, 0, 0, 0);
+  const day = d.getDay(); // 0 Sun .. 6 Sat
+  const delta = day === 0 ? -2 : day - 5; // distance from Friday
+  d.setDate(d.getDate() - delta);
+  return d;
+}
+function eventActive(){ const day = new Date().getDay(); return day === 5 || day === 6 || day === 0; }
+function eventKey(){ return eventFriday(Date.now()).toDateString(); }
+function ensureEvent(){
+  if(!eventActive()) return null;
+  const key = eventKey();
+  if(!save.event || save.event.key !== key){
+    save.event = { key, best: {}, claimed: [] };
+    persist();
+  }
+  return save.event;
+}
+function eventLevels(){
+  const maxLvl = Math.max(3, Math.min(save.unlocked, LEVELS.length));
+  let x = Math.floor(eventFriday(Date.now()).getTime() / 86400000);
+  const picks = [];
+  while(picks.length < 3){
+    x = (x * 1103515245 + 12345) % 2147483647;
+    const lv = Math.abs(x) % maxLvl + 1;
+    if(!picks.includes(lv)) picks.push(lv);
+  }
+  return picks.sort((a, b) => a - b);
+}
+function eventTotal(){
+  const ev = save.event;
+  if(!ev) return 0;
+  return Object.values(ev.best).reduce((sum, v) => sum + v, 0);
+}
+function eventCountdown(){
+  const now = new Date();
+  if(eventActive()){
+    const end = eventFriday(now); end.setDate(end.getDate() + 3); // Monday 00:00
+    const ms = end - now;
+    return tf('ends in', 'finisce tra') + ' ' + Math.floor(ms / 3600000) + 'h ' + Math.floor(ms % 3600000 / 60000) + 'm';
+  }
+  const fri = eventFriday(now);
+  if(fri <= now) fri.setDate(fri.getDate() + 7);
+  const ms = fri - now;
+  const days = Math.floor(ms / 86400000), hrs = Math.floor(ms % 86400000 / 3600000);
+  return tf('the fog rolls in on Friday — ', 'la nebbia arriva venerdì — ') + days + 'd ' + hrs + 'h';
+}
+function eventTierReward(tier){
+  const parts = [];
+  if(tier.rw.stamps) parts.push('★' + tier.rw.stamps);
+  if(tier.rw.hearts) parts.push('♥' + tier.rw.hearts);
+  if(tier.rw.boosters) parts.push(`<img src="${SPRITES.p_bomb}" style="width:17px;height:17px;vertical-align:-3px" alt="">×` + tier.rw.boosters.length);
+  return parts.join(' ');
+}
+function renderEventCard(){
+  if(!eventActive()){
+    return `<div class="keeper-card"><img src="${SPRITES['c_whaeleeno']}" alt="">
+      <div class="k-line"><b>${tf('Weekend Fog Race', 'La Gara della Nebbia')}</b> — ${eventCountdown()}</div></div>`;
+  }
+  const ev = ensureEvent();
+  const lvls = eventLevels();
+  const total = eventTotal();
+  const chips = lvls.map(lv=>{
+    const best = ev.best[lv] || 0;
+    return `<button class="ev-lvl" data-lv="${lv}"><span class="ev-n">${lv}</span><span class="ev-b">${best ? best.toLocaleString() : tf('play', 'gioca')}</span></button>`;
+  }).join('');
+  const tiers = EVENT_TIERS.map((tier, i)=>{
+    const claimed = ev.claimed.includes(i);
+    const ready = !claimed && total >= tier.need;
+    const chip = claimed ? `<div class="q-claimed">${tf('claimed', 'ritirato')}</div>`
+      : ready ? `<button class="q-claim ev-claim" data-tier="${i}">${eventTierReward(tier)}</button>`
+      : `<div class="q-pending">${eventTierReward(tier)}</div>`;
+    return `<div class="ev-tier"><span class="ev-need">${tier.need.toLocaleString()}</span>${chip}</div>`;
+  }).join('');
+  return `<div class="story-card ev-card">
+    <img class="w" src="${SPRITES['c_whaeleeno']}" alt="">
+    <div style="flex:1">
+      <div class="sc-eyebrow">${tf('WEEKEND EVENT', 'EVENTO DEL WEEKEND').toUpperCase()} · ${eventCountdown().toUpperCase()}</div>
+      <div class="sc-body" style="margin-top:2px">${tf('The Fog Race! Score big on three deliveries before Monday.', 'La Gara della Nebbia! Fai punti su tre consegne prima di lunedì.')}</div>
+      <div class="ev-lvls">${chips}</div>
+      <div class="ev-total">${tf('Total', 'Totale')}: <b>${total.toLocaleString()}</b></div>
+      ${tiers}
+    </div>
+  </div>`;
+}
+function wireEventCard(root){
+  root.querySelectorAll('.ev-lvl').forEach(b=>{
+    b.addEventListener('click', ()=>{ Snd.ensure(); openLevel(+b.dataset.lv); });
+  });
+  root.querySelectorAll('.ev-claim').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const ev = ensureEvent();
+      const i = +b.dataset.tier;
+      const tier = EVENT_TIERS[i];
+      if(!ev || ev.claimed.includes(i) || eventTotal() < tier.need) return;
+      ev.claimed.push(i);
+      if(tier.rw.stamps) save.stamps += tier.rw.stamps;
+      if(tier.rw.hearts) save.hearts = Math.min(HEART_MAX, save.hearts + tier.rw.hearts);
+      if(tier.rw.boosters) save.pending = (save.pending || []).concat(tier.rw.boosters);
+      persist(); confetti();
+      if(!Snd.play('task', 1, .6)) Snd.win();
+      renderMeta(); renderQuests();
+    });
+  });
+}
+
 const QUEST_DEFS = [
   { id:'deliver', need:3,   ico:'letter', rw:{stamps:6}, t: tf('Deliver 3 letters', 'Consegna 3 lettere') },
   { id:'clear',   need:120, ico:'stamp',  rw:{stamps:4}, t: tf('Clear 120 pieces', 'Elimina 120 pezzi') },
@@ -2436,10 +2641,12 @@ function renderQuests(){
     <div class="view-head"><img class="hicon" src="${ICONS.quest}" alt="">
       <div style="flex:1"><div class="vh-title">${tf("Today's round", "Il giro di oggi")}</div>
       <div class="vh-sub"><img src="${ICONS.clock}" alt="">${tf('resets in', 'si azzera tra')} ${hLeft}h ${mLeft}m</div></div></div>
+    ${renderEventCard()}
     ${rows}
     <div class="keeper-card"><img src="${SPRITES['c_ms_toni']}" alt="">
       <div class="k-line">${tf('Three rounds a day keeps the streets warm, Pipo. Miss one and Baggu gets bolder.', 'Tre giri al giorno tengono calde le strade, Pipo. Saltane uno e Baggu si fa più audace.')}</div></div>`;
-  $('#quests-body').querySelectorAll('.q-claim').forEach(b=>{
+  wireEventCard($('#quests-body'));
+  $('#quests-body').querySelectorAll('.q-claim:not(.ev-claim)').forEach(b=>{
     b.addEventListener('click', ()=>{
       const q = QUEST_DEFS.find(x=>x.id === b.dataset.q);
       if(!q || save.quests.claimed.includes(q.id)) return;
@@ -2505,10 +2712,17 @@ function renderShop(){
       <div class="shop-card"><img src="${SPRITES.p_bomb}" alt=""><div class="s-name">${tf('Bomb ×2', 'Bomba ×2')}</div>
         <button class="buy-btn" id="shop-bomb" ${save.stamps < 9 ? 'disabled' : ''}>★9</button></div>
     </div>
-    <div class="pv-row shop-cosmetic"><img class="r-icon" src="${SPRITES.pipop}" alt="">
-      <div class="r-main"><div class="r-title">${tf("Pipo's summer cap", "Il cappellino estivo di Pipo")}</div>
-      <div class="r-sub">${tf('Cosmetic · shows on the map and in letters', 'Cosmetico · appare sulla mappa e nelle lettere')}</div></div>
-      <button class="buy-btn purple" id="shop-cap" ${save.cap || save.stamps < 15 ? 'disabled' : ''}>${save.cap ? tf('owned', 'tuo') : '★15'}</button></div>
+    ${Object.keys(COSMETICS).map(ck=>{
+      const c = COSMETICS[ck];
+      const owned = save.cosmetics.owned.includes(ck);
+      const worn = save.cosmetics.equipped === ck;
+      const label = worn ? tf('worn', 'indossato') : owned ? tf('wear', 'indossa') : '★' + c.cost;
+      const off = !owned && save.stamps < c.cost;
+      return `<div class="pv-row shop-cosmetic"><img class="r-icon" src="${SPRITES.pipop}" alt="">
+      <div class="r-main"><div class="r-title">${LANG === 'it' ? c.it : c.en}</div>
+      <div class="r-sub">${tf('Cosmetic · Pipo wears it everywhere', 'Cosmetico · Pipo lo indossa ovunque')}</div></div>
+      <button class="buy-btn purple shop-cos" data-c="${ck}" ${off ? 'disabled' : ''}>${label}</button></div>`;
+    }).join('')}
     <div class="shop-note">${tf('Hearts refill on their own, five at a time — the counter never blocks a chapter.', 'I cuori si ricaricano da soli, cinque alla volta — il banco non blocca mai un capitolo.')}</div>`;
   const buy = (id, fn)=>{ const el = $('#' + id); if(el) el.addEventListener('click', ()=>{
     fn(); persist(); confetti();
@@ -2518,7 +2732,23 @@ function renderShop(){
   buy('shop-refill', ()=>{ if(!heartsFull && spendStamps(8)) save.hearts = HEART_MAX; });
   buy('shop-fire', ()=>{ if(spendStamps(6)) save.pending = (save.pending || []).concat(['fire','fire','fire']); });
   buy('shop-bomb', ()=>{ if(spendStamps(9)) save.pending = (save.pending || []).concat(['bomb','bomb']); });
-  buy('shop-cap', ()=>{ if(!save.cap && spendStamps(15)) save.cap = true; });
+  $('#shop-body').querySelectorAll('.shop-cos').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const ck = b.dataset.c, c = COSMETICS[ck];
+      if(!save.cosmetics.owned.includes(ck)){
+        if(!spendStamps(c.cost)){ Snd.bad(); return; }
+        save.cosmetics.owned.push(ck);
+        save.cosmetics.equipped = ck;
+        confetti();
+      } else {
+        save.cosmetics.equipped = save.cosmetics.equipped === ck ? null : ck;
+      }
+      persist();
+      applyCosmetic();
+      if(!Snd.play('task', 1, .6)) Snd.special();
+      renderMeta(); renderShop();
+    });
+  });
 }
 /* ---------------- daily gift ---------------- */
 const DAILY_GIFTS = [['fire',t('Firecracker')],['bomb',t('Bomb')],['dyna',t('Dynamite')],['tnt',t('TNT crate')],['bomb',t('Bomb')],['dyna',t('Dynamite')],['tnt',t('TNT crate')]];
@@ -3805,6 +4035,9 @@ async function winSequence(){
   if(stars > prev) save.stars[G.level] = stars;
   save.best = save.best || {};
   if(G.score > (save.best[G.level] || 0)) save.best[G.level] = G.score;
+  const ev = ensureEvent();
+  if(ev && eventLevels().includes(G.level) && G.score > (ev.best[G.level] || 0)) ev.best[G.level] = G.score;
+  G.lastWin = { level: G.level, score: G.score, stars: stars, stamps: G.runStamps || 0 };
   if(G.level >= save.unlocked && G.level < LEVELS.length) save.unlocked = G.level + 1;
   ensureQuests();
   save.stamps += (G.runStamps || 0);
@@ -4225,6 +4458,66 @@ $('#btn-resume').addEventListener('click', ()=>showOverlay('ov-pause', false));
 $('#btn-restart').addEventListener('click', ()=>{ showOverlay('ov-pause', false); prepareLevel(); startLevel(); });
 $('#btn-quit').addEventListener('click', ()=>{ showOverlay('ov-pause', false); showScreen('map'); renderMap(); });
 $('#btn-win-map').addEventListener('click', ()=>{ showOverlay('ov-win', false); showScreen('map'); renderMap(); });
+$('#btn-win-share').addEventListener('click', ()=>{ Snd.ensure(); shareWin(); });
+function loadImg(src){
+  return new Promise(res=>{ const i = new Image(); i.onload = ()=>res(i); i.onerror = ()=>res(null); i.src = src; });
+}
+async function buildShareCard(){
+  const w = G.lastWin || { level: G.level, score: G.score, stars: 1, stamps: 0 };
+  const cv = document.createElement('canvas');
+  cv.width = 1080; cv.height = 1350;
+  const x = cv.getContext('2d');
+  if(!x.roundRect) x.roundRect = function(px, py, pw, ph){ this.rect(px, py, pw, ph); };
+  const sky = x.createLinearGradient(0, 0, 0, 1350);
+  [[0,'#bdedff'],[.26,'#8fdcf5'],[.44,'#bfeea0'],[.62,'#7fce62'],[.84,'#4fae4b'],[1,'#2f8f3f']].forEach(([o, c]) => sky.addColorStop(o, c));
+  x.fillStyle = sky; x.fillRect(0, 0, 1080, 1350);
+  x.fillStyle = 'rgba(255,255,255,.95)';
+  const rr = (px, py, pw, ph, r) => { x.beginPath(); x.roundRect(px, py, pw, ph, r); };
+  x.fillStyle = '#1a5730'; rr(90, 190, 900, 990, 60); x.fill();
+  const card = x.createLinearGradient(0, 170, 0, 1150);
+  card.addColorStop(0, '#ffffff'); card.addColorStop(1, '#e6f2ff');
+  x.fillStyle = card; rr(90, 170, 900, 990, 60); x.fill();
+  const F = (wt, sz) => `${wt} ${sz}px 'Baloo 2', 'Arial Rounded MT Bold', sans-serif`;
+  x.textAlign = 'center';
+  x.fillStyle = '#2f8f3f'; x.font = F(800, 110);
+  x.fillText('PIPOVILLE', 540, 120);
+  x.fillStyle = '#7fa0b8'; x.font = F(700, 34);
+  x.fillText((tf('CHAPTER ', 'CAPITOLO ') + chapterFor(w.level) + ' · ' + chapterName(chapterFor(w.level))).toUpperCase(), 540, 270);
+  x.fillStyle = '#1e3a52'; x.font = F(800, 76);
+  x.fillText(tf('Delivery', 'Consegna') + ' ' + w.level + ' ✓', 540, 360);
+  const pip = await loadImg(SPRITES.pipop);
+  if(pip) x.drawImage(pip, 380, 390, 320, 320);
+  const med = await loadImg(ICONS.medal);
+  for(let i = 0; i < 3 && med; i++){
+    x.globalAlpha = i < w.stars ? 1 : .22;
+    x.drawImage(med, 390 + i * 110, 730, 100, 100);
+  }
+  x.globalAlpha = 1;
+  x.fillStyle = '#2f8f3f'; x.font = F(800, 96);
+  x.fillText(w.score.toLocaleString(), 540, 960);
+  x.fillStyle = '#8a5a00'; x.font = F(800, 44);
+  x.fillText('+' + w.stamps + ' ' + tf('stamps', 'francobolli'), 540, 1030);
+  x.fillStyle = '#7fa0b8'; x.font = F(700, 36);
+  x.fillText(tf('Can you beat my round?', 'Riesci a battere il mio giro?'), 540, 1110);
+  x.fillStyle = '#123a2e'; x.font = F(800, 42);
+  x.fillText('pipoville.vercel.app', 540, 1270);
+  return cv;
+}
+async function shareWin(){
+  const cv = await buildShareCard();
+  cv.toBlob(async blob=>{
+    if(!blob) return;
+    const file = new File([blob], 'pipoville-win.png', { type: 'image/png' });
+    if(navigator.canShare && navigator.canShare({ files: [file] })){
+      try { await navigator.share({ files: [file], title: 'Pipoville' }); return; } catch(e){ /* user cancelled */ }
+    }
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'pipoville-win.png';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  }, 'image/png');
+}
 $('#btn-win-replay').addEventListener('click', ()=>{ showOverlay('ov-win', false); prepareLevel(); startLevel(); });
 $('#btn-win-next').addEventListener('click', ()=>{
   showOverlay('ov-win', false);
