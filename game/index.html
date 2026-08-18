@@ -310,6 +310,13 @@
     box-shadow:0 0 16px rgba(255,220,120,.9), inset 0 0 12px rgba(255,220,120,.7); animation:ringGrow .45s ease-out forwards; }
   .ring::before { content:''; position:absolute; inset:9%; border:3px solid rgba(255,255,255,.85); border-radius:50%; }
   @keyframes ringGrow { from{transform:scale(.25); opacity:1} to{transform:scale(1.35); opacity:0} }
+  .rainbow-ring { position:absolute; z-index:6; pointer-events:none; border-radius:50%;
+    background:conic-gradient(#ff3b3b,#ff9f1c,#ffd32a,#5cb82a,#2e9bf0,#a24de0,#ff3b3b);
+    -webkit-mask:radial-gradient(circle, transparent 0 52%, #000 55% 74%, transparent 78%);
+    mask:radial-gradient(circle, transparent 0 52%, #000 55% 74%, transparent 78%);
+    filter:saturate(1.5) brightness(1.2) drop-shadow(0 0 10px rgba(255,255,255,.6));
+    animation:rainbowGrow .75s cubic-bezier(.2,.6,.3,1) forwards; }
+  @keyframes rainbowGrow { 0%{transform:scale(.15) rotate(0deg); opacity:1} 75%{opacity:.95} 100%{transform:scale(1.7) rotate(120deg); opacity:0} }
   .rays { position:absolute; z-index:5; pointer-events:none; animation:raysGrow .55s ease-out forwards; }
   .rays i { position:absolute; left:50%; top:50%; width:3.5%; height:54%; margin-left:-1.75%; transform-origin:50% 0; border-radius:999px;
     background:linear-gradient(180deg, rgba(255,255,255,.95), rgba(255,220,120,.55) 55%, transparent); }
@@ -1212,6 +1219,10 @@ function spawnRing(r, c, rad){
     }
     setTimeout(()=>rays.remove(), 560);
   }
+  if(rad >= 2){
+    const rb = mk('rainbow-ring');
+    setTimeout(()=>rb.remove(), 800);
+  }
 }
 /* a small copy of the collected piece arcs up to its goal chip */
 function flyToGoal(gk, r, c, flights){
@@ -1532,7 +1543,7 @@ async function executePowerCombo(a, ra, ca, b, rb, cb){
   blastCells(ra, ca, rad, queue);
   blastCells(rb, cb, rad, queue);
   queue.forEach(k=>set.add(k));
-  fxBoom(ra, ca, rad); fxShake(); fxFlash(); Snd.boom(true); vibrate(80);
+  fxBoom(ra, ca, rad); spawnRing(ra, ca, Math.max(2, rad)); fxShake(); fxFlash(); Snd.boom(true); vibrate(80);
   toast('Spectacular!');
   await resolveCascades(set, []);
 }
