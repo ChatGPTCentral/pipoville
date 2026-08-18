@@ -658,7 +658,10 @@
     box-shadow:inset 0 2px 4px rgba(43,127,212,.12); margin-top:14px; text-align:left; }
   #win-letter img { width:46px; height:46px; flex:0 0 auto; }
   #win-letter-text { flex:1; font-weight:700; font-size:12px; line-height:1.4; color:var(--ink); }
-  #lose-cannolio { width:76px; height:76px; display:block; margin:8px auto 0; animation:sway 2s ease-in-out infinite; }
+  #lose-cannolio { width:76px; height:76px; display:block; margin:8px auto 0; animation:slumpPose 2.4s ease-in-out infinite; filter:saturate(.75); }
+  @keyframes slumpPose { 0%,100%{transform:rotate(-4deg) translateY(3px) scale(1,.95)} 50%{transform:rotate(3deg) translateY(5px) scale(1.02,.93)} }
+  @keyframes cheerPose { 0%,100%{transform:translateY(0) rotate(-6deg) scale(1)} 30%{transform:translateY(-10px) rotate(4deg) scale(1.05)} 60%{transform:translateY(0) rotate(-2deg)} 80%{transform:translateY(-5px) rotate(5deg) scale(1.03)} }
+  .overlay.show .win-pipop { animation:cheerPose .9s ease-in-out infinite !important; }
   .hearts-card { background:linear-gradient(180deg,#ffffff 0%,#ffeeea 100%); box-shadow:inset 0 4px 0 rgba(255,255,255,.95), 0 12px 0 #f4cdc8, 0 22px 34px rgba(9,38,58,.45); }
   .hearts-card h2 { color:#a8322a; }
   .hearts-card p { color:#c1786f; font-size:13.5px; }
@@ -1140,7 +1143,9 @@ const Snd = {
   boom(big){ this.ensure(); this.tone(big?70:100,.45,'sawtooth',.26); this.tone(big?48:65,.55,'square',.2,.05); },
   win(){ this.ensure(); if(this.play('win', 1, .6)) return; [523,659,784,1047].forEach((f,i)=>this.tone(f,.35,'triangle',.18,i*.13)); },
   lose(){ this.ensure(); [400,340,280,220].forEach((f,i)=>this.tone(f,.3,'sine',.15,i*.15)); },
-  star(){ this.ensure(); if(this.play('star', 1, .45)) return; this.tone(1200,.3,'sine',.15); this.tone(1600,.35,'sine',.12,.08); }
+  star(){ this.ensure(); if(this.play('star', 1, .45)) return; this.tone(1200,.3,'sine',.15); this.tone(1600,.35,'sine',.12,.08); },
+  squelch(){ this.ensure(); this.tone(340,.1,'sine',.2); this.tone(190,.16,'sine',.16,.05); this.tone(120,.14,'sine',.1,.11); },
+  chainSnap(){ this.ensure(); this.tone(1400,.04,'square',.14); this.tone(820,.07,'square',.12,.03); this.tone(2200,.05,'sine',.08,.02); }
 };
 
 /* ---------------- garden piece artwork (inline SVG) ---------------- */
@@ -1976,6 +1981,48 @@ const LEVELS = [
     goals:[{type:'dirt'},{type:'kind', kind:'leaf', count:35}] },
   { moves:42, colors:6, mask:[ 'JJJJJJJJJ','JJJJJJJJJ','JJJ.D.JJJ','JJ.....JJ','JD..D..DJ','JJ.....JJ','JJJ.D.JJJ','JJJJJJJJJ','JJJJJJJJJ' ],
     goals:[{type:'kind', kind:'apple', count:45},{type:'kind', kind:'drop', count:45},{type:'dirt'}], hard:true },
+  /* ---- Chapter 7: Whaeleeno's Reef (51-60) ---- */
+  { moves:28, colors:5, mask:[ '.........','.........','.........','...HHH...','.........','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'drop', count:40},{type:'kind', kind:'leaf', count:30}] },
+  { moves:30, colors:6, mask:[ '.V.....V.','.........','..H...H..','.........','.........','.........','..H...H..','.........','.........' ],
+    goals:[{type:'kind', kind:'butterfly', count:35}] },
+  { moves:30, colors:6, mask:[ 'XX.....XX','X.......X','...CCC...','.........','...HHH...','.........','.........','X.......X','XX.....XX' ],
+    goals:[{type:'kind', kind:'flower', count:35},{type:'kind', kind:'drop', count:35}] },
+  { moves:30, colors:5, mask:[ '..G...G..','.........','.........','..KKKKK..','.........','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'lemon', count:40}] },
+  { moves:34, colors:6, mask:[ 'X...X...X','.B.....B.','..HHHHH..','..HJJJH..','..HJJJH..','..HJJJH..','..HHHHH..','.B.....B.','X...X...X' ],
+    goals:[{type:'dirt'}], hard:true },
+  { moves:30, colors:6, mask:[ '.........','..D.K.D..','.........','.K.....K.','.........','..D.K.D..','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'apple', count:35},{type:'kind', kind:'butterfly', count:30}] },
+  { moves:32, colors:6, mask:[ 'V.......V','.........','.........','...CCC...','...JJJ...','...CCC...','.........','.........','.........' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'leaf', count:35}] },
+  { moves:32, colors:5, mask:[ '.G.G.G.G.','.........','..B...B..','.........','....K....','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'drop', count:45}] },
+  { moves:32, colors:6, mask:[ 'XXX...XXX','X..HHH..X','...HHH...','.C.....C.','.........','.C.....C.','...HHH...','X..HHH..X','XXX...XXX' ],
+    goals:[{type:'kind', kind:'flower', count:40}] },
+  { moves:40, colors:6, mask:[ 'XHHHHHHHX','H.......H','H..JJJ..H','H..JDJ..H','H..JJJ..H','H.......H','H...C...H','H.......H','XHHHHHHHX' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'drop', count:35}], hard:true },
+  /* ---- Chapter 8: The Deep (61-70) ---- */
+  { moves:30, colors:6, mask:[ '.........','.........','.........','.........','.........','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'apple', count:35},{type:'kind', kind:'lemon', count:35},{type:'kind', kind:'flower', count:35}] },
+  { moves:32, colors:6, mask:[ '....V....','.........','..K...K..','.........','....C....','.........','..K...K..','.........','.........' ],
+    goals:[{type:'kind', kind:'leaf', count:45}] },
+  { moves:32, colors:6, mask:[ 'X.......X','..DDDDD..','..D...D..','..DHHHD..','..DHHHD..','..D...D..','..DDDDD..','.........','X.......X' ],
+    goals:[{type:'kind', kind:'butterfly', count:40}] },
+  { moves:34, colors:5, mask:[ '..G.G.G..','.........','.CC...CC.','.........','...KKK...','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'lemon', count:45}], hard:true },
+  { moves:34, colors:6, mask:[ 'J.J.J.J.J','.........','J.H.H.H.J','.........','J.H.H.H.J','.........','J.H.H.H.J','.........','J.J.J.J.J' ],
+    goals:[{type:'dirt'}] },
+  { moves:32, colors:6, mask:[ '.V.....V.','.........','.........','..C.K.C..','.........','..K...K..','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'drop', count:40},{type:'kind', kind:'flower', count:35}] },
+  { moves:38, colors:6, mask:[ 'XXXX.XXXX','X...H...X','X..HKH..X','X.HKJKH.X','..HKJKH..','X.HKJKH.X','X..HKH..X','X...H...X','XXXX.XXXX' ],
+    goals:[{type:'dirt'}], hard:true },
+  { moves:34, colors:6, mask:[ '.G.....G.','.........','..B.C.B..','.........','...HHH...','...HHH...','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'apple', count:40},{type:'kind', kind:'leaf', count:40}] },
+  { moves:36, colors:6, mask:[ 'C.......C','.........','..JJJJJ..','..JKKKJ..','..JKKKJ..','..JKKKJ..','..JJJJJ..','.........','C.......C' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'butterfly', count:35}] },
+  { moves:46, colors:6, mask:[ 'XHHHHHHHX','HJJJJJJJH','HJ..C..JH','HJ.....JH','HJ.KKK.JH','HJ.....JH','HJ..C..JH','HJJJJJJJH','XHHHHHHHX' ],
+    goals:[{type:'kind', kind:'drop', count:50},{type:'dirt'}], hard:true },
 ];
 LEVELS.forEach((L,i)=>{
   L.rows = L.mask.length; L.cols = L.mask[0].length;
@@ -2061,6 +2108,8 @@ const IT = {
   // tutorial
   'Swap to match 3!':'Scambia per fare tris!',
   // chapters
+  "Ch.7 — Whaeleeno's Reef":'Cap.7 — La Barriera di Whaeleeno',
+  'Ch.8 — The Deep':'Cap.8 — Gli Abissi',
   'Ch.5 — Harbour Docks':'Cap.5 — Il Porto',
   'Ch.6 — Lighthouse Point':'Cap.6 — Il Faro',
   "Hee hee... you got me. The fog was cold and Whaeleeno is bossy. Can I... deliver letters with you instead?":
@@ -2192,10 +2241,10 @@ const QUEST_DEFS = [
   { id:'clear',   need:120, ico:'stamp',  rw:{stamps:4}, t: tf('Clear 120 pieces', 'Elimina 120 pezzi') },
   { id:'craft',   need:4,   ico:'medal',  rw:{hearts:1}, t: tf('Craft 4 boosters', 'Crea 4 potenziamenti') }
 ];
-function chapterFor(lv){ return lv >= 41 ? 6 : lv >= 31 ? 5 : lv >= 25 ? 4 : lv >= 17 ? 3 : lv >= 9 ? 2 : 1; }
+function chapterFor(lv){ return lv >= 61 ? 8 : lv >= 51 ? 7 : lv >= 41 ? 6 : lv >= 31 ? 5 : lv >= 25 ? 4 : lv >= 17 ? 3 : lv >= 9 ? 2 : 1; }
 // map growth migration: whoever already beat their frontier level moves forward
 while(save.stars[save.unlocked] > 0 && save.unlocked < LEVELS.length){ save.unlocked++; }
-function chapterName(ch){ return CHAPTERS[[1,9,17,25,31,41][ch-1]].replace(/^[^—]*—\s*/, ''); }
+function chapterName(ch){ return CHAPTERS[[1,9,17,25,31,41,51,61][ch-1]].replace(/^[^—]*—\s*/, ''); }
 function renderMeta(){
   regenHearts(); ensureQuests();
   $('#hearts-num').textContent = save.hearts;
@@ -2227,23 +2276,39 @@ document.addEventListener('touchend', unlockAudio, { once:true });
 document.addEventListener('pointerup', unlockAudio, { once:true });
 /* ambient garden music: gentle generative pentatonic loop */
 const Music = {
-  timer:null, on: save.music !== false,
-  notes:[262, 294, 330, 392, 440, 523],
+  timer:null, on: save.music !== false, mood: 1,
+  /* one gentle generative theme per chapter: scale, tempo, voice, bass root */
+  MOODS: {
+    1: { notes:[262,294,330,392,440,523], tempo:620, wave:'sine',     bass:131 }, // Nunu Farms — pastoral
+    2: { notes:[294,330,370,440,494,587], tempo:540, wave:'triangle', bass:147 }, // School — playful
+    3: { notes:[262,330,392,494,523,659], tempo:580, wave:'sine',     bass:131 }, // Main Street — waltzy
+    4: { notes:[220,262,330,392,440,523], tempo:700, wave:'sine',     bass:110 }, // Town Hall — stately
+    5: { notes:[247,294,370,440,494,587], tempo:640, wave:'triangle', bass:123 }, // Harbour — briny
+    6: { notes:[330,392,440,523,587,659], tempo:600, wave:'sine',     bass:165 }, // Lighthouse — airy
+    7: { notes:[233,277,311,415,466,554], tempo:660, wave:'sine',     bass:117 }, // Reef — watery minor
+    8: { notes:[196,233,262,311,349,415], tempo:780, wave:'sine',     bass:98  }  // The Deep — slow and wide
+  },
+  setMood(ch){
+    if(this.mood === ch || !this.MOODS[ch]) return;
+    this.mood = ch;
+    if(this.timer){ this.stop(); this.start(); }
+  },
   start(){
     if(!this.on || this.timer) return;
     Snd.ensure();
     if(!Snd.ctx) return;
+    const m = this.MOODS[this.mood] || this.MOODS[1];
     let beat = 0;
     this.timer = setInterval(()=>{
       if(!Snd.on || !this.on || document.hidden) return;
       beat++;
       if(beat % 2 === 0 && Math.random() < .7){
-        const f = this.notes[rnd(this.notes.length)] / 2;
-        Snd.tone(f, 1.7, 'sine', .032);
+        const f = m.notes[rnd(m.notes.length)] / 2;
+        Snd.tone(f, 1.7, m.wave, .032);
         if(Math.random() < .35) Snd.tone(f * 1.5, 1.4, 'sine', .018, .25);
       }
-      if(beat % 8 === 0) Snd.tone(131, 2.2, 'sine', .025);
-    }, 620);
+      if(beat % 8 === 0) Snd.tone(m.bass, 2.2, 'sine', .025);
+    }, m.tempo);
   },
   stop(){ if(this.timer){ clearInterval(this.timer); this.timer = null; } }
 };
@@ -2264,7 +2329,7 @@ function showScreen(id){
 function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 
 /* ---------------- the rescue of Pipoville ---------------- */
-const CHAPTERS = { 1:t('Ch.1 — Nunu Farms'), 9:t('Ch.2 — Pipoville School'), 17:t('Ch.3 — Main Street'), 25:t('Ch.4 — Town Hall'), 31:t('Ch.5 — Harbour Docks'), 41:t('Ch.6 — Lighthouse Point') };
+const CHAPTERS = { 1:t('Ch.1 — Nunu Farms'), 9:t('Ch.2 — Pipoville School'), 17:t('Ch.3 — Main Street'), 25:t('Ch.4 — Town Hall'), 31:t('Ch.5 — Harbour Docks'), 41:t('Ch.6 — Lighthouse Point'), 51:t("Ch.7 — Whaeleeno's Reef"), 61:t('Ch.8 — The Deep') };
 const RESCUES = {
   4:  { id:'ninni', line:t('Neigh! Those thieves tied me up in the hay barn. Thank you, Pipo!') },
   6:  { id:'cannolio', line:t("Woof woof! I KNEW you'd come! I'll dig for you from now on. (+1 shovel every level)") },
@@ -2717,6 +2782,7 @@ function snapLock(p, r, c, flights){
   const g = G.goals.find(g => g.type==='lock' && g.remaining > 0);
   if(g){ g.remaining--; flyToGoal('lock', r, c, flights); }
   spawnBurst(r, c, ['#aebdcb','#e8f0f8','#39424e'], 6);
+  Snd.chainSnap();
 }
 function setPower(p, power){
   p.power = power;
@@ -2835,6 +2901,7 @@ function findRuns(){
   return { hRuns, vRuns };
 }
 function powerForSize(size){
+  if(size >= 9) return 'rainbow'; // colour-bomb tier: craft the orb on the board
   if(size >= 7) return 'tnt';
   if(size === 6) return 'dyna';
   if(size === 5) return 'bomb';
@@ -3137,6 +3204,7 @@ function destroyCells(keys, creations, mult){
       }
       const jg = G.goals.find(g => g.type==='jelly' && g.remaining > 0);
       if(jg){ jg.remaining--; flyToGoal('jelly', r, c, flights); }
+      Snd.squelch();
       if(bursts < 36){ spawnBurst(r, c, ['#ffc9dd','#ff5c9e','#fff'], 6); bursts++; }
     }
     removePieceEl(p);
@@ -3917,6 +3985,7 @@ function prepareLevel(){
   CHARGE_MAX = isRescued('ms_toni') ? 50 : 60;
   G.charge = 0;
   G.runStamps = 0; G.craftCount = 0; G.destroyedTotal = 0;
+  Music.setMood(chapterFor(G.level));
   G.shovels = 3 + (isRescued('cannolio') ? 1 : 0); // Cannolio digs too
   G.shovelMode = false;
   G.vineKilled = false;
@@ -4020,6 +4089,7 @@ function showIntroStep(){
   const s = SCRIPT[introStep];
   const portrait = $('#story-portrait');
   portrait.src = SPRITES['c_' + s.id];
+  if(CAST_META[s.id] && !matchMedia('(prefers-reduced-motion: reduce)').matches) portrait.style.animation = CAST_META[s.id].idle;
   portrait.classList.toggle('baddie', !!s.baddie);
   $('#story-ribbon').classList.toggle('baddie', !!s.baddie);
   $('#story-ribbon').textContent = s.baddie ? tf('Oh no!', 'Oh no!') : 'Pipoville';
@@ -4067,8 +4137,17 @@ const CHAPTER_SCENES = {
   ],
   50: [
     { id:'whaeleeno', text: tf('Blub... the lighthouse shines again. You really never give up, do you?', 'Blub... il faro splende di nuovo. Tu non ti arrendi proprio mai, eh?') },
-    { id:'pipop', text: tf('Pipoville delivers — always! The end... until the next letter!', 'Pipoville consegna — sempre! Fine... fino alla prossima lettera!') },
-    { id:'sir_saltbread_cane', text: tf('Three cheers for Deputy Pipo! Hip hip hooray!', 'Tre urrà per il vice Pipo! Hip hip urrà!') }
+    { id:'pipop', text: tf('Pipoville delivers — always! But wait... Whaeleeno, what is that glow under the water?', 'Pipoville consegna — sempre! Ma aspetta... Whaeleeno, cos\'è quel bagliore sott\'acqua?') },
+    { id:'whaeleeno', text: tf('Blub! My reef! The letters that sank with the cart are still down there. Hop on my back, mailbird!', 'Blub! La mia barriera! Le lettere affondate col carretto sono ancora laggiù. Salta sulla mia schiena, pinguino!') }
+  ],
+  60: [
+    { id:'whaeleeno', text: tf('You cleaned half my reef already. The fish are writing thank-you letters. Fish can write, right?', 'Hai già ripulito metà della mia barriera. I pesci scrivono lettere di ringraziamento. I pesci sanno scrivere, no?') },
+    { id:'baggu', text: tf('Hee hee — the deepest letters are stuck in the honey trench. Follow me, I know a shortcut!', 'Ih ih — le lettere più profonde sono bloccate nella fossa di miele. Seguimi, conosco una scorciatoia!') }
+  ],
+  70: [
+    { id:'pipop', text: tf('The very last sunken letter... delivered! Every single one, from the farm to the deep.', 'L\'ultimissima lettera affondata... consegnata! Tutte quante, dalla fattoria agli abissi.') },
+    { id:'whaeleeno', text: tf('Blub-hooray! From today the reef is an official Pipoville post route. Deputy Whaeleeno, at your service!', 'Blub-urrà! Da oggi la barriera è una rotta postale ufficiale di Pipoville. Vice Whaeleeno, al tuo servizio!') },
+    { id:'sir_saltbread_cane', text: tf('The whole town — and the whole sea — thanks you, Pipo. Now THAT is a mail round.', 'Tutta la città — e tutto il mare — ti ringrazia, Pipo. QUESTO sì che è un giro di posta.') }
   ]
 };
 function maybeChapterScene(then){
