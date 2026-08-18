@@ -1,7 +1,7 @@
 {
-  "name": "Aleville",
-  "short_name": "Aleville",
-  "description": "Aleville — garden match-3 puzzle — 30 levels, firecracker/bomb/dynamite/TNT power-ups, works offline.",
+  "name": "Pipoville",
+  "short_name": "Pipoville",
+  "description": "Pipoville — help Pipop the mail-penguin rescue his friends across 30 match-3 levels. Works offline.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
