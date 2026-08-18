@@ -202,6 +202,24 @@
   @keyframes primePulse { 0%{transform:scale(.92); filter:brightness(1)} 100%{transform:scale(1.32); filter:brightness(1.6) drop-shadow(0 0 10px rgba(255,230,120,.9))} }
   #game.winning { filter:saturate(1.18) brightness(1.05); transition:filter .5s; }
   .map-streak { font-weight:900; font-size:16px; color:#ffb35c; text-shadow:0 1px 2px rgba(0,0,0,.5); }
+  #btn-tasks { position:relative; width:46px; height:46px; border-radius:50%; border:3px solid #ffc93c; cursor:pointer; font-size:20px;
+    background:radial-gradient(circle at 35% 30%, #c98a45, #7c4a24 72%);
+    box-shadow:0 3px 0 #3d2008, 0 5px 8px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.35); }
+  #btn-tasks:active { transform:translateY(2px); }
+  #btn-tasks.attn { animation:pulse .9s infinite; }
+  #tasks-badge { position:absolute; top:-6px; right:-6px; min-width:20px; height:20px; border-radius:50%;
+    background:#e23c3c; color:#fff; font-weight:900; font-size:13px; line-height:20px; text-align:center;
+    border:2px solid #fff; display:inline-block; }
+  #tasks-badge:empty { display:none; }
+  .butler-row { display:flex; align-items:flex-start; gap:10px; margin:10px 0 4px; text-align:left; }
+  .butler { font-size:40px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
+  .butler-bubble { flex:1; background:#fff; border:2.5px solid #8a5a2e; border-radius:14px 14px 14px 4px;
+    padding:8px 12px; font-weight:800; font-size:14px; color:#5e3416; box-shadow:0 2px 5px rgba(0,0,0,.15); }
+  .task-row { display:flex; align-items:center; gap:10px; margin:8px 0; padding:8px 10px;
+    background:rgba(255,255,255,.55); border:2px solid #d9b98a; border-radius:14px; }
+  .t-emoji { font-size:26px; }
+  .t-name { flex:1; text-align:left; font-weight:800; font-size:14.5px; color:#5e3416; }
+  .t-do[disabled] { filter:grayscale(.8); opacity:.55; pointer-events:none; }
   #hud-wheel { width:56px; min-width:56px; aspect-ratio:1; border-radius:50%; align-self:center; position:relative; z-index:2;
     background:#4a2a10; border:3px solid #7a4a1d;
     box-shadow:0 4px 6px rgba(0,0,0,.35), inset 0 2px 3px rgba(255,255,255,.25); }
@@ -395,6 +413,7 @@
   <div class="map-top">
     <div class="map-title">🌻 Aleville</div>
     <div class="map-streak" id="map-streak"></div>
+    <button id="btn-tasks">🔨<span id="tasks-badge"></span></button>
     <div class="map-stars" id="total-stars">★ 0/45</div>
   </div>
   <div id="map-scroll"><div id="map-inner">
@@ -493,6 +512,20 @@
       <button class="btn orange small" id="btn-restart">Restart</button>
       <button class="btn blue small" id="btn-quit">Map</button>
     </div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-tasks">
+  <div class="modal">
+    <div class="ribbon">Garden Tasks</div>
+    <h2 style="margin-top:12px;" id="tasks-day">Day 1</h2>
+    <div class="butler-row">
+      <span class="butler">🧑‍🌾</span>
+      <span class="butler-bubble" id="butler-line">Let's fix up this garden — win levels to earn stars!</span>
+    </div>
+    <div id="task-list"></div>
+    <p id="task-stars" style="font-weight:900; color:#b8860b;">★ 0 to spend</p>
+    <div class="btns"><button class="btn blue small" id="btn-tasks-close">Close</button></div>
   </div>
 </div>
 
@@ -945,6 +978,8 @@ save.fails = save.fails || {};
 save.streak = save.streak || 0;
 save.pending = save.pending || [];
 save.decorSeen = save.decorSeen || [];
+save.spent = save.spent || 0;
+save.done = save.done || [];
 /* iOS WebAudio unlock: resume + silent buffer on the first touch release */
 function unlockAudio(){
   Snd.ensure();
@@ -990,17 +1025,56 @@ function showScreen(id){
 }
 function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 
-/* ---------------- garden restoration meta ---------------- */
-const DECOR = [
-  { stars:3,  emoji:'⛲', name:'Fountain' },
-  { stars:9,  emoji:'🌳', name:'Old Oak' },
-  { stars:15, emoji:'🏡', name:'Garden House' },
-  { stars:24, emoji:'🌉', name:'Stone Bridge' },
-  { stars:36, emoji:'⛺', name:'Tea Tent' },
-  { stars:48, emoji:'🦢', name:'Swan Pond' },
-  { stars:63, emoji:'🎠', name:'Carousel' },
-  { stars:81, emoji:'🏰', name:'Manor' },
+/* ---------------- garden restoration meta ----------------
+   Stars are currency: spend them on tasks, Gardenscapes-style. */
+const TASKS = [
+  { id:'bench',    cost:1, emoji:'🪑', name:'Fix the old bench',       line:'A fine spot to rest!' },
+  { id:'flowerbed',cost:1, emoji:'🌷', name:'Plant the flowerbed',     line:'The tulips are lovely!' },
+  { id:'fountain', cost:2, emoji:'⛲', name:'Restore the fountain',    line:'Listen to that water sing!' },
+  { id:'path',     cost:1, emoji:'🧱', name:'Repave the walkway',      line:'Smooth as can be.' },
+  { id:'oak',      cost:2, emoji:'🌳', name:'Revive the old oak',      line:'It has stood here a century!' },
+  { id:'house',    cost:3, emoji:'🏡', name:'Repaint the garden house',line:'Good as new!' },
+  { id:'bridge',   cost:2, emoji:'🌉', name:'Mend the stone bridge',   line:'Sturdy once again!' },
+  { id:'tent',     cost:2, emoji:'⛺', name:'Pitch the tea tent',      line:'Tea time, anyone?' },
+  { id:'pond',     cost:3, emoji:'🦢', name:'Clean the swan pond',     line:'The swans are back!' },
+  { id:'lights',   cost:2, emoji:'🏮', name:'Hang the lanterns',       line:'How magical at dusk!' },
+  { id:'carousel', cost:3, emoji:'🎠', name:'Repair the carousel',     line:'Round and round it goes!' },
+  { id:'manor',    cost:4, emoji:'🏰', name:'Reopen the manor',        line:'Aleville is blooming again!' },
 ];
+function starsEarnedTotal(){ let t = 0; for(const k in save.stars) t += save.stars[k]; return t; }
+function starsAvailable(){ return starsEarnedTotal() - (save.spent || 0); }
+function nextTask(){ return TASKS.find(t => !save.done.includes(t.id)); }
+function renderTasks(){
+  const open = TASKS.filter(t => !save.done.includes(t.id)).slice(0, 3);
+  $('#tasks-day').textContent = 'Day ' + (save.done.length + 1);
+  $('#task-stars').textContent = `★ ${starsAvailable()} to spend`;
+  $('#task-list').innerHTML = open.length ? open.map(t => `
+    <div class="task-row">
+      <span class="t-emoji">${t.emoji}</span>
+      <span class="t-name">${t.name}</span>
+      <button class="btn small t-do" data-id="${t.id}" ${starsAvailable() >= t.cost ? '' : 'disabled'}>★${t.cost}</button>
+    </div>`).join('') : '<p style="font-weight:800;">The whole garden is restored! 🌸</p>';
+  $('#task-list').querySelectorAll('.t-do').forEach(b=>{
+    b.addEventListener('click', ()=>doTask(b.dataset.id));
+  });
+}
+function doTask(id){
+  const t = TASKS.find(t => t.id === id);
+  if(!t || save.done.includes(id) || starsAvailable() < t.cost) return;
+  save.spent = (save.spent || 0) + t.cost;
+  save.done.push(id);
+  persist();
+  $('#butler-line').textContent = t.line;
+  Snd.win();
+  confetti();
+  renderTasks();
+  renderMap();
+  const banner = document.createElement('div');
+  banner.className = 'map-banner';
+  banner.textContent = `${t.emoji} ${t.name.replace(/^\w+/, m=>({'Fix':'Fixed','Plant':'Planted','Restore':'Restored','Repave':'Repaved','Revive':'Revived','Repaint':'Repainted','Mend':'Mended','Pitch':'Pitched','Clean':'Cleaned','Hang':'Hung','Repair':'Repaired','Reopen':'Reopened'}[m] || m))}!`;
+  $('#map').appendChild(banner);
+  setTimeout(()=>banner.remove(), 3300);
+}
 /* ---------------- daily gift ---------------- */
 const DAILY_GIFTS = [['fire','Firecracker'],['bomb','Bomb'],['dyna','Dynamite'],['tnt','TNT crate'],['bomb','Bomb'],['dyna','Dynamite'],['tnt','TNT crate']];
 function checkDaily(){
@@ -1079,31 +1153,23 @@ function renderMap(){
   });
   $('#total-stars').textContent = `★ ${totalStars}/${n*3}`;
   $('#map-streak').textContent = save.streak >= 2 ? `🔥 ${save.streak} streak` : '';
-  // garden restoration: features appear along the path as stars accumulate
-  const newlyRestored = [];
-  DECOR.forEach((d, i)=>{
-    const anchor = pts[Math.min(n-1, 1 + i*4)];
-    const unlocked = totalStars >= d.stars;
+  // garden features along the path: restored by spending stars on tasks
+  TASKS.forEach((t, i)=>{
+    const anchor = pts[Math.min(n-1, 1 + i*2)];
+    const restored = save.done.includes(t.id);
     const el = document.createElement('div');
-    el.className = 'decor' + (unlocked ? '' : ' locked');
+    el.className = 'decor' + (restored ? '' : ' locked');
     const side = (i % 2) ? 1 : -1;
-    el.style.left = `calc(${anchor[0]}% + ${side * 110}px)`;
+    el.style.left = `calc(${anchor[0]}% + ${side * 108}px)`;
     el.style.top = (anchor[1] - 30) + 'px';
-    el.innerHTML = `${d.emoji}<span class="dlabel">${unlocked ? d.name : '★' + d.stars}</span>`;
+    el.innerHTML = `${t.emoji}<span class="dlabel">${restored ? '' : '★' + t.cost}</span>`;
     inner.appendChild(el);
-    if(unlocked && !save.decorSeen.includes(d.name)) newlyRestored.push(d);
   });
-  if(newlyRestored.length){
-    newlyRestored.forEach(d=>save.decorSeen.push(d.name));
-    persist();
-    const d = newlyRestored[0];
-    const banner = document.createElement('div');
-    banner.className = 'map-banner';
-    banner.textContent = `${d.emoji} ${d.name} restored!`;
-    $('#map').appendChild(banner);
-    Snd.win();
-    setTimeout(()=>banner.remove(), 3300);
-  }
+  // tasks button badge: pulse when the next task is affordable
+  const nt = nextTask();
+  const affordable = nt && starsAvailable() >= nt.cost;
+  $('#btn-tasks').classList.toggle('attn', !!affordable);
+  $('#tasks-badge').textContent = affordable ? '!' : '';
   requestAnimationFrame(()=>{
     const sc = $('#map-scroll');
     const target = pts[Math.min(save.unlocked, n)-1][1];
@@ -2089,6 +2155,8 @@ function endTutorial(){
 /* ---- buttons ---- */
 $('#btn-play').addEventListener('click', ()=>{ Snd.ensure(); showScreen('map'); renderMap(); checkDaily(); });
 $('#btn-daily').addEventListener('click', ()=>showOverlay('ov-daily', false));
+$('#btn-tasks').addEventListener('click', ()=>{ Snd.ensure(); renderTasks(); showOverlay('ov-tasks', true); });
+$('#btn-tasks-close').addEventListener('click', ()=>showOverlay('ov-tasks', false));
 $('#btn-start').addEventListener('click', ()=>{ Snd.ensure(); startLevel(); });
 $('#btn-pause').addEventListener('click', ()=>{ if(G.over) return; showOverlay('ov-pause', true); });
 $('#btn-resume').addEventListener('click', ()=>showOverlay('ov-pause', false));
