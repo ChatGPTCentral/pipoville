@@ -188,7 +188,7 @@
   @keyframes hintWig { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg) scale(1.08)} 75%{transform:rotate(10deg) scale(1.08)} }
   .candy.pop svg, .candy.pop img { transition:transform .18s ease-in, opacity .18s; transform:scale(0); opacity:0; }
   .boom {
-    position:absolute; z-index:4; pointer-events:none; border-radius:50%;
+    position:absolute; z-index:4; pointer-events:none; border-radius:50%; mix-blend-mode:screen;
     background:radial-gradient(circle, #fff 0%, #ffd93d 30%, rgba(255,110,40,.85) 60%, rgba(120,60,20,.4) 72%, transparent 78%);
     animation:boomGrow .38s ease-out forwards;
   }
@@ -196,6 +196,12 @@
   #flash { position:absolute; inset:0; background:#fff; opacity:0; pointer-events:none; z-index:9; }
   #flash.on { animation:flashAnim .4s ease-out; }
   @keyframes flashAnim { 0%{opacity:.85} 100%{opacity:0} }
+  #flash.soft { animation:softFlashAnim .25s ease-out; }
+  @keyframes softFlashAnim { 0%{opacity:.35} 100%{opacity:0} }
+  .candy.prime svg, .candy.prime img { animation:primePulse .24s ease-in forwards; }
+  @keyframes primePulse { 0%{transform:scale(.92); filter:brightness(1)} 100%{transform:scale(1.32); filter:brightness(1.6) drop-shadow(0 0 10px rgba(255,230,120,.9))} }
+  #game.winning { filter:saturate(1.18) brightness(1.05); transition:filter .5s; }
+  .map-streak { font-weight:900; font-size:16px; color:#ffb35c; text-shadow:0 1px 2px rgba(0,0,0,.5); }
 
   #btn-pause {
     position:absolute; left:12px; bottom:calc(12px + env(safe-area-inset-bottom)); z-index:6;
@@ -304,7 +310,7 @@
   #map-inner::after { right:-6px; }
 
   /* ---------- juice: particles, rings, flights, squash ---------- */
-  .part { position:absolute; z-index:6; border-radius:50%; pointer-events:none; animation:partFly .6s ease-out forwards; }
+  .part { position:absolute; z-index:6; border-radius:50%; pointer-events:none; animation:partFly .6s ease-out forwards; mix-blend-mode:screen; }
   @keyframes partFly { 0%{transform:translate(0,0) scale(1); opacity:1} 100%{transform:translate(var(--dx), calc(var(--dy) + 70px)) scale(.2); opacity:0} }
   .ring { position:absolute; z-index:5; pointer-events:none; border:5px solid rgba(255,200,60,.95); border-radius:50%;
     box-shadow:0 0 16px rgba(255,220,120,.9), inset 0 0 12px rgba(255,220,120,.7); animation:ringGrow .45s ease-out forwards; }
@@ -368,6 +374,7 @@
 <div id="map" class="screen">
   <div class="map-top">
     <div class="map-title">🌻 Aleville</div>
+    <div class="map-streak" id="map-streak"></div>
     <div class="map-stars" id="total-stars">★ 0/45</div>
   </div>
   <div id="map-scroll"><div id="map-inner">
@@ -444,6 +451,7 @@
     <div class="ribbon" style="background:linear-gradient(180deg,#ff8f8f,#e23c3c); border-color:#ffd0d0;">Out of Moves!</div>
     <h2 style="margin-top:12px;">So close!</h2>
     <p id="lose-text">You didn't reach the goal this time.</p>
+    <div class="goals-row" id="lose-goals"></div>
     <div class="btns">
       <button class="btn blue small" id="btn-lose-map">Map</button>
       <button class="btn orange" id="btn-lose-retry">Try Again</button>
@@ -877,6 +885,7 @@ document.addEventListener('pointerup', unlockAudio, { once:true });
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $('#'+id).classList.add('active');
+  $('#game').classList.remove('winning');
 }
 function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 
@@ -941,6 +950,7 @@ function renderMap(){
     inner.appendChild(holder);
   });
   $('#total-stars').textContent = `★ ${totalStars}/${n*3}`;
+  $('#map-streak').textContent = save.streak >= 2 ? `🔥 ${save.streak} streak` : '';
   requestAnimationFrame(()=>{
     const sc = $('#map-scroll');
     const target = pts[Math.min(save.unlocked, n)-1][1];
@@ -1015,6 +1025,7 @@ function setPower(p, power){
   setTimeout(()=>p.el.classList.remove('born'), 520);
 }
 function removePieceEl(p){
+  p.el.classList.remove('prime');
   p.el.classList.add('pop');
   const el = p.el;
   setTimeout(()=>el.remove(), 220);
@@ -1269,18 +1280,24 @@ function toast(msg){
   t.classList.remove('show'); void t.offsetWidth; t.classList.add('show');
 }
 function playEffects(effects){
-  let big = false;
+  let big = false, maxRad = 0;
   effects.forEach(e=>{
     if(e.type==='boom'){
       fxBoom(e.r, e.c, e.rad);
       spawnRing(e.r, e.c, e.rad);
       spawnBurst(e.r, e.c, ['#ffd21f','#ff8c1a','#fff','#e8402a'], 8 + e.rad*3);
+      maxRad = Math.max(maxRad, e.rad);
       if(e.rad >= 2) big = true;
       if(e.rad >= 3){ fxShake(); }
       if(e.rad >= 4){ fxFlash(); }
     }
   });
+  if(maxRad >= 2 && maxRad < 4){
+    const f = $('#flash');
+    f.classList.remove('soft'); void f.offsetWidth; f.classList.add('soft');
+  }
   if(effects.length){ Snd.boom(big); vibrate(big ? 60 : 25); }
+  return maxRad;
 }
 
 /* ---- destruction step ---- */
@@ -1499,7 +1516,8 @@ async function resolveCascades(initial, initialCreations){
     }
     const { out, effects } = expandDestroy(matchedKeys);
     if(!out.size) break;
-    playEffects(effects);
+    const maxRad = playEffects(effects);
+    if(maxRad >= 2) await sleep(maxRad >= 4 ? 140 : 80); // hit-stop beat
     Snd.pop(mult);
     if(mult >= 3) toast(['Great!','Amazing!','Spectacular!','Unbelievable!'][Math.min(mult-3,3)]);
     destroyCells(out, creations, mult);
@@ -1516,6 +1534,7 @@ async function afterMove(){
   const goalsDone = G.goals.every(g => g.remaining <= 0);
   if(goalsDone){ await winSequence(); return; }
   if(G.movesLeft <= 0){ loseSequence(); return; }
+  if(G.movesLeft === 1) toast('Last move!');
   if(!findAnyMove()){ toast('Shuffled!'); await sleep(500); shuffleBoard(true); }
   G.busy = false;
   armHint();
@@ -1531,11 +1550,17 @@ async function activatePower(r, c){
   deselect();
   G.movesLeft--;
   updateHUD();
+  p.el.classList.add('prime'); // anticipation beat before the blast
+  Snd.special();
+  await sleep(240);
   await resolveCascades(new Set([key(r,c)]), []);
   await afterMove();
 }
 /* Swapping two power-ups: one combined blast, radius = biggest + 2 */
 async function executePowerCombo(a, ra, ca, b, rb, cb){
+  a.el.classList.add('prime'); b.el.classList.add('prime');
+  Snd.special();
+  await sleep(240);
   const rad = Math.min(6, Math.max(POWERS[a.power].rad, POWERS[b.power].rad) + 2);
   a.power = null; b.power = null; // detonate as one, no double chain from themselves
   const set = new Set([key(ra,ca), key(rb,cb)]);
@@ -1662,6 +1687,7 @@ async function winSequence(){
   G.over = true;
   clearHint();
   endTutorial();
+  $('#game').classList.add('winning');
   toast('Level Complete!');
   Snd.win();
   await sleep(700);
@@ -1713,8 +1739,13 @@ function loseSequence(){
   save.fails[G.level] = (save.fails[G.level] || 0) + 1;
   persist();
   Snd.lose();
-  const unmet = G.goals.filter(g=>g.remaining>0).length;
-  $('#lose-text').textContent = unmet === 1 ? 'One goal was left unfinished. Try again!' : 'Reach all the goals before moves run out!';
+  const unmet = G.goals.filter(g=>g.remaining>0);
+  const total = G.goals.reduce((s,g)=>s+g.count,0);
+  const doneAmt = G.goals.reduce((s,g)=>s+(g.count-Math.max(0,g.remaining)),0);
+  const pct = Math.round(doneAmt/total*100);
+  $('#lose-text').textContent = pct >= 75 ? `You were ${pct}% of the way there!` :
+    (unmet.length === 1 ? 'One goal was left unfinished. Try again!' : 'Reach all the goals before moves run out!');
+  $('#lose-goals').innerHTML = unmet.map(g=>goalChipHTML(g, g.remaining)).join('');
   showOverlay('ov-lose', true);
 }
 
