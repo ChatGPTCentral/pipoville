@@ -768,6 +768,13 @@
   .task-done img { width:20px; height:20px; }
   @media (max-height:760px){ .view-pad { gap:8px; } .pv-row { padding:9px; } }
   .b-corner { display:none !important; }
+  #btn-settings { width:44px; height:44px; flex:0 0 auto; border:none; cursor:pointer; border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--panel); box-shadow:var(--panel-sh); }
+  #btn-settings img { width:28px; height:28px; }
+  #btn-settings:active { transform:translateY(2px); }
+  .reset-box { margin-top:16px; padding-top:14px; border-top:2px dashed #c3ddf2; }
+  #reset-note { font-size:13px; font-weight:800; color:#a8322a !important; margin-top:8px; }
 
 </style>
 </head>
@@ -864,6 +871,7 @@
   <div class="pill stamps"><img data-ico="stamp" alt=""><span id="stamps-num">0</span></div>
   <div style="flex:1"></div>
   <div class="chap"><div id="chap-label">CHAPTER 1</div><div id="chap-name">Nunu Farms</div></div>
+  <button id="btn-settings"><img data-ico="gear" alt=""></button>
 </div>
 <div id="meta-nav">
   <button class="tab" data-view="map"><img data-ico="mailbox" alt=""><span data-nav="route">Route</span></button>
@@ -972,6 +980,20 @@
     <p id="daily-text"></p>
     <p style="font-size:13px;">Come back tomorrow for a bigger gift!</p>
     <div class="btns"><button class="btn" id="btn-daily">Claim!</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-settings">
+  <div class="modal">
+    <div class="ribbon">Settings</div>
+    <h2 style="margin-top:12px;">Pipoville</h2>
+    <div class="switch-row">Sound <button class="btn blue small" id="btn-set-sound">On</button></div>
+    <div class="switch-row">Music <button class="btn blue small" id="btn-set-music">On</button></div>
+    <div class="reset-box">
+      <button class="btn red small" id="btn-reset">Start from the beginning</button>
+      <p id="reset-note" style="display:none;"></p>
+    </div>
+    <div class="btns"><button class="btn blue small" id="btn-settings-close">Close</button></div>
   </div>
 </div>
 
@@ -1729,6 +1751,20 @@ const ICONS = {};
     const grip = new Path2D('M36 10 h28 v12 h-28 Z');
     shadeBody(x, grip, ['#cfe6ff','#7fa5c2','#3b5b74'], {cx:38, cy:10, r:40});
   }
+  function paintGearI(x){
+    const teeth = new Path2D();
+    for(let i = 0; i < 8; i++){
+      const a = i * Math.PI / 4;
+      const cx = 50 + Math.cos(a) * 34, cy = 50 + Math.sin(a) * 34;
+      teeth.rect(cx - 8, cy - 8, 16, 16);
+    }
+    shadeBody(x, teeth, ['#d8ecff','#8fb4d0','#3b5b74'], {cx:38, cy:36});
+    const body = new Path2D('M50 18 A32 32 0 1 1 49.9 18 Z');
+    shadeBody(x, body, ['#d8ecff','#8fb4d0','#3b5b74'], {cx:38, cy:36});
+    x.fillStyle = 'rgba(32,70,94,.85)';
+    x.beginPath(); x.arc(50, 50, 12, 0, Math.PI * 2); x.fill();
+    specBlob(x, 38, 36, 11, 7, -24, .7);
+  }
   function paintClock(x){
     const p = new Path2D('M50 18 A32 32 0 1 1 49.9 18 Z');
     shadeBody(x, p, HUE.clock, {cx:38, cy:36});
@@ -1738,7 +1774,7 @@ const ICONS = {};
     specBlob(x, 36, 34, 12, 7, -22, .7);
   }
   const P = { heart:paintHeart, stamp:paintStampI, letter:paintLetterI, mailbox:paintMailboxI,
-    medal:paintMedal, gift:paintGift, quest:paintQuest, spade:paintSpade, clock:paintClock };
+    medal:paintMedal, gift:paintGift, quest:paintQuest, spade:paintSpade, clock:paintClock, gear:paintGearI };
   Object.keys(P).forEach(k => { ICONS[k] = bake(P[k]); });
 })();
 function applyIcons(root){
@@ -1852,6 +1888,7 @@ const IT = {
   // meta chrome
   'Route':'Percorso', 'Round':'Giro', 'Book':'Album', 'Shop':'Negozio', 'Mailroom':'Posta',
   'Delivery':'Consegna', 'Out of rounds':'Cuori finiti', 'Wait it out':'Aspetta',
+  'Settings':'Impostazioni', 'Start from the beginning':'Ricomincia dall\'inizio',
   // splash
   'HELP PIPO RESCUE HIS FRIENDS':'AIUTA PIPO A SALVARE I SUOI AMICI',
   'Play!':'Gioca!',
@@ -3835,18 +3872,51 @@ $('#btn-win-next').addEventListener('click', ()=>{
 $('#btn-lose-map').addEventListener('click', ()=>{ showOverlay('ov-lose', false); showScreen('map'); renderMap(); });
 $('#btn-lose-retry').addEventListener('click', ()=>{ showOverlay('ov-lose', false); prepareLevel(); startLevel(); });
 function syncSoundBtn(){
-  $('#btn-sound').textContent = Snd.on ? t('On') : t('Off');
-  $('#btn-music').textContent = Music.on ? t('On') : t('Off');
+  const on = t('On'), off = t('Off');
+  $('#btn-sound').textContent = Snd.on ? on : off;
+  $('#btn-music').textContent = Music.on ? on : off;
+  $('#btn-set-sound').textContent = Snd.on ? on : off;
+  $('#btn-set-music').textContent = Music.on ? on : off;
 }
-$('#btn-sound').addEventListener('click', ()=>{ Snd.on = !Snd.on; save.sound = Snd.on; persist(); syncSoundBtn(); });
-$('#btn-music').addEventListener('click', ()=>{
+function toggleSound(){ Snd.on = !Snd.on; save.sound = Snd.on; persist(); syncSoundBtn(); }
+function toggleMusic(){
   Music.on = !Music.on;
   save.music = Music.on;
   persist();
   Music.on ? Music.start() : Music.stop();
   syncSoundBtn();
-});
+}
+$('#btn-sound').addEventListener('click', toggleSound);
+$('#btn-music').addEventListener('click', toggleMusic);
+$('#btn-set-sound').addEventListener('click', toggleSound);
+$('#btn-set-music').addEventListener('click', toggleMusic);
 syncSoundBtn();
+
+/* ---- settings: gear on the meta top bar ---- */
+let resetArmed = false;
+function openSettings(){
+  resetArmed = false;
+  $('#btn-reset').textContent = tf('Start from the beginning', "Ricomincia dall'inizio");
+  $('#reset-note').style.display = 'none';
+  syncSoundBtn();
+  showOverlay('ov-settings', true);
+}
+$('#btn-settings').addEventListener('click', ()=>{ Snd.ensure(); openSettings(); });
+$('#btn-settings-close').addEventListener('click', ()=>showOverlay('ov-settings', false));
+$('#btn-reset').addEventListener('click', ()=>{
+  if(!resetArmed){
+    resetArmed = true;
+    $('#btn-reset').textContent = tf('Erase everything?', 'Cancellare tutto?');
+    $('#reset-note').textContent = tf('All progress will be lost! Tap again to confirm.', 'Tutti i progressi andranno persi! Tocca di nuovo per confermare.');
+    $('#reset-note').style.display = '';
+    Snd.bad();
+    return;
+  }
+  const lang = save.lang; // keep the language choice
+  try { localStorage.removeItem(SAVE_KEY); } catch(e){}
+  if(lang){ try { localStorage.setItem(SAVE_KEY, JSON.stringify({ stars:{}, unlocked:1, sound:true, lang })); } catch(e){} }
+  location.reload();
+});
 
 /* ---- offline: register service worker (best-effort) ---- */
 if('serviceWorker' in navigator && location.protocol !== 'file:'){
