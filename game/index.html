@@ -213,6 +213,7 @@
   #tasks-badge:empty { display:none; }
   .butler-row { display:flex; align-items:flex-start; gap:10px; margin:10px 0 4px; text-align:left; }
   .butler { font-size:40px; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
+  .keeper-img { width:56px; height:56px; flex:0 0 auto; filter:drop-shadow(0 2px 3px rgba(0,0,0,.25)); }
   .butler-bubble { flex:1; background:#fff; border:2.5px solid #8a5a2e; border-radius:14px 14px 14px 4px;
     padding:8px 12px; font-weight:800; font-size:14px; color:#5e3416; box-shadow:0 2px 5px rgba(0,0,0,.15); }
   .task-row { display:flex; align-items:center; gap:10px; margin:8px 0; padding:8px 10px;
@@ -494,8 +495,10 @@
     <h2 style="margin-top:12px;" id="win-title">Blooming!</h2>
     <div class="big-stars" id="win-stars">★★★</div>
     <div class="score-line" id="win-score">Score: 0</div>
+    <p id="win-task-note" style="display:none; color:#c9722a;">⭐ You can afford a garden task!</p>
     <div class="btns">
       <button class="btn blue small" id="btn-win-map">Map</button>
+      <button class="btn orange small" id="btn-win-tasks" style="display:none;">Garden 🔨</button>
       <button class="btn orange small" id="btn-win-replay">Replay</button>
       <button class="btn small" id="btn-win-next">Next ▶</button>
     </div>
@@ -528,12 +531,24 @@
   </div>
 </div>
 
+<div class="overlay" id="ov-story">
+  <div class="modal">
+    <div class="ribbon">Welcome!</div>
+    <h2 style="margin-top:12px;">Aleville</h2>
+    <div class="butler-row">
+      <img class="keeper-img" alt="">
+      <span class="butler-bubble">Ah, you made it! I'm Barnaby, the groundskeeper. This old garden was magnificent once — win puzzle levels to earn stars, and we'll restore it together, one task at a time!</span>
+    </div>
+    <div class="btns"><button class="btn" id="btn-story">Let's go!</button></div>
+  </div>
+</div>
+
 <div class="overlay" id="ov-tasks">
   <div class="modal">
     <div class="ribbon">Garden Tasks</div>
     <h2 style="margin-top:12px;" id="tasks-day">Day 1</h2>
     <div class="butler-row">
-      <span class="butler">🧑‍🌾</span>
+      <img class="keeper-img" alt="">
       <span class="butler-bubble" id="butler-line">Let's fix up this garden — win levels to earn stars!</span>
     </div>
     <div id="task-list"></div>
@@ -857,6 +872,38 @@ function paintRainbow(x){
   x.fillStyle = '#fff';
   [[68,30,2.6],[30,62,2],[62,66,1.8]].forEach(([px,py,r])=>{ x.beginPath(); x.arc(px,py,r,0,7); x.fill(); });
 }
+function paintKeeper(x){
+  // shirt
+  x.fillStyle = lgrad(x, 0, 56, 0, 94, [[0,'#57a83f'],[1,'#2a6412']]);
+  const body = new Path2D('M28 92 Q26 62 40 56 L60 56 Q74 62 72 92 Z');
+  x.fill(body); x.strokeStyle = '#1d5410'; x.lineWidth = 3; x.stroke(body);
+  // apron strap
+  x.strokeStyle = '#8a5a2e'; x.lineWidth = 5;
+  x.beginPath(); x.moveTo(38,60); x.lineTo(62,78); x.stroke();
+  // face
+  x.fillStyle = '#f0c8a0';
+  x.beginPath(); x.arc(50, 40, 15, 0, 7); x.fill();
+  x.strokeStyle = '#c99b6d'; x.lineWidth = 2; x.stroke();
+  // beard
+  x.fillStyle = '#e8e8e8';
+  x.beginPath(); x.ellipse(50, 52, 13, 8, 0, 0, 7); x.fill();
+  // eyes + smile + nose
+  x.fillStyle = '#2a2a2a';
+  x.beginPath(); x.arc(44, 38, 1.8, 0, 7); x.fill();
+  x.beginPath(); x.arc(56, 38, 1.8, 0, 7); x.fill();
+  x.strokeStyle = '#8a5a2e'; x.lineWidth = 2; x.lineCap = 'round';
+  x.beginPath(); x.arc(50, 43, 6, .4, 2.7); x.stroke();
+  x.fillStyle = '#e8a87a';
+  x.beginPath(); x.arc(50, 42, 3.4, 0, 7); x.fill();
+  // straw hat
+  x.fillStyle = lgrad(x, 0, 14, 0, 30, [[0,'#ffe98a'],[1,'#d9a94c']]);
+  x.beginPath(); x.ellipse(50, 28, 26, 7, 0, 0, 7); x.fill();
+  x.strokeStyle = '#a8752f'; x.lineWidth = 2.4; x.stroke();
+  const crown = new Path2D('M36 28 Q36 10 50 10 Q64 10 64 28 Z');
+  x.fill(crown); x.stroke(crown);
+  x.strokeStyle = '#c1272d'; x.lineWidth = 4;
+  x.beginPath(); x.moveTo(37, 25); x.lineTo(63, 25); x.stroke();
+}
 function paintIce(x){
   const body = new Path2D('M22 16 Q14 16 14 24 L14 76 Q14 84 22 84 L78 84 Q86 84 86 76 L86 24 Q86 16 78 16 Z');
   x.fillStyle = lgrad(x, 0, 16, 0, 84, [[0,'rgba(216,244,255,.96)'],[.5,'rgba(150,212,246,.94)'],[1,'rgba(88,158,214,.96)']]);
@@ -873,6 +920,19 @@ function paintIce(x){
   x.strokeStyle = '#3a7fae'; x.lineWidth = 3.5;
   x.stroke(body);
   specBlob(x, 32, 30, 8, 5.5, -30, .8);
+}
+function paintIce2(x){
+  paintIce(x);
+  // heavier fracture web for the two-layer cube
+  x.save();
+  x.strokeStyle = 'rgba(20,70,120,.55)'; x.lineWidth = 2.6; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(20,50); x.lineTo(42,54); x.lineTo(34,74); x.stroke();
+  x.beginPath(); x.moveTo(80,38); x.lineTo(60,50); x.lineTo(76,70); x.stroke();
+  x.beginPath(); x.moveTo(50,18); x.lineTo(48,38); x.stroke();
+  x.strokeStyle = 'rgba(255,255,255,.85)'; x.lineWidth = 1.6;
+  x.beginPath(); x.moveTo(22,52); x.lineTo(44,56); x.stroke();
+  x.beginPath(); x.moveTo(78,40); x.lineTo(58,52); x.stroke();
+  x.restore();
 }
 function paintGnome(x){
   // boots
@@ -954,8 +1014,11 @@ function bake(fn){
   SPRITES.ice = bake(paintIce);
   SPRITES.gnome = bake(paintGnome);
   SPRITES.vine = bake(paintVine);
+  SPRITES.ice2 = bake(paintIce2);
+  SPRITES.keeper = bake(paintKeeper);
   const orb = document.getElementById('wheel-orb');
   if(orb) orb.src = SPRITES.p_rainbow;
+  document.querySelectorAll('.keeper-img').forEach(el=>{ el.src = SPRITES.keeper; });
 })();
 function spriteImg(k){ return `<img src="${SPRITES[k]}" alt="" draggable="false">`; }
 function chipIcon(g){
@@ -1016,11 +1079,11 @@ const LEVELS = [
     goals:[{type:'dirt'},{type:'kind', kind:'lemon', count:30}] },
   { moves:28, colors:6, mask:[ '.........','.........','..B...B..','.........','....B....','.........','B.......B','.........','.........' ],
     goals:[{type:'kind', kind:'apple', count:25},{type:'kind', kind:'flower', count:25},{type:'kind', kind:'drop', count:25}] },
-  { moves:30, colors:6, mask:[ 'JJJJJJJJJ','.........','JJJJJJJJJ','.........','JJJJJJJJJ','.........','JJJJJJJJJ','.........','JJJJJJJJJ' ],
+  { moves:30, colors:6, mask:[ 'JJJJJJJJJ','....D....','JJJJJJJJJ','.........','JJJJJJJJJ','.........','JJJJJJJJJ','.........','JJJJJJJJJ' ],
     goals:[{type:'dirt'}], hard:true },
   { moves:28, colors:6, mask:[ '.........','.........','X.......X','XX.....XX','XXX...XXX','XX.....XX','X.......X','.........','.........' ],
     goals:[{type:'kind', kind:'leaf', count:35},{type:'kind', kind:'lemon', count:35}] },
-  { moves:26, colors:6, mask:[ '.........','.........','.........','..B...B..','.........','....B....','.........','.........','.........' ],
+  { moves:26, colors:6, mask:[ '.........','.........','.........','..D...D..','.........','....B....','.........','.........','.........' ],
     goals:[{type:'kind', kind:'leaf', count:55}] },
   { moves:30, colors:6, mask:[ 'JJJJJJJJJ','J.......J','J.......J','J.......J','J.......J','J.......J','J.......J','J.......J','JJJJJJJJJ' ],
     goals:[{type:'dirt'}], hard:true },
@@ -1034,7 +1097,7 @@ const LEVELS = [
 LEVELS.forEach((L,i)=>{
   L.rows = L.mask.length; L.cols = L.mask[0].length;
   L.dirtTotal = L.mask.join('').split('J').length - 1;
-  L.blockTotal = L.mask.join('').split('B').length - 1;
+  L.blockTotal = L.mask.join('').split('B').length - 1 + (L.mask.join('').split('D').length - 1);
   L.gnomeTotal = L.mask.join('').split('G').length - 1;
   L.vineTotal = L.mask.join('').split('V').length - 1;
   L.goals.forEach(g=>{ if(g.type==='dirt') g.count = L.dirtTotal; });
@@ -1313,10 +1376,10 @@ function makePiece(kind){
   boardEl.appendChild(p.el);
   return p;
 }
-function makeBlock(){
-  const p = { kind:null, power:null, block:true, id: ++G.idSeq, el: document.createElement('div') };
+function makeBlock(hp){
+  const p = { kind:null, power:null, block:true, hp: hp || 1, id: ++G.idSeq, el: document.createElement('div') };
   p.el.className = 'candy block';
-  p.el.innerHTML = spriteImg('ice');
+  p.el.innerHTML = spriteImg(p.hp > 1 ? 'ice2' : 'ice');
   sizeCandy(p.el);
   boardEl.appendChild(p.el);
   return p;
@@ -1381,8 +1444,8 @@ function buildBoard(){
   for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
     if(!G.playable[r][c]) continue;
     const ch = G.L.mask[r][c];
-    if(ch === 'B' || ch === 'G' || ch === 'V'){
-      const p = ch === 'B' ? makeBlock() : ch === 'G' ? makeGnome() : makeVine();
+    if(ch === 'B' || ch === 'D' || ch === 'G' || ch === 'V'){
+      const p = ch === 'B' ? makeBlock(1) : ch === 'D' ? makeBlock(2) : ch === 'G' ? makeGnome() : makeVine();
       G.grid[r][c] = p;
       placeCandy(p.el, r, c, true);
       continue;
@@ -1671,6 +1734,13 @@ function destroyCells(keys, creations, mult){
     if(creationKeys.has(k)) return; // this piece becomes a power-up instead
     const p = G.grid[r][c];
     if(!p) return;
+    if(p.block && p.hp > 1){
+      // first hit only cracks a two-layer ice cube
+      p.hp--;
+      p.el.innerHTML = spriteImg('ice');
+      if(bursts < 36){ spawnBurst(r, c, ['#d8f4ff','#8fc8ee'], 4); bursts++; }
+      return;
+    }
     if(p.block){
       const g = G.goals.find(g => g.type==='block' && g.remaining > 0);
       if(g){ g.remaining--; flyToGoal('block', r, c, flights); }
@@ -2264,6 +2334,10 @@ async function winSequence(){
   $('#win-stars').innerHTML = [1,2,3].map(s=>`<span class="${s<=stars?'lit':''}">★</span>`).join('');
   $('#win-score').textContent = 'Score: ' + G.score.toLocaleString();
   $('#btn-win-next').style.display = G.level < LEVELS.length ? '' : 'none';
+  const nt = nextTask();
+  const canTask = nt && starsAvailable() >= nt.cost;
+  $('#btn-win-tasks').style.display = canTask ? '' : 'none';
+  $('#win-task-note').style.display = canTask ? '' : 'none';
   showOverlay('ov-win', true);
 }
 function loseSequence(){
@@ -2368,7 +2442,17 @@ function endTutorial(){
 }
 
 /* ---- buttons ---- */
-$('#btn-play').addEventListener('click', ()=>{ Snd.ensure(); showScreen('map'); renderMap(); checkDaily(); });
+$('#btn-play').addEventListener('click', ()=>{
+  Snd.ensure(); showScreen('map'); renderMap();
+  if(!save.storySeen){ save.storySeen = true; persist(); showOverlay('ov-story', true); }
+  else checkDaily();
+});
+$('#btn-story').addEventListener('click', ()=>{ showOverlay('ov-story', false); checkDaily(); });
+$('#btn-win-tasks').addEventListener('click', ()=>{
+  showOverlay('ov-win', false);
+  showScreen('map'); renderMap();
+  renderTasks(); showOverlay('ov-tasks', true);
+});
 $('#btn-daily').addEventListener('click', ()=>showOverlay('ov-daily', false));
 $('#btn-tasks').addEventListener('click', ()=>{ Snd.ensure(); renderTasks(); showOverlay('ov-tasks', true); });
 $('#btn-tasks-close').addEventListener('click', ()=>showOverlay('ov-tasks', false));
