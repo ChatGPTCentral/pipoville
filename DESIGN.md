@@ -119,10 +119,10 @@ satisfy `KINDS.indexOf(g.kind) < L.colors`.
   Board-piece physics deliberately stay on CSS transforms — never point GSAP at
   `.candy` elements or the two systems will fight over `transform`.
 
-## Pipop
+## Pipo
 
 The mascot penguin (teal body, white belly, yellow feet/beak — ported from the
-original canvas drawing) is baked as `SPRITES.pipop` via `paintPipop`. He
+original canvas drawing) is baked as `SPRITES.pipop` via `paintPipo`. He
 stands on the current map node (`.pipop-av`, bobbing), and when new levels
 unlock, `renderMap` walks him node-by-node along the path with a GSAP timeline
 (waddle rotation on the inner img, movement on the wrapper — never both on one
@@ -139,7 +139,7 @@ cutscene (`ov-rescue`), frees the character on the map (caged silhouette →
 bobbing friend), and may grant a companion perk — Cannolio +1 shovel,
 Nunu +2 moves on hard levels, Ms Toni wheel fills at 50, Ms MooMoo daily
 gift tier up, Pancione streak bomb. `CHAPTERS` labels map zones. In-level,
-`#pipop-side` stands under the board; `setPipopMood(mood, holdMs)` drives
+`#pipop-side` stands under the board; `setPipoMood(mood, holdMs)` drives
 reactions (cheer/worry/sad/no/party) with an emote bubble, reverting to a
 moves-aware baseline.
 
@@ -161,7 +161,7 @@ Mechanics, keyed by exact English string:
 - Data tables (`RESCUES`, `TASKS`, `CHAPTERS`, `DAILY_GIFTS`) wrap
   their strings in `t()` at definition time, so they resolve once.
 
-Rules: character names (Pipop, Nunu, Whaeleeno, ...) are NEVER
+Rules: character names (Pipo, Nunu, Whaeleeno, ...) are NEVER
 translated. New user-facing strings must be added to `IT` (exact
 match) or written with `tf()`. Inside `doTask`/`renderTasks` the local
 task variable shadows `t` — don't call the translator there.
