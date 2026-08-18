@@ -254,3 +254,23 @@ the round. Completed non-current map nodes carry a `replay-badge`
   chapter, medals, score, Pipo with cosmetic); `shareWin()` uses
   navigator.share with download fallback; `G.lastWin` captured in
   winSequence.
+
+## The town is the point (v22)
+
+The Mailroom tab is now **Town**: an illustrated diorama (`#town-scene`,
+`TOWN_SPOTS` positions) where each completed task visibly builds its
+structure in place, with the next project shown as a priced ghost and
+Pipo standing in the square. **Wave 2** — twelve town projects
+(school bell, bakery, post office, pier, lighthouse, ferris wheel...) —
+unlocks when the twelve garden projects are done. Every built structure
+yields its cost in **daily stamp income** (`townIncome()`, collected
+once per day via `save.townDay`), making building an investment, not a
+sink. Task rows state their wave and yield.
+
+**Character depth**: album slots open a story card (`CAST_LORE`
+backstories EN+IT, `CAST_PERKS`, rescue chapter via `rescueLevelOf`).
+**Friends' wardrobe** (`WARDROBE`, `save.wardrobe` — migrates
+`save.cosmetics`): accessories for Cannolio (bandana), Ninni (flower
+crown), Winnie (bow), and Whaeleeno (keeper cap) composite onto their
+chibi sprites via `drawFriendAccessory` and render everywhere,
+including story cards. Shop shows only met friends' items.
