@@ -936,6 +936,45 @@
     font-family:ui-monospace,Menlo,monospace; font-size:15px; text-transform:uppercase; text-align:center; margin-bottom:7px;
     background:#fff; color:#5e3416; outline:none; }
   .cloud-err { color:#c0392b !important; font-weight:700; }
+
+  /* ================= V27 DAILY DELIGHT ================= */
+  .chest-card { background:linear-gradient(180deg,#fff8e7,#ffefc9) !important;
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.95), 0 6px 0 #eeda9e, 0 12px 18px rgba(18,58,46,.16) !important; }
+  .chest-card .r-title { color:#8a5a00; }
+  .chest-card .r-sub { color:#c19a4a; }
+  .chest-fill { background:linear-gradient(180deg,#ffd884,#e8a640) !important; }
+  .lotd-card { background:linear-gradient(180deg,#fff3f6,#ffe3ec) !important;
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.95), 0 6px 0 #f2c4d4, 0 12px 18px rgba(18,58,46,.16) !important; }
+  .lotd-card .r-title { color:#b03a68; }
+  .lotd-card .r-sub { color:#c9739a; }
+  /* ---- Chi si nasconde? (hidden critters) ---- */
+  #ov-find { padding:10px; }
+  #find-panel { width:min(96vw, 420px); border-radius:24px; padding:12px 12px 14px; position:relative;
+    background:linear-gradient(180deg,#fff9e8 0%, #f7e7c3 100%); border:5px solid #8a5a2e;
+    box-shadow:0 10px 0 #5e3416, 0 18px 30px rgba(0,0,0,.5), inset 0 2px 6px #fff; color:#5e3416;
+    animation:modalIn .3s cubic-bezier(.2,1.4,.4,1); }
+  #find-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:2px 4px 8px; }
+  #find-title { font-family:var(--font-display); font-size:21px; }
+  #find-timer { display:flex; align-items:center; gap:5px; font-weight:800; font-size:17px; color:#8a5a00;
+    background:var(--cream); border-radius:999px; padding:4px 12px; box-shadow:0 3px 0 #f0d9a8; }
+  #find-timer img { width:18px; height:18px; }
+  #find-timer.cold { color:#8aa0b8; }
+  #find-slots { display:flex; gap:7px; justify-content:center; padding-bottom:9px; }
+  .find-slot { width:44px; height:44px; border-radius:12px; background:rgba(94,52,22,.12);
+    display:flex; align-items:center; justify-content:center; box-shadow:inset 0 2px 4px rgba(94,52,22,.25); }
+  .find-slot img { width:34px; height:34px; filter:grayscale(1) opacity(.35); transition:filter .25s; }
+  .find-slot.got img { filter:none; }
+  .find-slot.got { background:#dff3d3; box-shadow:inset 0 2px 4px rgba(63,156,71,.3); }
+  #find-stage { border-radius:18px; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
+    box-shadow:inset 0 3px 8px rgba(0,0,0,.25); }
+  #find-scene-wrap { position:relative; width:170%; }
+  #find-scene-wrap #town-scene { height:300px; border-radius:0; box-shadow:none; }
+  .find-critter { position:absolute; cursor:pointer; filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));
+    transition:transform .15s; z-index:5; }
+  .find-critter:active { transform:scale(1.15); }
+  .find-critter.found { pointer-events:none; }
+  #find-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:10px; }
+  #find-hint { font-size:12.5px; font-weight:700; color:#a5804a; flex:1; }
   .version-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px;
     padding:8px 12px; border-radius:14px; background:rgba(43,127,212,.08); }
   #version-label { font-size:13px; font-weight:800; color:var(--ink2); }
@@ -1081,6 +1120,7 @@
     <div class="btns">
       <button class="btn blue small" id="btn-win-share"><img data-ico="share" alt="" style="width:20px;height:20px;vertical-align:-4px"> </button>
       <button class="btn blue small" id="btn-win-map">Map</button>
+      <button class="btn orange small" id="btn-win-find" style="display:none;">🔍</button>
       <button class="btn orange small" id="btn-win-tasks" style="display:none;">Garden 🔨</button>
       <button class="btn orange small" id="btn-win-replay">Replay</button>
       <button class="btn small" id="btn-win-next">Next ▶</button>
@@ -1172,6 +1212,31 @@
     <div id="card-perk" style="display:none;"><img data-ico="medal" alt=""><span id="card-perk-text"></span></div>
     <p id="card-where" style="font-size:12.5px;"></p>
     <div class="btns"><button class="btn blue small" id="btn-card-close">Close</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-find">
+  <div id="find-panel">
+    <div id="find-head">
+      <div id="find-title">Who's hiding?</div>
+      <div id="find-timer"><img data-ico="clock" alt=""><b id="find-secs">90</b></div>
+    </div>
+    <div id="find-slots"></div>
+    <div id="find-stage"><div id="find-scene-wrap"></div></div>
+    <div id="find-foot">
+      <div id="find-hint">Drag to look around — 5 friends are hiding!</div>
+      <button class="btn grey small" id="btn-find-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-welcome">
+  <div class="modal">
+    <div class="ribbon">Welcome back!</div>
+    <img class="pipop-img win-pipop" alt="">
+    <h2 id="wb-days" style="margin-top:10px;">Mail piled up!</h2>
+    <p id="wb-text"></p>
+    <div class="btns"><button class="btn small" id="btn-welcome">Let's deliver! ▶</button></div>
   </div>
 </div>
 
@@ -2220,7 +2285,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 26;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 27;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -2253,6 +2318,7 @@ const IT = {
   'Route':'Percorso', 'Round':'Giro', 'Book':'Album', 'Shop':'Negozio', 'Mailroom':'Posta', 'Town':'Città',
   'Delivery':'Consegna', 'Out of rounds':'Cuori finiti', 'Wait it out':'Aspetta',
   'Settings':'Impostazioni', 'Start from the beginning':'Ricomincia dall\'inizio',
+  'Welcome back!':'Bentornato!', "Let's deliver! ▶":'Si consegna! ▶', 'Mail piled up!':'Posta accumulata!',
   'Dressing room':'Camerino',
   // splash
   'HELP PIPO RESCUE HIS FRIENDS':'AIUTA PIPO A SALVARE I SUOI AMICI',
@@ -2440,6 +2506,33 @@ function nextHeartIn(){
   return String(Math.floor(ms / 60000)).padStart(2, '0') + ':' + String(Math.floor(ms % 60000 / 1000)).padStart(2, '0');
 }
 function spendStamps(n){ if(save.stamps < n) return false; save.stamps -= n; persist(); return true; }
+/* Stamp Chest: a mailbox-chest fills with every stamp earned and OPENS ITSELF
+   when full — no keys, no payments, just a bigger payout for playing. */
+const CHEST_NEED = 120, CHEST_BONUS = 20;
+function gainStamps(n){
+  if(!n || n <= 0) return;
+  save.stamps += n;
+  save.chest = save.chest || { fill: 0, opened: 0 };
+  save.chest.fill += n;
+  if(save.chest.fill >= CHEST_NEED){
+    save.chest.fill -= CHEST_NEED;
+    save.chest.opened = (save.chest.opened || 0) + 1;
+    save.stamps += CHEST_BONUS;
+    const prize = ['fire', 'bomb', 'dyna'][save.chest.opened % 3];
+    save.pending = (save.pending || []).concat([prize]);
+    setTimeout(()=>{
+      confetti();
+      if(!Snd.play('task', 1, .7)) Snd.win();
+      const host = document.querySelector('.screen.active') || document.body;
+      const b = document.createElement('div');
+      b.className = 'map-banner';
+      b.textContent = tf(`📦 The Stamp Chest popped open! +${CHEST_BONUS} and a surprise inside!`,
+                         `📦 Il Baule dei Francobolli si è aperto! +${CHEST_BONUS} e una sorpresa dentro!`);
+      host.appendChild(b);
+      setTimeout(()=>b.remove(), 3300);
+    }, 900);
+  }
+}
 function ensureQuests(){
   const today = new Date().toDateString();
   if(!save.quests || save.quests.day !== today){
@@ -2694,7 +2787,7 @@ function wireEventCard(root){
       const tier = EVENT_TIERS[i];
       if(!ev || ev.claimed.includes(i) || eventTotal() < tier.need) return;
       ev.claimed.push(i);
-      if(tier.rw.stamps) save.stamps += tier.rw.stamps;
+      if(tier.rw.stamps) gainStamps(tier.rw.stamps);
       if(tier.rw.hearts) save.hearts = Math.min(HEART_MAX, save.hearts + tier.rw.hearts);
       if(tier.rw.boosters) save.pending = (save.pending || []).concat(tier.rw.boosters);
       persist(); confetti();
@@ -2894,6 +2987,10 @@ function renderMailroom(){
       <div style="flex:1"><div class="vh-title">${tf('Pipoville Town', 'La Città di Pipoville')}</div>
       <div class="vh-sub">${doneTasks.length}/${TASKS.length} ${tf('built', 'costruiti')} · ${tf('every delivery rebuilds it', 'ogni consegna la ricostruisce')}</div></div>
       <div class="cream-pill" style="display:flex;align-items:center;gap:5px"><img src="${ICONS.stamp}" style="width:18px;height:18px" alt="">${save.stamps}</div></div>
+    ${ensureCritters().done ? '' : `<div class="pv-row lotd-card" id="row-find"><span class="r-icon" style="font-size:30px;display:flex;align-items:center;justify-content:center">🔍</span>
+      <div class="r-main"><div class="r-title">${tf("Who's hiding?", 'Chi si nasconde?')}</div>
+      <div class="r-sub">${tf('5 friends are hiding in town — find them!', '5 amici si nascondono in città — trovali!')}</div></div>
+      <button class="q-claim" id="btn-find-open">🔍</button></div>`}
     ${renderTownScene()}
     <div class="pv-row income-row"><img class="r-icon" src="${ICONS.mailbox}" alt="">
       <div class="r-main"><div class="r-title">${tf('Town post income', 'Rendita postale della città')}</div>
@@ -2905,13 +3002,15 @@ function renderMailroom(){
     ${rows}
     ${last ? `<div class="keeper-card"><img src="${SPRITES.pipop}" alt=""><div class="k-line">${last.line}</div></div>` : ''}`;
   $('#mailroom-body').querySelectorAll('.t-do').forEach(b=>b.addEventListener('click', ()=>doTask(b.dataset.id)));
+  const findBtn = $('#btn-find-open');
+  if(findBtn) findBtn.addEventListener('click', ()=>{ Snd.ensure(); openCritters(); });
   const townPipo = $('#mailroom-body .town-pipo');
   if(townPipo) townPipo.addEventListener('click', ()=>{ Snd.ensure(); openDressRoom(); });
   const collect = $('#btn-town-collect');
   if(collect) collect.addEventListener('click', ()=>{
     if(save.townDay === new Date().toDateString()) return;
     save.townDay = new Date().toDateString();
-    save.stamps += townIncome();
+    gainStamps(townIncome());
     persist(); confetti();
     if(!Snd.play('task', 1, .6)) Snd.win();
     renderMeta(); renderMailroom();
@@ -2938,6 +3037,14 @@ function doTask(id){
 
 /* ---------------- daily quests view ---------------- */
 function questReward(q){ return q.rw.stamps ? '★' + q.rw.stamps : '♥' + q.rw.hearts; }
+function renderChestCard(){
+  const ch = save.chest || { fill: 0, opened: 0 };
+  const pct = Math.min(100, Math.round(ch.fill / CHEST_NEED * 100));
+  return `<div class="pv-row chest-card"><span class="r-icon" style="font-size:30px;display:flex;align-items:center;justify-content:center">📦</span>
+    <div class="r-main"><div class="r-title">${tf('Stamp Chest', 'Il Baule dei Francobolli')}</div>
+    <div class="q-bar"><div class="q-fill chest-fill" style="width:${pct}%"></div></div>
+    <div class="r-sub">${ch.fill} ${tf('of', 'su')} ${CHEST_NEED} · ${tf('opens by itself when full: a bonus and a surprise!', 'si apre da solo quando è pieno: bonus e sorpresa!')}</div></div></div>`;
+}
 function renderQuests(){
   ensureQuests(); regenHearts();
   const now = new Date(); const midnight = new Date(now); midnight.setHours(24, 0, 0, 0);
@@ -2958,17 +3065,21 @@ function renderQuests(){
     <div class="view-head"><img class="hicon" src="${ICONS.quest}" alt="">
       <div style="flex:1"><div class="vh-title">${tf("Today's round", "Il giro di oggi")}</div>
       <div class="vh-sub"><img src="${ICONS.clock}" alt="">${tf('resets in', 'si azzera tra')} ${hLeft}h ${mLeft}m</div></div></div>
+    ${renderChestCard()}
+    ${renderLotdCard()}
     ${renderEventCard()}
     ${rows}
     <div class="keeper-card"><img src="${SPRITES['c_ms_toni']}" alt="">
       <div class="k-line">${tf('Three rounds a day keeps the streets warm, Pipo. Miss one and Baggu gets bolder.', 'Tre giri al giorno tengono calde le strade, Pipo. Saltane uno e Baggu si fa più audace.')}</div></div>`;
   wireEventCard($('#quests-body'));
+  const lotdBtn = $('#btn-lotd');
+  if(lotdBtn) lotdBtn.addEventListener('click', ()=>{ Snd.ensure(); openLevel(ensureLotd().lv); });
   $('#quests-body').querySelectorAll('.q-claim:not(.ev-claim)').forEach(b=>{
     b.addEventListener('click', ()=>{
       const q = QUEST_DEFS.find(x=>x.id === b.dataset.q);
       if(!q || save.quests.claimed.includes(q.id)) return;
       save.quests.claimed.push(q.id);
-      if(q.rw.stamps) save.stamps += q.rw.stamps;
+      if(q.rw.stamps) gainStamps(q.rw.stamps);
       if(q.rw.hearts) save.hearts = Math.min(HEART_MAX, save.hearts + q.rw.hearts);
       persist(); confetti();
       if(!Snd.play('task', 1, .6)) Snd.win();
@@ -3148,11 +3259,52 @@ function renderShop(){
 }
 /* ---------------- daily gift ---------------- */
 const DAILY_GIFTS = [['fire',t('Firecracker')],['bomb',t('Bomb')],['dyna',t('Dynamite')],['tnt',t('TNT crate')],['bomb',t('Bomb')],['dyna',t('Dynamite')],['tnt',t('TNT crate')]];
+/* Letter of the Day: one seeded special delivery per day — first win pays double */
+function lotdLevel(){
+  const maxLvl = Math.max(3, Math.min(save.unlocked, LEVELS.length));
+  let x = (Math.floor(Date.now() / 864e5) * 2654435761) % 2147483647;
+  x = (x * 1103515245 + 12345) % 2147483647;
+  return Math.abs(x) % maxLvl + 1;
+}
+function ensureLotd(){
+  const today = new Date().toDateString();
+  if(!save.lotd || save.lotd.day !== today){ save.lotd = { day: today, lv: lotdLevel(), done: false }; persist(); }
+  return save.lotd;
+}
+function renderLotdCard(){
+  const L = ensureLotd();
+  return `<div class="pv-row lotd-card"><span class="r-icon" style="font-size:30px;display:flex;align-items:center;justify-content:center">💌</span>
+    <div class="r-main"><div class="r-title">${tf('Letter of the Day', 'La Lettera del Giorno')}</div>
+    <div class="r-sub">${L.done
+      ? tf('Delivered! A new letter arrives tomorrow.', 'Consegnata! Domani arriva una nuova lettera.')
+      : tf(`Delivery ${L.lv} pays DOUBLE stamps today!`, `Oggi la consegna ${L.lv} paga francobolli DOPPI!`)}</div></div>
+    ${L.done ? `<div class="task-done"><img src="${ICONS.medal}" alt="">${tf('done', 'fatta')}</div>`
+             : `<button class="q-claim" id="btn-lotd">${tf('Play', 'Gioca')}</button>`}</div>`;
+}
+function checkWelcomeBack(){
+  const now = Date.now();
+  const gapDays = save.lastSeen ? Math.floor((now - save.lastSeen) / 864e5) : 0;
+  save.lastSeen = now;
+  persist();
+  if(gapDays < 3) return false;
+  regenHearts();
+  save.hearts = HEART_MAX;
+  const backPay = Math.min(3, gapDays) * townIncome();
+  if(backPay) gainStamps(backPay);
+  save.pending = (save.pending || []).concat(['bomb']);
+  persist();
+  $('#wb-days').textContent = tf(`${gapDays} days of mail piled up!`, `${gapDays} giorni di posta accumulata!`);
+  $('#wb-text').innerHTML = tf(
+    `The whole town kept your route warm. Here's what was waiting for you:<br>❤️ hearts refilled · 💣 a Bomb for your next delivery${backPay ? ` · <img src="${ICONS.stamp}" style="width:15px;height:15px;vertical-align:-2px" alt=""> +${backPay} town income` : ''}`,
+    `Tutta la città ha tenuto in caldo il tuo giro. Ecco cosa ti aspettava:<br>❤️ cuori ricaricati · 💣 una Bomba per la prossima consegna${backPay ? ` · <img src="${ICONS.stamp}" style="width:15px;height:15px;vertical-align:-2px" alt=""> +${backPay} di rendita della città` : ''}`);
+  showOverlay('ov-welcome', true);
+  return true;
+}
 function checkDaily(){
   const today = new Date().toDateString();
   if(save.lastDaily === today) return;
   const yesterday = new Date(Date.now() - 864e5).toDateString();
-  save.dailyDay = save.lastDaily === yesterday ? (save.dailyDay || 0) + 1 : 1;
+  save.dailyDay = save.lastDaily === yesterday ? (save.dailyDay || 0) + 1 : Math.max(1, save.dailyDay || 1);
   save.lastDaily = today;
   const [pw, name] = DAILY_GIFTS[Math.min(save.dailyDay - 1 + (isRescued('ms_moomoo') ? 1 : 0), DAILY_GIFTS.length - 1)]; // Ms MooMoo upgrades gifts
   save.pending = (save.pending || []).concat([pw]);
@@ -4497,7 +4649,16 @@ async function winSequence(){
   G.lastWin = { level: G.level, score: G.score, stars: stars, stamps: G.runStamps || 0 };
   if(G.level >= save.unlocked && G.level < LEVELS.length) save.unlocked = G.level + 1;
   ensureQuests();
-  save.stamps += (G.runStamps || 0);
+  let earned = G.runStamps || 0;
+  const lotd = ensureLotd();
+  G.lotdDoubled = false;
+  if(!lotd.done && G.level === lotd.lv && earned > 0){
+    lotd.done = true;
+    earned *= 2;
+    G.lotdDoubled = true;
+  }
+  G.lastWin && (G.lastWin.stamps = earned);
+  gainStamps(earned);
   save.quests.prog.deliver++;
   save.quests.prog.clear += (G.destroyedTotal || 0);
   save.quests.prog.craft += (G.craftCount || 0);
@@ -4512,7 +4673,9 @@ async function winSequence(){
   }
   $('#win-title').textContent = t(['Lovely!','Blooming!','Spectacular!'][stars-1] || 'Lovely!');
   $('#win-stars').innerHTML = [1,2,3].map(sn=>`<img src="${ICONS.medal}" class="${sn<=stars?'':'off'}" alt="">`).join('');
-  $('#win-stamps-num').textContent = '+' + (G.runStamps || 0) + ' ' + tf('stamps', 'francobolli');
+  $('#win-stamps-num').textContent = '+' + earned + ' ' + tf('stamps', 'francobolli') +
+    (G.lotdDoubled ? ' 💌×2' : '');
+  $('#btn-win-find').style.display = ensureCritters().done ? 'none' : '';
   const letterWho = RESCUES[G.level] ? RESCUES[G.level].id
     : (save.rescued && save.rescued.length ? save.rescued[save.rescued.length-1] : 'sir_saltbread_cane');
   $('#win-letter').style.display = 'flex';
@@ -4743,8 +4906,10 @@ document.querySelectorAll('.lang-btn').forEach(b=>{
 $('#btn-play').addEventListener('click', ()=>{
   Snd.ensure(); showScreen('map'); renderMap();
   if(!save.storySeen){ save.storySeen = true; persist(); startIntro(); }
-  else { checkDaily(); setTimeout(maybeWhatsNew, 600); }
+  else { if(!checkWelcomeBack()) checkDaily(); setTimeout(maybeWhatsNew, 600); }
 });
+$('#btn-welcome').addEventListener('click', ()=>{ showOverlay('ov-welcome', false); checkDaily(); });
+$('#btn-win-find').addEventListener('click', ()=>{ showOverlay('ov-win', false); openCritters(); });
 /* ---- new-player intro: a little play in eight lines, kid-sized ---- */
 const INTRO = [
   { id:'pipop', text: tf(
@@ -5024,6 +5189,108 @@ function renderCloudUI(){
   } catch(e){}
 })();
 
+/* ---- Chi si nasconde? — daily hidden-critters round in the town diorama ---- */
+const CRITTERS = [
+  { k:'butterfly', size:34 }, { k:'gnome', size:38 }, { k:'jelly', size:32 },
+  { k:'c_cannolio', size:42 }, { k:'c_baggu', size:40 }
+];
+function ensureCritters(){
+  const today = new Date().toDateString();
+  if(!save.critters || save.critters.day !== today){
+    const prevStreak = save.critters && save.critters.done ? (save.critters.streak || 0) : 0;
+    save.critters = { day: today, done: false, streak: prevStreak };
+    persist();
+  }
+  return save.critters;
+}
+let findState = null;
+function openCritters(){
+  const st = ensureCritters();
+  if(st.done) return;
+  Snd.ensure();
+  let seed = Math.floor(Date.now() / 864e5) * 69069 + 1;
+  const frnd = ()=> (seed = (seed * 1103515245 + 12345) % 2147483647) / 2147483647;
+  const hard = Math.min(10, st.streak || 0);
+  const wrap = $('#find-scene-wrap');
+  wrap.innerHTML = renderTownScene();
+  const pipo = wrap.querySelector('.town-pipo');
+  if(pipo) pipo.style.pointerEvents = 'none';
+  findState = { found: 0, secs: 90, timer: null };
+  $('#find-title').textContent = tf("Who's hiding?", 'Chi si nasconde?');
+  $('#find-hint').textContent = tf('Drag to look around — 5 friends are hiding!', 'Trascina per guardarti intorno — 5 amici sono nascosti!');
+  $('#btn-find-close').textContent = tf('Close', 'Chiudi');
+  const tEl = $('#find-timer'); tEl.classList.remove('cold');
+  $('#find-secs').textContent = 90;
+  $('#find-slots').innerHTML = CRITTERS.map((c, i)=>
+    `<div class="find-slot" data-slot="${i}"><img src="${SPRITES[c.k]}" alt=""></div>`).join('');
+  CRITTERS.forEach((c, i)=>{
+    const img = document.createElement('img');
+    img.className = 'find-critter';
+    img.src = SPRITES[c.k];
+    const size = Math.max(24, c.size - hard);
+    const px = 6 + frnd() * 86, py = 18 + frnd() * 68;
+    img.style.cssText = `left:${px.toFixed(1)}%; top:${py.toFixed(1)}%; width:${size}px; height:${size}px; z-index:${4 + Math.round(frnd() * (hard >= 3 ? 40 : 4))};`;
+    img.addEventListener('pointerdown', ()=>{
+      if(img.classList.contains('found')) return;
+      img.classList.add('found');
+      if(window.gsap) gsap.to(img, { scale: 1.5, opacity: 0, duration: .4, ease: 'back.in(1.6)' });
+      else img.style.opacity = 0;
+      if(!Snd.play('pop', 1.2, .5)) Snd.special();
+      const slot = document.querySelector(`.find-slot[data-slot="${i}"]`);
+      if(slot) slot.classList.add('got');
+      findState.found++;
+      if(findState.found >= CRITTERS.length) finishCritters();
+    });
+    wrap.appendChild(img);
+  });
+  clearInterval(findState.timer);
+  findState.timer = setInterval(()=>{
+    if(!findState) return;
+    if(findState.secs > 0){
+      findState.secs--;
+      $('#find-secs').textContent = findState.secs;
+      if(findState.secs === 0){
+        tEl.classList.add('cold');
+        $('#find-hint').textContent = tf('The tea got cold — no speed bonus, but keep looking!', 'Il tè si è raffreddato — niente bonus velocità, ma continua a cercare!');
+      }
+    }
+  }, 1000);
+  showOverlay('ov-find', true);
+}
+function finishCritters(){
+  const st = ensureCritters();
+  clearInterval(findState.timer);
+  const fast = findState.secs > 45;
+  st.done = true;
+  st.streak = (st.streak || 0) + 1;
+  gainStamps(8);
+  if(fast) save.pending = (save.pending || []).concat(['fire']);
+  persist();
+  confetti();
+  if(!Snd.play('task', 1, .7)) Snd.win();
+  setTimeout(()=>{
+    $('#find-hint').textContent = (fast
+      ? tf('Sharp eyes! +8 stamps and a Firecracker!', 'Che occhio! +8 francobolli e un Petardo!')
+      : tf('All found! +8 stamps. Come back tomorrow — they love hide and seek.', 'Trovati tutti! +8 francobolli. Torna domani — adorano nascondino.'));
+  }, 300);
+  setTimeout(()=>{
+    showOverlay('ov-find', false);
+    findState = null;
+    renderMeta();
+    if(document.body.classList.contains('in-meta')){
+      const v = document.querySelector('#meta-nav .tab.active')?.dataset.view;
+      if(v === 'quests') renderQuests();
+      if(v === 'mailroom') renderMailroom();
+    } else if(G.over){
+      showOverlay('ov-win', true);   // came from the win screen: hand it back
+    }
+  }, 2600);
+}
+$('#btn-find-close').addEventListener('click', ()=>{
+  if(findState){ clearInterval(findState.timer); findState = null; }
+  showOverlay('ov-find', false);
+  if(!document.body.classList.contains('in-meta') && G.over) showOverlay('ov-win', true);
+});
 function showHeartsGate(){
   $('#hearts-title').textContent = t('Out of rounds');
   $('#hearts-text').innerHTML = tf(
