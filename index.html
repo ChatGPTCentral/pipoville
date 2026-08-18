@@ -791,6 +791,16 @@
     font-size:11px; font-weight:800; color:#8a5a00; padding:2px 9px; border-radius:999px;
     background:var(--cream); box-shadow:0 3px 0 #f0d9a8; }
   .landmark.pop { animation:bornPop .6s cubic-bezier(.2,1.7,.4,1); }
+  .cell.jelly2 { background:linear-gradient(160deg, rgba(255,110,170,.95), rgba(190,30,110,.92)) !important;
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.5), inset 0 0 0 3px rgba(255,180,215,.65), inset 0 -4px 6px rgba(110,5,60,.55) !important; }
+  .replay-badge { position:absolute; left:22px; top:-40px; width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:2;
+    background:linear-gradient(180deg,#ffffff,#e4f1ff); box-shadow:inset 0 2px 0 rgba(255,255,255,.95), 0 3px 0 #bcdcf4, 0 6px 10px rgba(18,58,46,.25); }
+  .replay-badge img { width:17px; height:17px; }
+  #sheet-best { font-weight:800; font-size:13px; color:var(--ink2); margin:6px 0 0; }
+  #sheet-best b { color:var(--ink); }
+  #btn-more-moves { font-size:19px; padding:13px 26px !important; }
+  #btn-more-moves:disabled { filter:grayscale(.7); opacity:.55; }
   #reset-note { font-size:13px; font-weight:800; color:#a8322a !important; margin-top:8px; }
 
 </style>
@@ -911,6 +921,7 @@
     </div>
     <div class="sheet-goals" id="intro-goals"></div>
     <p id="intro-moves" class="sheet-moves"></p>
+    <p id="sheet-best" style="display:none;"></p>
     <p id="intro-note"></p>
     <div id="sheet-boost-label"></div>
     <div class="sheet-boosters" id="sheet-boosters"></div>
@@ -945,8 +956,11 @@
     <p id="lose-text">You didn't reach the goal this time.</p>
     <div class="goals-row" id="lose-goals"></div>
     <div class="btns">
+      <button class="btn orange" id="btn-more-moves" style="display:none;"></button>
+    </div>
+    <div class="btns" style="margin-top:10px;">
       <button class="btn blue small" id="btn-lose-map">Map</button>
-      <button class="btn orange" id="btn-lose-retry">Try Again</button>
+      <button class="btn grey small" id="btn-lose-retry">Try Again</button>
     </div>
   </div>
 </div>
@@ -1784,6 +1798,20 @@ const ICONS = {};
     x.beginPath(); x.arc(50, 50, 12, 0, Math.PI * 2); x.fill();
     specBlob(x, 38, 36, 11, 7, -24, .7);
   }
+  function paintReplayI(x){
+    const ring = new Path2D();
+    ring.arc(50, 52, 30, -0.5, Math.PI * 1.35);
+    x.lineCap = 'round';
+    x.strokeStyle = '#14477f'; x.lineWidth = 19;
+    x.stroke(ring);
+    x.strokeStyle = '#8fd0ff'; x.lineWidth = 11;
+    x.stroke(ring);
+    x.strokeStyle = 'rgba(255,255,255,.75)'; x.lineWidth = 4;
+    x.beginPath(); x.arc(48, 49, 30, Math.PI * .55, Math.PI * 1.2); x.stroke();
+    const head = new Path2D('M84 30 L64 34 L80 54 Z');
+    x.fillStyle = '#2b7fd4'; x.fill(head);
+    x.strokeStyle = '#14477f'; x.lineWidth = 5; x.lineJoin = 'round'; x.stroke(head);
+  }
   function paintClock(x){
     const p = new Path2D('M50 18 A32 32 0 1 1 49.9 18 Z');
     shadeBody(x, p, HUE.clock, {cx:38, cy:36});
@@ -1793,7 +1821,7 @@ const ICONS = {};
     specBlob(x, 36, 34, 12, 7, -22, .7);
   }
   const P = { heart:paintHeart, stamp:paintStampI, letter:paintLetterI, mailbox:paintMailboxI,
-    medal:paintMedal, gift:paintGift, quest:paintQuest, spade:paintSpade, clock:paintClock, gear:paintGearI };
+    medal:paintMedal, gift:paintGift, quest:paintQuest, spade:paintSpade, clock:paintClock, gear:paintGearI, replay:paintReplayI };
   Object.keys(P).forEach(k => { ICONS[k] = bake(P[k]); });
 })();
 function applyIcons(root){
@@ -1843,7 +1871,7 @@ function chipIcon(g){
 
 /* ---------------- levels ----------------
    Masks: '.' = playable, 'X' = hole, 'J' = dirt, 'B'/'D' = ice (1/2 hits),
-   'G' = gnome, 'V' = vine, 'H' = honey under the piece, 'C' = chained piece
+   'G' = gnome, 'V' = vine, 'H'/'K' = honey under the piece (1/2 layers), 'C' = chained piece
    Goals: {type:'kind', kind, count} | {type:'dirt'} (count auto) */
 const LEVELS = [
   { moves:20, colors:4, mask:[ '.......','.......','.......','.......','.......','.......','.......' ],
@@ -1930,7 +1958,7 @@ const LEVELS = [
   /* ---- Chapter 6: Lighthouse Point (41-50) ---- */
   { moves:30, colors:6, mask:[ 'XXXX.XXXX','X.......X','X.......X','X.......X','.........','X.......X','X.......X','X.......X','XXXX.XXXX' ],
     goals:[{type:'kind', kind:'leaf', count:40},{type:'kind', kind:'lemon', count:40}] },
-  { moves:30, colors:6, mask:[ '.V.....V.','.........','.........','.........','.........','.........','.........','.........','.........' ],
+  { moves:30, colors:6, mask:[ '.V.....V.','.........','.........','.........','.........','....KK...','.........','.........','.........' ],
     goals:[{type:'kind', kind:'flower', count:35},{type:'kind', kind:'apple', count:35}] },
   { moves:30, colors:6, mask:[ 'X...B...X','.........','..JJJJJ..','..J...J..','.BJ...JB.','..J...J..','..JJJJJ..','.........','X...B...X' ],
     goals:[{type:'dirt'},{type:'kind', kind:'apple', count:30}], hard:true },
@@ -1938,7 +1966,7 @@ const LEVELS = [
     goals:[{type:'kind', kind:'drop', count:40}] },
   { moves:30, colors:6, mask:[ '.........','.........','.........','.........','.........','.........','.........','.........','.........' ],
     goals:[{type:'kind', kind:'apple', count:30},{type:'kind', kind:'leaf', count:30},{type:'kind', kind:'butterfly', count:30}] },
-  { moves:30, colors:6, mask:[ '.........','..DDDDD..','..D...D..','..D...D..','..D...D..','..DDDDD..','.........','.........','.........' ],
+  { moves:32, colors:6, mask:[ '.........','..DDDDD..','..D...D..','..DKKKD..','..D...D..','..DDDDD..','.........','.........','.........' ],
     goals:[{type:'kind', kind:'butterfly', count:35}] },
   { moves:30, colors:5, mask:[ 'X.X...X.X','.........','X.......X','....V....','X.......X','....V....','X.......X','.........','X.X...X.X' ],
     goals:[{type:'kind', kind:'lemon', count:45}], hard:true },
@@ -1955,7 +1983,7 @@ LEVELS.forEach((L,i)=>{
   L.blockTotal = L.mask.join('').split('B').length - 1 + (L.mask.join('').split('D').length - 1);
   L.gnomeTotal = L.mask.join('').split('G').length - 1;
   L.vineTotal = L.mask.join('').split('V').length - 1;
-  L.jellyTotal = L.mask.join('').split('H').length - 1;
+  L.jellyTotal = (L.mask.join('').split('H').length - 1) + 2 * (L.mask.join('').split('K').length - 1);
   L.lockTotal = L.mask.join('').split('C').length - 1;
   L.goals.forEach(g=>{ if(g.type==='dirt') g.count = L.dirtTotal; });
   if(L.blockTotal) L.goals.push({type:'block', count:L.blockTotal});
@@ -2485,6 +2513,12 @@ function renderMap(){
       b.addEventListener('click', ()=>{ Snd.bad(); });
     }
     holder.appendChild(b);
+    if(stars > 0 && lvl !== save.unlocked){
+      const rp = document.createElement('div');
+      rp.className = 'replay-badge';
+      rp.innerHTML = `<img src="${ICONS.replay}" alt="">`;
+      holder.appendChild(rp);
+    }
     if(lvl === save.unlocked){
       const pill = document.createElement('div');
       pill.className = 'next-pill';
@@ -2709,11 +2743,11 @@ function buildBoard(){
       const ok = ch !== 'X';
       G.playable[r][c] = ok;
       G.dirt[r][c] = ch === 'J' ? 1 : 0;
-      G.jelly[r][c] = ch === 'H' ? 1 : 0;
+      G.jelly[r][c] = ch === 'H' ? 1 : ch === 'K' ? 2 : 0;
       G.grid[r][c] = null;
       if(ok){
         const cellEl = document.createElement('div');
-        cellEl.className = 'cell' + (((r+c)%2)?' alt':'') + (G.dirt[r][c] ? ' dirt' : '') + (G.jelly[r][c] ? ' jelly' : '');
+        cellEl.className = 'cell' + (((r+c)%2)?' alt':'') + (G.dirt[r][c] ? ' dirt' : '') + (G.jelly[r][c] ? ' jelly' : '') + (G.jelly[r][c] > 1 ? ' jelly2' : '');
         cellEl.dataset.r = r; cellEl.dataset.c = c;
         boardEl.appendChild(cellEl);
       }
@@ -3094,10 +3128,13 @@ function destroyCells(keys, creations, mult){
       if(bursts < 36){ spawnBurst(r, c, KIND_HUE[p.kind], 6); bursts++; }
     }
     if(G.jelly[r] && G.jelly[r][c]){
-      // honey under the piece mops up when the piece above is cleared
-      G.jelly[r][c] = 0;
+      // honey under the piece: each clear on top mops up one layer
+      G.jelly[r][c]--;
       const jCell = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
-      if(jCell) jCell.classList.remove('jelly');
+      if(jCell){
+        jCell.classList.remove('jelly2');
+        if(!G.jelly[r][c]) jCell.classList.remove('jelly');
+      }
       const jg = G.goals.find(g => g.type==='jelly' && g.remaining > 0);
       if(jg){ jg.remaining--; flyToGoal('jelly', r, c, flights); }
       if(bursts < 36){ spawnBurst(r, c, ['#ffc9dd','#ff5c9e','#fff'], 6); bursts++; }
@@ -3698,6 +3735,8 @@ async function winSequence(){
   const stars = Math.max(1, starsEarned());
   const prev = save.stars[G.level] || 0;
   if(stars > prev) save.stars[G.level] = stars;
+  save.best = save.best || {};
+  if(G.score > (save.best[G.level] || 0)) save.best[G.level] = G.score;
   if(G.level >= save.unlocked && G.level < LEVELS.length) save.unlocked = G.level + 1;
   ensureQuests();
   save.stamps += (G.runStamps || 0);
@@ -3760,6 +3799,7 @@ function loseSequence(){
   clearHint();
   endTutorial();
   setPipoMood('sad');
+  G.lossUndo = { streak: save.streak };
   save.streak = 0;
   save.fails[G.level] = (save.fails[G.level] || 0) + 1;
   ensureQuests();
@@ -3774,8 +3814,34 @@ function loseSequence(){
   $('#lose-text').textContent = pct >= 75 ? tf(`You were ${pct}% of the way there!`, `Eri al ${pct}% del percorso!`) :
     (unmet.length === 1 ? t('One goal was left unfinished. Try again!') : t('Reach all the goals before moves run out!'));
   $('#lose-goals').innerHTML = unmet.map(g=>goalChipHTML(g, g.remaining)).join('');
+  // near-miss offer: buy 5 extra moves with stamps, Candy-Crush style but cash-free
+  const closeCall = pct >= 70 || doneAmt >= total - 6;
+  const offer = $('#btn-more-moves');
+  offer.style.display = closeCall ? '' : 'none';
+  offer.disabled = save.stamps < 12;
+  offer.innerHTML = `+5 ${t('moves')} · <img src="${ICONS.stamp}" alt="" style="width:19px;height:19px;vertical-align:-3px">12`;
   showOverlay('ov-lose', true);
 }
+$('#btn-more-moves').addEventListener('click', ()=>{
+  if(!G.over || !spendStamps(12)){ Snd.bad(); return; }
+  if(G.lossUndo){
+    // the round continues, so the loss never happened
+    save.streak = G.lossUndo.streak;
+    save.fails[G.level] = Math.max(0, (save.fails[G.level] || 0) - 1);
+    G.lossUndo = null;
+    persist();
+  }
+  G.destroyedTotal = 0; G.craftCount = 0; // already flushed into quest progress
+  G.movesLeft += 5;
+  G.over = false;
+  G.busy = false;
+  showOverlay('ov-lose', false);
+  updateHUD();
+  setPipoMood('cheer', 1400);
+  if(!Snd.play('power', 1, .5)) Snd.special();
+  toast('+5');
+  armHint();
+});
 
 /* ---- level lifecycle ---- */
 function openLevel(n){
@@ -3793,6 +3859,11 @@ function openLevel(n){
   const fails = save.fails[n] || 0;
   const plannedMoves = G.L.moves + Math.min(4, Math.floor(fails/3)*2) + (G.L.hard && isRescued('nunu') ? 2 : 0);
   $('#intro-moves').textContent = plannedMoves + ' ' + t('moves');
+  const best = (save.best || {})[n];
+  $('#sheet-best').style.display = best ? '' : 'none';
+  if(best) $('#sheet-best').innerHTML = `<img src="${ICONS.replay}" alt="" style="width:16px;height:16px;vertical-align:-2px"> ` +
+    tf('Best', 'Record') + ': <b>' + best.toLocaleString() + '</b> · ' +
+    [1,2,3].map(sn=>`<img src="${ICONS.medal}" alt="" style="width:15px;height:15px;vertical-align:-2px;${sn <= (save.stars[n]||0) ? '' : 'filter:grayscale(1) opacity(.4)'}">`).join('');
   const notes = [];
   if(save.streak >= 3) notes.push(tf(`🔥 ${save.streak}-win streak — booster head start!`, `🔥 Serie di ${save.streak} vittorie — potenziamenti in partenza!`));
   if(G.L.hard) notes.push(tf('🎁 Hard level gift: free Bomb on the board', '🎁 Regalo livello difficile: Bomba gratis sul tabellone'));
