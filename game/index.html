@@ -168,7 +168,8 @@
   }
   #board.shake { animation:shakeB .4s; }
   @keyframes shakeB { 0%,100%{transform:translate(0,0)} 20%{transform:translate(-6px,3px)} 40%{transform:translate(5px,-4px)} 60%{transform:translate(-4px,-3px)} 80%{transform:translate(4px,3px)} }
-  .cell { position:absolute; border-radius:5px; background:rgba(255,255,235,.12); }
+  .cell { position:absolute; border-radius:5px; background:rgba(255,255,235,.12);
+    box-shadow:inset 0 2px 4px rgba(0,0,0,.16), inset 0 -1px 2px rgba(255,255,255,.1); }
   .cell.alt { background:rgba(255,255,235,.2); }
   .cell.dirt { background:linear-gradient(160deg, rgba(201,145,90,.95), rgba(122,77,36,.95)); box-shadow:inset 0 0 5px rgba(255,235,200,.55), inset 0 -3px 5px rgba(60,25,0,.55); }
   .candy {
@@ -257,6 +258,51 @@
   .modal .score-line { font-size:22px; font-weight:900; color:#3f8f24; }
   .switch-row { display:flex; align-items:center; justify-content:center; gap:10px; margin-top:12px; font-weight:800; }
 
+  /* ---------- Playrix-style scenery & chrome ---------- */
+  .rays-bg { position:absolute; left:50%; top:34%; width:160vmax; height:160vmax; transform:translate(-50%,-50%); z-index:1; pointer-events:none; opacity:.2;
+    background:repeating-conic-gradient(rgba(255,255,255,.9) 0 9deg, transparent 9deg 24deg);
+    -webkit-mask:radial-gradient(circle, #000 0 22%, transparent 46%); mask:radial-gradient(circle, #000 0 22%, transparent 46%);
+    animation:raysSpin 60s linear infinite; }
+  @keyframes raysSpin { to { transform:translate(-50%,-50%) rotate(360deg); } }
+  .scene { position:absolute; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+  .hedge { position:absolute; left:-4%; right:-4%; }
+  .hedge.h-far { top:15%; height:44px; background:linear-gradient(180deg,#57a83f,#3d7f2c); }
+  .hedge.h-far::before { content:''; position:absolute; top:-14px; left:0; right:0; height:28px;
+    background:radial-gradient(circle 14px at 21px 15px, #57a83f 98%, transparent) 0 0/42px 28px repeat-x; }
+  .hedge.h-near { bottom:-6px; height:11%; background:linear-gradient(180deg,#3d7f2c,#2a5d1e); }
+  .hedge.h-near::before { content:''; position:absolute; top:-18px; left:0; right:0; height:36px;
+    background:radial-gradient(circle 19px at 28px 20px, #3d7f2c 98%, transparent) 0 0/56px 36px repeat-x; }
+  .hedge.h-near::after { content:''; position:absolute; top:-6px; left:0; right:0; height:16px;
+    background:
+      radial-gradient(circle 4px at 20px 8px, #ff8ac2 98%, transparent) 0 0/120px 16px repeat-x,
+      radial-gradient(circle 4px at 74px 10px, #ffd21f 98%, transparent) 0 0/150px 16px repeat-x,
+      radial-gradient(circle 3.5px at 47px 5px, #fff8e7 98%, transparent) 0 0/170px 16px repeat-x; }
+  .fence { position:absolute; top:12.2%; left:-2%; right:-2%; height:52px; opacity:.95; }
+  .fence::before { content:''; position:absolute; inset:0;
+    background:repeating-linear-gradient(90deg, #fff3d6 0 12px, rgba(0,0,0,0) 12px 30px); border-radius:4px;
+    box-shadow:0 3px 4px rgba(0,0,0,.12); }
+  .fence::after { content:''; position:absolute; left:0; right:0; top:12px; height:9px; background:#f3e2bd;
+    box-shadow:0 18px 0 #f3e2bd, 0 2px 3px rgba(0,0,0,.15); }
+  #board::after { content:''; position:absolute; inset:-3px; border-radius:16px; pointer-events:none;
+    box-shadow:inset 0 0 0 2.5px rgba(255,201,60,.55); }
+  .b-corner { position:absolute; z-index:4; font-size:24px; pointer-events:none; filter:drop-shadow(0 2px 2px rgba(0,0,0,.35)); }
+  .b-corner.c1 { left:-17px; top:-19px; } .b-corner.c2 { right:-17px; top:-19px; }
+  .b-corner.c3 { left:-17px; bottom:-17px; } .b-corner.c4 { right:-17px; bottom:-17px; }
+  #hud-moves { width:76px; min-width:76px; aspect-ratio:1; border-radius:50%; align-self:center;
+    background:radial-gradient(circle at 35% 30%, #c98a45, #7c4a24 72%);
+    border:3px solid #ffc93c;
+    box-shadow:0 0 0 4px #7a4a1d, 0 5px 8px rgba(0,0,0,.4), inset 0 2px 4px rgba(255,255,255,.4); }
+  #hud-goals { background:linear-gradient(180deg,#fff8e7,#f3e2bd); border-color:#7a4a1d;
+    box-shadow:0 4px 6px rgba(0,0,0,.3), inset 0 0 0 2px rgba(255,201,60,.55), inset 0 2px 4px rgba(255,255,255,.8); }
+  #hud-goals .label { color:#a8752f; }
+  #goal-chips .goal-chip { color:#5e3416; text-shadow:none; }
+  #score-panel { box-shadow:0 4px 6px rgba(0,0,0,.35), inset 0 0 0 2px rgba(255,201,60,.4), inset 0 2px 4px rgba(255,255,255,.3); }
+  .modal { box-shadow:0 10px 0 #5e3416, 0 18px 30px rgba(0,0,0,.5), inset 0 2px 6px #fff, inset 0 0 0 3px rgba(255,201,60,.5); }
+  #map-inner::before, #map-inner::after { content:''; position:absolute; top:0; bottom:0; width:36px; pointer-events:none;
+    background:radial-gradient(circle 17px at 18px 24px, rgba(42,93,30,.45) 96%, transparent) 0 0/36px 48px repeat-y; }
+  #map-inner::before { left:-6px; }
+  #map-inner::after { right:-6px; }
+
   /* ---------- juice: particles, rings, flights, squash ---------- */
   .part { position:absolute; z-index:6; border-radius:50%; pointer-events:none; animation:partFly .6s ease-out forwards; }
   @keyframes partFly { 0%{transform:translate(0,0) scale(1); opacity:1} 100%{transform:translate(var(--dx), calc(var(--dy) + 70px)) scale(.2); opacity:0} }
@@ -301,6 +347,7 @@
 <!-- SPLASH -->
 <div id="splash" class="screen active">
   <div class="sun"></div>
+  <div class="rays-bg"></div>
   <div class="cloud c1"></div><div class="cloud c2"></div>
   <div class="hill h2"></div>
   <div class="hill h1"></div>
@@ -324,6 +371,11 @@
 <!-- GAME -->
 <div id="game" class="screen">
   <div class="cloud c1"></div><div class="cloud c2"></div>
+  <div class="scene">
+    <div class="hedge h-far"></div>
+    <div class="fence"></div>
+    <div class="hedge h-near"></div>
+  </div>
   <div id="hud">
     <div class="hud-panel" id="hud-moves">
       <div class="label">Moves</div>
@@ -982,6 +1034,12 @@ function buildBoard(){
     }
   }
   layoutBoard();
+  ['c1','c2','c3','c4'].forEach(cl=>{
+    const d = document.createElement('div');
+    d.className = 'b-corner ' + cl;
+    d.textContent = '🌻';
+    boardEl.appendChild(d);
+  });
   for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
     if(!G.playable[r][c]) continue;
     let kind;
