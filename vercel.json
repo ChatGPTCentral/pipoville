@@ -5,6 +5,18 @@
   "outputDirectory": ".",
   "installCommand": "echo \"static site - no install\"",
   "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/game/:path*",
+      "has": [{ "type": "host", "value": "aleville.vercel.app" }],
+      "destination": "/game/:path*"
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "aleville.vercel.app" }],
+      "destination": "/game/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)",
