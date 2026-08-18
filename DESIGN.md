@@ -196,3 +196,25 @@ arming (`G.armed`, fire ★3 / bomb ★5 / spade ★2).
 
 The match-3 engine, obstacles, rainbow wheel, shovel, rescue plot, i18n and
 PWA setup are unchanged. All new UI strings go through `tf(en, it)`.
+
+## Honey, chains, landmarks, cutscenes
+
+Two positional blockers joined the mask language: `H` = honey (a jelly
+layer *under* the piece — cleared when the piece standing on it is
+destroyed; auto-goal `jelly`, pink glossy cell tint) and `C` = chained
+piece (a normal piece wrapped in chains: can't be swapped or proposed as
+a move; any match or blast that hits it snaps the chain instead of
+destroying it — auto-goal `lock`, `SPRITES.chain` overlay). Both hook
+into `destroyCells`, the single destruction chokepoint. Vines never
+spread onto chained pieces; shuffles leave them in place.
+
+Completed mailroom tasks now build plastic **landmark cards** along the
+route map (the next unbuilt task shows as a dashed ghost with its ★
+cost); `save.landmarksSeen` triggers a pop animation the first time each
+new landmark appears.
+
+**Chapter-end cutscenes** (`CHAPTER_SCENES`, levels 8/16/24/30/40/50)
+reuse the intro dialogue player via `startScene(script, onDone)`; they
+chain between the rescue modal and the win card, play once
+(`save.scenes`), and are fully bilingual. `window.__test.winSequence`
+is exposed for deterministic end-of-level testing.

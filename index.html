@@ -774,6 +774,23 @@
   #btn-settings img { width:28px; height:28px; }
   #btn-settings:active { transform:translateY(2px); }
   .reset-box { margin-top:16px; padding-top:14px; border-top:2px dashed #c3ddf2; }
+  .cell.jelly { background:linear-gradient(160deg, rgba(255,158,196,.85), rgba(240,80,150,.8)) !important;
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.55), inset 0 -4px 6px rgba(140,20,80,.45) !important; }
+  .candy .chain-img { position:absolute; inset:0; width:100% !important; height:100% !important; z-index:3;
+    pointer-events:none; filter:drop-shadow(0 2px 2px rgba(0,0,0,.4)); }
+  .candy.locked > img:first-child { filter:saturate(.7) brightness(.92) drop-shadow(0 3px 3px rgba(0,0,0,.35)); }
+  .landmark { position:absolute; z-index:2; width:56px; height:56px; border-radius:20px; pointer-events:none;
+    display:flex; align-items:center; justify-content:center; font-size:30px;
+    background:linear-gradient(180deg,#ffffff,#e4f1ff);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.95), 0 5px 0 #bcdcf4, 0 10px 16px rgba(18,58,46,.22); }
+  .landmark:nth-child(odd) { transform:rotate(-5deg); }
+  .landmark:nth-child(even) { transform:rotate(4deg); }
+  .landmark.ghost { background:rgba(255,255,255,.35); box-shadow:inset 0 0 0 2.5px rgba(255,255,255,.75); }
+  .landmark.ghost span { filter:grayscale(1) opacity(.5); }
+  .landmark.ghost b { position:absolute; bottom:-12px; left:50%; transform:translateX(-50%); white-space:nowrap;
+    font-size:11px; font-weight:800; color:#8a5a00; padding:2px 9px; border-radius:999px;
+    background:var(--cream); box-shadow:0 3px 0 #f0d9a8; }
+  .landmark.pop { animation:bornPop .6s cubic-bezier(.2,1.7,.4,1); }
   #reset-note { font-size:13px; font-weight:800; color:#a8322a !important; margin-top:8px; }
 
 </style>
@@ -1643,6 +1660,8 @@ const CAST_META = {
   SPRITES.vine = bake(paintVine);
   SPRITES.ice2 = bake(paintIce2);
   SPRITES.keeper = bake(paintKeeper);
+  SPRITES.jelly = bake(paintJelly);
+  SPRITES.chain = bake(paintChain);
   const orb = document.getElementById('wheel-orb');
   if(orb) orb.src = SPRITES.p_rainbow;
   Object.keys(CAST_META).forEach(k => { SPRITES['c_' + k] = CAST_META[k].src; });
@@ -1784,17 +1803,47 @@ function applyIcons(root){
   });
 }
 applyIcons();
+function paintJelly(x){
+  const body = new Path2D('M50 14 C74 14 88 32 88 54 C88 78 72 90 50 90 C28 90 12 78 12 54 C12 32 26 14 50 14 Z');
+  shadeBody(x, body, ['#ffc9dd','#ff5c9e','#a8195c'], {cx:38, cy:34});
+  x.save(); x.clip(body);
+  x.fillStyle = 'rgba(255,255,255,.35)';
+  [[30,64],[52,70],[68,58]].forEach(([px,py])=>{ x.beginPath(); x.arc(px, py, 5, 0, 7); x.fill(); });
+  x.restore();
+  specBlob(x, 34, 34, 13, 8, -25);
+  specBlob(x, 56, 26, 4, 4, 0, .9);
+}
+function paintChain(x){
+  x.save();
+  x.lineCap = 'round';
+  const link = (px, py, rot)=>{
+    x.save(); x.translate(px, py); x.rotate(rot * Math.PI / 180);
+    x.strokeStyle = '#39424e'; x.lineWidth = 10;
+    x.beginPath(); x.ellipse(0, 0, 12.5, 8, 0, 0, Math.PI * 2); x.stroke();
+    x.strokeStyle = '#aebdcb'; x.lineWidth = 5;
+    x.beginPath(); x.ellipse(0, 0, 12.5, 8, 0, 0, Math.PI * 2); x.stroke();
+    x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 2;
+    x.beginPath(); x.ellipse(-2, -2.5, 10, 5.5, 0, Math.PI, Math.PI * 1.85); x.stroke();
+    x.restore();
+  };
+  link(16, 30, 40); link(38, 46, 40); link(60, 62, 40); link(82, 78, 40);
+  link(82, 24, -40); link(60, 40, -40); link(38, 56, -40); link(16, 72, -40);
+  x.restore();
+}
 function spriteImg(k){ return `<img src="${SPRITES[k]}" alt="" draggable="false">`; }
 function chipIcon(g){
   if(g.type === 'dirt') return `<span class="dirt-ico"></span>`;
   if(g.type === 'block') return spriteImg('ice');
   if(g.type === 'gnome') return spriteImg('gnome');
   if(g.type === 'vine') return spriteImg('vine');
+  if(g.type === 'jelly') return spriteImg('jelly');
+  if(g.type === 'lock') return spriteImg('chain');
   return spriteImg(g.kind);
 }
 
 /* ---------------- levels ----------------
-   Masks: '.' = playable, 'X' = hole, 'J' = dirt patch (clear by matching on it)
+   Masks: '.' = playable, 'X' = hole, 'J' = dirt, 'B'/'D' = ice (1/2 hits),
+   'G' = gnome, 'V' = vine, 'H' = honey under the piece, 'C' = chained piece
    Goals: {type:'kind', kind, count} | {type:'dirt'} (count auto) */
 const LEVELS = [
   { moves:20, colors:4, mask:[ '.......','.......','.......','.......','.......','.......','.......' ],
@@ -1866,7 +1915,7 @@ const LEVELS = [
     goals:[{type:'kind', kind:'lemon', count:40}] },
   { moves:28, colors:6, mask:[ 'XX.....XX','X.......X','.........','..JJJJJ..','...JJJ...','..JJJJJ..','.........','X.......X','XX.....XX' ],
     goals:[{type:'kind', kind:'flower', count:35},{type:'kind', kind:'butterfly', count:30}], hard:true },
-  { moves:28, colors:6, mask:[ '.........','..D...D..','.........','.........','....D....','.........','.........','..D...D..','.........' ],
+  { moves:32, colors:6, mask:[ '.........','..D...D..','.........','...HHH...','...HHH...','...HHH...','.........','..D...D..','.........' ],
     goals:[{type:'kind', kind:'drop', count:45}] },
   { moves:30, colors:6, mask:[ 'XXX...XXX','X.......X','X..JJJ..X','...JJJ...','...JJJ...','...JJJ...','X..JJJ..X','X.......X','XXX...XXX' ],
     goals:[{type:'dirt'},{type:'kind', kind:'apple', count:30},{type:'kind', kind:'leaf', count:30}] },
@@ -1874,7 +1923,7 @@ const LEVELS = [
     goals:[{type:'kind', kind:'lemon', count:35},{type:'kind', kind:'flower', count:35}] },
   { moves:38, colors:5, mask:[ 'JJJJJJJJJ','JJJJ.JJJJ','JJJ.D.JJJ','JJ.....JJ','J.D...D.J','JJ.....JJ','JJJ.D.JJJ','JJJJ.JJJJ','JJJJJJJJJ' ],
     goals:[{type:'dirt'}], hard:true },
-  { moves:28, colors:6, mask:[ 'B.......B','.........','.........','.........','.........','.........','.........','.........','B.......B' ],
+  { moves:32, colors:6, mask:[ 'C...B...C','.........','.........','.........','.........','.........','.........','.........','C...B...C' ],
     goals:[{type:'kind', kind:'butterfly', count:40}] },
   { moves:30, colors:6, mask:[ 'XX.....XX','X..D.D..X','.........','..JJJJJ..','..JJJJJ..','..JJJJJ..','.........','X.......X','XX.....XX' ],
     goals:[{type:'dirt'},{type:'kind', kind:'drop', count:30}] },
@@ -1895,7 +1944,7 @@ const LEVELS = [
     goals:[{type:'kind', kind:'lemon', count:45}], hard:true },
   { moves:32, colors:6, mask:[ 'JJJJJJJJ.','.......J.','.JJJJJ.J.','.J...J.J.','.J.JJJ.J.','.J.....J.','.JJJJJJJ.','.........','.........' ],
     goals:[{type:'dirt'},{type:'kind', kind:'flower', count:30}] },
-  { moves:34, colors:6, mask:[ '..G...G..','.........','..B...B..','.........','...JJJ...','...JJJ...','.........','.........','.........' ],
+  { moves:36, colors:6, mask:[ '..G...G..','.........','..B...B..','...CCC...','...JJJ...','...JJJ...','...HHH...','.........','.........' ],
     goals:[{type:'dirt'},{type:'kind', kind:'leaf', count:35}] },
   { moves:42, colors:6, mask:[ 'JJJJJJJJJ','JJJJJJJJJ','JJJ.D.JJJ','JJ.....JJ','JD..D..DJ','JJ.....JJ','JJJ.D.JJJ','JJJJJJJJJ','JJJJJJJJJ' ],
     goals:[{type:'kind', kind:'apple', count:45},{type:'kind', kind:'drop', count:45},{type:'dirt'}], hard:true },
@@ -1906,10 +1955,14 @@ LEVELS.forEach((L,i)=>{
   L.blockTotal = L.mask.join('').split('B').length - 1 + (L.mask.join('').split('D').length - 1);
   L.gnomeTotal = L.mask.join('').split('G').length - 1;
   L.vineTotal = L.mask.join('').split('V').length - 1;
+  L.jellyTotal = L.mask.join('').split('H').length - 1;
+  L.lockTotal = L.mask.join('').split('C').length - 1;
   L.goals.forEach(g=>{ if(g.type==='dirt') g.count = L.dirtTotal; });
   if(L.blockTotal) L.goals.push({type:'block', count:L.blockTotal});
   if(L.gnomeTotal) L.goals.push({type:'gnome', count:L.gnomeTotal});
   if(L.vineTotal) L.goals.push({type:'vine', count:L.vineTotal});
+  if(L.jellyTotal) L.goals.push({type:'jelly', count:L.jellyTotal});
+  if(L.lockTotal) L.goals.push({type:'lock', count:L.lockTotal});
   const base = L.moves * 260 + i * 900;
   L.starScores = [base, Math.round(base*1.7), Math.round(base*2.5)];
 });
@@ -2394,7 +2447,7 @@ function checkDaily(){
 const MAP_DECOS = ['🌳','🌷','🌻','🌼','🪻','🌿','🍄','🌲'];
 function renderMap(){
   const inner = $('#map-inner');
-  inner.querySelectorAll('.lvl-node, .lvl-holder, .map-deco, .decor, .pipop-av, .heart-pop, .friend, .chapter-sign').forEach(n=>n.remove());
+  inner.querySelectorAll('.lvl-node, .lvl-holder, .map-deco, .decor, .pipop-av, .heart-pop, .friend, .chapter-sign, .landmark').forEach(n=>n.remove());
   const n = LEVELS.length;
   const H = 170 * n + 160;
   inner.style.height = H + 'px';
@@ -2440,6 +2493,27 @@ function renderMap(){
     }
     inner.appendChild(holder);
   });
+  // town restoration: every finished mailroom task builds a landmark on the route
+  const nextT = nextTask();
+  TASKS.forEach((task, i)=>{
+    const built = save.done.includes(task.id);
+    const isNext = !built && nextT && nextT.id === task.id;
+    if(!built && !isNext) return;
+    const anchor = pts[Math.min(n-1, 1 + i*3)];
+    const el = document.createElement('div');
+    el.className = 'landmark' + (built ? ' built' : ' ghost');
+    const side = (i % 2) ? 1 : -1;
+    el.style.left = `calc(${anchor[0]}% + ${side * 98}px)`;
+    el.style.top = (anchor[1] - 26) + 'px';
+    el.innerHTML = built ? `<span>${task.emoji}</span>` : `<span>${task.emoji}</span><b>★${taskStamps(task)}</b>`;
+    inner.appendChild(el);
+  });
+  if((save.landmarksSeen || 0) < save.done.length){
+    save.landmarksSeen = save.done.length; persist();
+    const builtEls = inner.querySelectorAll('.landmark.built');
+    const newest = builtEls[builtEls.length - 1];
+    if(newest && !REDUCED){ newest.classList.add('pop'); if(!Snd.play('task', 1, .5)) Snd.special(); }
+  }
   const nextRescueLv = Object.keys(RESCUES).map(Number).filter(lv=>!isRescued(RESCUES[lv].id)).sort((a,b)=>a-b)[0];
   $('#route-hint-text').textContent = nextRescueLv
     ? tf(`The mail cart's still missing. ${CHARACTERS[RESCUES[nextRescueLv].id].name} is waiting at delivery ${nextRescueLv} — follow the trail!`,
@@ -2592,6 +2666,24 @@ function makeVine(){
   boardEl.appendChild(p.el);
   return p;
 }
+function setLock(p){
+  p.lock = true;
+  p.el.classList.add('locked');
+  const chain = document.createElement('img');
+  chain.className = 'chain-img';
+  chain.src = SPRITES.chain;
+  chain.draggable = false;
+  p.el.appendChild(chain);
+}
+function snapLock(p, r, c, flights){
+  p.lock = false;
+  p.el.classList.remove('locked');
+  const chain = p.el.querySelector('.chain-img');
+  if(chain) chain.remove();
+  const g = G.goals.find(g => g.type==='lock' && g.remaining > 0);
+  if(g){ g.remaining--; flyToGoal('lock', r, c, flights); }
+  spawnBurst(r, c, ['#aebdcb','#e8f0f8','#39424e'], 6);
+}
 function setPower(p, power){
   p.power = power;
   p.kind = null;
@@ -2609,18 +2701,19 @@ function removePieceEl(p){
 /* ---- board init ---- */
 function buildBoard(){
   boardEl.innerHTML = '';
-  G.grid = []; G.dirt = []; G.playable = [];
+  G.grid = []; G.dirt = []; G.jelly = []; G.playable = [];
   for(let r=0;r<G.L.rows;r++){
-    G.grid[r] = []; G.dirt[r] = []; G.playable[r] = [];
+    G.grid[r] = []; G.dirt[r] = []; G.jelly[r] = []; G.playable[r] = [];
     for(let c=0;c<G.L.cols;c++){
       const ch = G.L.mask[r][c];
       const ok = ch !== 'X';
       G.playable[r][c] = ok;
       G.dirt[r][c] = ch === 'J' ? 1 : 0;
+      G.jelly[r][c] = ch === 'H' ? 1 : 0;
       G.grid[r][c] = null;
       if(ok){
         const cellEl = document.createElement('div');
-        cellEl.className = 'cell' + (((r+c)%2)?' alt':'') + (G.dirt[r][c] ? ' dirt' : '');
+        cellEl.className = 'cell' + (((r+c)%2)?' alt':'') + (G.dirt[r][c] ? ' dirt' : '') + (G.jelly[r][c] ? ' jelly' : '');
         cellEl.dataset.r = r; cellEl.dataset.c = c;
         boardEl.appendChild(cellEl);
       }
@@ -2647,6 +2740,7 @@ function buildBoard(){
     do { kind = KINDS[rnd(G.L.colors)]; guard++; }
     while(guard < 40 && createsInstantMatch(r,c,kind));
     const p = makePiece(kind);
+    if(ch === 'C') setLock(p);
     G.grid[r][c] = p;
     placeCandy(p.el, r, c, true);
   }
@@ -2975,6 +3069,11 @@ function destroyCells(keys, creations, mult){
     if(creationKeys.has(k)) return; // this piece becomes a power-up instead
     const p = G.grid[r][c];
     if(!p) return;
+    if(p.lock){
+      // chained piece: the hit snaps the chain, the piece survives
+      snapLock(p, r, c, flights);
+      return;
+    }
     if(p.block && p.hp > 1){
       // first hit only cracks a two-layer ice cube
       p.hp--;
@@ -2993,6 +3092,15 @@ function destroyCells(keys, creations, mult){
       const g = G.goals.find(g => g.type==='kind' && g.kind === p.kind && g.remaining > 0);
       if(g){ g.remaining--; flyToGoal(p.kind, r, c, flights); }
       if(bursts < 36){ spawnBurst(r, c, KIND_HUE[p.kind], 6); bursts++; }
+    }
+    if(G.jelly[r] && G.jelly[r][c]){
+      // honey under the piece mops up when the piece above is cleared
+      G.jelly[r][c] = 0;
+      const jCell = boardEl.querySelector(`.cell[data-r="${r}"][data-c="${c}"]`);
+      if(jCell) jCell.classList.remove('jelly');
+      const jg = G.goals.find(g => g.type==='jelly' && g.remaining > 0);
+      if(jg){ jg.remaining--; flyToGoal('jelly', r, c, flights); }
+      if(bursts < 36){ spawnBurst(r, c, ['#ffc9dd','#ff5c9e','#fff'], 6); bursts++; }
     }
     removePieceEl(p);
     G.grid[r][c] = null;
@@ -3127,7 +3235,7 @@ function spreadVine(){
     const [r,c] = vines[rnd(vines.length)];
     const [dr,dc] = [[1,0],[-1,0],[0,1],[0,-1]][rnd(4)];
     const q = pieceAt(r+dr, c+dc);
-    if(q && q.kind && !q.power){
+    if(q && q.kind && !q.power && !q.lock){
       removePieceEl(q);
       const v = makeVine();
       G.grid[r+dr][c+dc] = v;
@@ -3162,7 +3270,7 @@ function findAnyMove(){
     for(const [dr,dc] of [[0,1],[1,0]]){
       const r2 = r+dr, c2 = c+dc;
       const q = pieceAt(r2,c2);
-      if(!q || p.block || q.block || p.gnome || q.gnome || p.vine || q.vine) continue;
+      if(!q || p.block || q.block || p.gnome || q.gnome || p.vine || q.vine || p.lock || q.lock) continue;
       if(p.power && q.power) return [[r,c],[r2,c2]];
       if(wouldMatch(r,c,r2,c2)) return [[r,c],[r2,c2]];
     }
@@ -3175,7 +3283,7 @@ function shuffleBoard(silent){
     const cells = [];
     for(let r=0;r<G.L.rows;r++) for(let c=0;c<G.L.cols;c++){
       const p = pieceAt(r,c);
-      if(p && !p.power && !p.block && !p.gnome && !p.vine) cells.push([r,c]);
+      if(p && !p.power && !p.block && !p.gnome && !p.vine && !p.lock) cells.push([r,c]);
     }
     for(let i=cells.length-1;i>0;i--){
       const j = rnd(i+1);
@@ -3188,7 +3296,7 @@ function shuffleBoard(silent){
       const run = runs.hRuns[0] || runs.vRuns[0];
       const [r,c] = run[1];
       const p = G.grid[r][c];
-      if(p && !p.power){ p.kind = KINDS[rnd(G.L.colors)]; p.el.innerHTML = spriteImg(p.kind); }
+      if(p && !p.power && !p.lock){ p.kind = KINDS[rnd(G.L.colors)]; p.el.innerHTML = spriteImg(p.kind); }
       runs = findRuns(); fix++;
     }
     guard++;
@@ -3361,6 +3469,7 @@ async function digCell(r,c){
   await resolveCascades(new Set([key(r,c)]), []);
   await afterMove();
 }
+/* locked pieces also feed through resolveCascades: the destroy pass snaps the chain */
 $('#btn-shovel').addEventListener('click', ()=>{
   if(G.busy || G.over || G.shovels <= 0) return;
   Snd.ensure();
@@ -3407,7 +3516,7 @@ async function trySwap(r1,c1,r2,c2){
   if(G.busy || G.over) return;
   const a = pieceAt(r1,c1), b = pieceAt(r2,c2);
   if(!a || !b) return;
-  if(a.block || b.block || a.gnome || b.gnome || a.vine || b.vine){ Snd.bad(); return; }
+  if(a.block || b.block || a.gnome || b.gnome || a.vine || b.vine || a.lock || b.lock){ Snd.bad(); return; }
   if(Math.abs(r1-r2) + Math.abs(c1-c2) !== 1) return;
   G.busy = true;
   clearHint();
@@ -3643,6 +3752,7 @@ async function winSequence(){
     showOverlay('ov-rescue', true);
     return;
   }
+  if(maybeChapterScene(()=>showOverlay('ov-win', true))) return;
   showOverlay('ov-win', true);
 }
 function loseSequence(){
@@ -3690,6 +3800,8 @@ function openLevel(n){
   if(G.L.blockTotal) notes.push(tf("🧊 Baggu froze pieces in ice locks — crack them with nearby matches!", "🧊 Baggu ha congelato i pezzi nel ghiaccio — rompilo con combinazioni vicine!"));
   if(rescue && !isRescued(rescue.id)) notes.push('💚 ' + tf(CHARACTERS[rescue.id].name + ' is trapped at the end of this level!', CHARACTERS[rescue.id].name + ' è in trappola alla fine di questo livello!'));
   if(G.L.vineTotal) notes.push(tf("🌊 Whaeleeno's ink weeds spread every move you ignore them — cut fast!", "🌊 Le alghe d'inchiostro di Whaeleeno si diffondono a ogni mossa se le ignori — tagliale in fretta!"));
+  if(G.L.jellyTotal) notes.push(tf('🍯 Sticky honey on the road! Match pieces on top of it to mop it up.', '🍯 Miele appiccicoso sulla strada! Combina i pezzi sopra per pulirlo.'));
+  if(G.L.lockTotal) notes.push(tf('⛓️ Some pieces are chained! Match right beside them to snap the locks.', '⛓️ Alcuni pezzi sono incatenati! Combina proprio accanto per spezzare le catene.'));
   if(save.pending && save.pending.length) notes.push(tf('🎁 Daily gift planted on the board!', '🎁 Regalo del giorno piantato sul tabellone!'));
   $('#intro-note').innerHTML = notes.join('<br>');
   $('#intro-goals').innerHTML = G.L.goals.map(g=>goalChipHTML(g, g.count)).join('');
@@ -3831,8 +3943,10 @@ const INTRO = [
       "Combina 3 pezzi uguali per liberare la strada. Combinane 4 o più per una grande sorpresa! Buona fortuna, Pipo!") }
 ];
 let introStep = 0;
+let SCRIPT = INTRO;
+let sceneDone = null;
 function showIntroStep(){
-  const s = INTRO[introStep];
+  const s = SCRIPT[introStep];
   const portrait = $('#story-portrait');
   portrait.src = SPRITES['c_' + s.id];
   portrait.classList.toggle('baddie', !!s.baddie);
@@ -3840,18 +3954,63 @@ function showIntroStep(){
   $('#story-ribbon').textContent = s.baddie ? tf('Oh no!', 'Oh no!') : 'Pipoville';
   $('#story-name').textContent = CHARACTERS[s.id].name;
   $('#story-text').textContent = s.text;
-  $('#btn-story').textContent = introStep === INTRO.length - 1 ? t("Let's go!") : t('Next ▶');
-  $('#story-dots').innerHTML = INTRO.map((_,i)=>`<span class="dot${i===introStep?' on':''}"></span>`).join('');
+  $('#btn-story').textContent = introStep === SCRIPT.length - 1 ? t("Let's go!") : t('Next ▶');
+  $('#story-dots').innerHTML = SCRIPT.map((_,i)=>`<span class="dot${i===introStep?' on':''}"></span>`).join('');
   if(window.gsap && !REDUCED){
     gsap.fromTo('#story-portrait', { scale:.6, y:8 }, { scale:1, y:0, duration:.45, ease:'back.out(2)' });
     gsap.fromTo('#story-text', { opacity:0, y:6 }, { opacity:1, y:0, duration:.3 });
   }
 }
-function startIntro(){ introStep = 0; showIntroStep(); showOverlay('ov-story', true); }
+function startIntro(){ SCRIPT = INTRO; sceneDone = null; introStep = 0; showIntroStep(); showOverlay('ov-story', true); }
+function startScene(script, onDone){ SCRIPT = script; sceneDone = onDone; introStep = 0; showIntroStep(); showOverlay('ov-story', true); }
 $('#btn-story').addEventListener('click', ()=>{
-  if(introStep < INTRO.length - 1){ introStep++; showIntroStep(); Snd.swap(); return; }
-  showOverlay('ov-story', false); checkDaily();
+  if(introStep < SCRIPT.length - 1){ introStep++; showIntroStep(); Snd.swap(); return; }
+  showOverlay('ov-story', false);
+  if(sceneDone){ const done = sceneDone; sceneDone = null; done(); return; }
+  checkDaily();
 });
+
+/* ---- chapter-end cutscenes: a little curtain call after the last delivery of each chapter ---- */
+const CHAPTER_SCENES = {
+  8: [
+    { id:'nunu', text: tf('My farm is safe and the whole valley smells like hay again. Thank you, Pipo!', 'La mia fattoria è salva e tutta la valle profuma di fieno! Grazie, Pipo!') },
+    { id:'ninni', text: tf('Neigh-hooray! Race you to the school gate!', 'Hiii-evviva! Facciamo a gara fino al cancello della scuola!') },
+    { id:'pipop', text: tf('On to Pipoville School — Ms MooMoo needs us!', 'Verso la Scuola di Pipoville — Ms MooMoo ha bisogno di noi!') }
+  ],
+  16: [
+    { id:'ms_saltchow', text: tf('The school bell rings again! I painted a giant THANK YOU on the gym wall.', 'La campanella suona di nuovo! Ho dipinto un GRAZIE gigante sul muro della palestra.') },
+    { id:'winnie', text: tf('Arf arf! Main Street next — Mayalee\'s store is all dark!', 'Arf arf! Ora il Corso Principale — il negozio di Mayalee è tutto buio!') }
+  ],
+  24: [
+    { id:'pancione', text: tf('Main Street smells of fresh bread again. Croissants for everyone!', 'Il Corso Principale profuma di nuovo di pane fresco. Cornetti per tutti!') },
+    { id:'pipop', text: tf('Now the Town Hall. Hold on, Sheriff — we are coming!', 'Ora il Municipio. Resisti, sceriffo — stiamo arrivando!') }
+  ],
+  30: [
+    { id:'sir_saltbread_cane', text: tf('Every friend is home and the mail is back. But the harbour fog still hides one last secret...', 'Tutti gli amici sono a casa e la posta è tornata. Ma la nebbia del porto nasconde ancora un ultimo segreto...') },
+    { id:'pipop', text: tf('Then the round is not over! To the docks!', 'Allora il giro non è finito! Al porto!') }
+  ],
+  40: [
+    { id:'baggu', text: tf('A mail bag feels much better than a loot bag. Hee hee!', 'Una borsa della posta è molto meglio di un sacco di bottino. Ih ih!') },
+    { id:'cannolio', text: tf('Woof! Welcome to the team, Baggu!', 'Bau! Benvenuto in squadra, Baggu!') },
+    { id:'pipop', text: tf('One lighthouse left to light. Everyone, follow me!', 'Resta solo un faro da accendere. Tutti dietro di me!') }
+  ],
+  50: [
+    { id:'whaeleeno', text: tf('Blub... the lighthouse shines again. You really never give up, do you?', 'Blub... il faro splende di nuovo. Tu non ti arrendi proprio mai, eh?') },
+    { id:'pipop', text: tf('Pipoville delivers — always! The end... until the next letter!', 'Pipoville consegna — sempre! Fine... fino alla prossima lettera!') },
+    { id:'sir_saltbread_cane', text: tf('Three cheers for Deputy Pipo! Hip hip hooray!', 'Tre urrà per il vice Pipo! Hip hip urrà!') }
+  ]
+};
+function maybeChapterScene(then){
+  const sc = CHAPTER_SCENES[G.level];
+  save.scenes = save.scenes || [];
+  if(sc && !save.scenes.includes(G.level)){
+    save.scenes.push(G.level);
+    persist();
+    startScene(sc, then);
+    return true;
+  }
+  return false;
+}
 $('#btn-win-tasks').addEventListener('click', ()=>{
   showOverlay('ov-win', false);
   showScreen('mailroom'); renderMailroom();
@@ -3860,7 +4019,11 @@ $('#btn-daily').addEventListener('click', ()=>showOverlay('ov-daily', false));
 $('#btn-rescue').addEventListener('click', ()=>{
   showOverlay('ov-rescue', false);
   confetti();
-  if(G.pendingWin){ G.pendingWin = false; showOverlay('ov-win', true); }
+  if(G.pendingWin){
+    G.pendingWin = false;
+    if(maybeChapterScene(()=>showOverlay('ov-win', true))) return;
+    showOverlay('ov-win', true);
+  }
 });
 const RENDER_VIEW = { quests: renderQuests, album: renderAlbum, shop: renderShop, mailroom: renderMailroom };
 document.querySelectorAll('#meta-nav .tab').forEach(b=>{
@@ -3976,7 +4139,7 @@ if('serviceWorker' in navigator && location.protocol !== 'file:'){
 
 /* ---- automation hooks for tests ---- */
 window.__test = {
-  openLevel, startLevel, trySwap, activatePower,
+  openLevel, startLevel, trySwap, activatePower, winSequence,
   state: () => G,
   findAnyMove,
   levels: LEVELS,
