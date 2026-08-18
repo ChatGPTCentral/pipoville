@@ -1,8 +1,8 @@
 # Aleville — Design & Experimentation Guide
 
-A self-contained, offline-first match-3 prototype in the garden-puzzler genre
+Aleville — a self-contained, offline-first match-3 game in the garden-puzzler genre
 (Gardenscapes-style meta, size-tiered explosives). Everything lives in
-`index.html` — engine, procedurally painted sprites, UI, levels, audio, and
+ `index.html` — engine, procedurally painted sprites, UI, levels, audio, and
 meta systems — with zero dependencies and zero image assets. This document
 maps the code so you can experiment with new features quickly.
 
@@ -10,7 +10,7 @@ maps the code so you can experiment with new features quickly.
 
 | File | Purpose |
 |---|---|
-| `index.html` | The entire game (CSS + HTML shells + one `<script>`) |
+|  `index.html` | The entire game (CSS + HTML shells + one `<script>`) |
 | `sw.js` | Offline cache (bump `CACHE` version on every release) |
 | `manifest.webmanifest` | PWA install metadata |
 | `icon.svg`, `apple-touch-icon.png` | App icons (PNG required for iOS) |
@@ -107,4 +107,4 @@ satisfy `KINDS.indexOf(g.kind) < L.colors`.
 2. Headless smoke: auto-play a win and a loss, plant each power tier, check
    `document.querySelectorAll('.part,.ring,.rays,.fly').length === 0` after
    play and zero console errors.
-3. Deploy = merge to `main` (Vercel serves `/game/`).
+3. Deploy = merge to `main` (Vercel serves the repo root at aleville.vercel.app).
