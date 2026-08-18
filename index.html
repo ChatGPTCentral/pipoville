@@ -1857,6 +1857,48 @@ const LEVELS = [
     goals:[{type:'kind', kind:'drop', count:40},{type:'kind', kind:'flower', count:40}], hard:true },
   { moves:36, colors:6, mask:[ 'JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ','JJJJJJJJJ' ],
     goals:[{type:'kind', kind:'apple', count:40},{type:'kind', kind:'lemon', count:40},{type:'dirt'}], hard:true },
+  /* ---- Chapter 5: Harbour Docks (31-40) ---- */
+  { moves:26, colors:5, mask:[ '.........','.........','.........','.........','.........','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'apple', count:35},{type:'kind', kind:'drop', count:35}] },
+  { moves:28, colors:5, mask:[ '.........','.........','....V....','.........','..JJJJJ..','.........','.........','.........','.........' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'leaf', count:30}] },
+  { moves:30, colors:5, mask:[ '..G...G..','.........','.........','...BBB...','.........','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'lemon', count:40}] },
+  { moves:28, colors:6, mask:[ 'XX.....XX','X.......X','.........','..JJJJJ..','...JJJ...','..JJJJJ..','.........','X.......X','XX.....XX' ],
+    goals:[{type:'kind', kind:'flower', count:35},{type:'kind', kind:'butterfly', count:30}], hard:true },
+  { moves:28, colors:6, mask:[ '.........','..D...D..','.........','.........','....D....','.........','.........','..D...D..','.........' ],
+    goals:[{type:'kind', kind:'drop', count:45}] },
+  { moves:30, colors:6, mask:[ 'XXX...XXX','X.......X','X..JJJ..X','...JJJ...','...JJJ...','...JJJ...','X..JJJ..X','X.......X','XXX...XXX' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'apple', count:30},{type:'kind', kind:'leaf', count:30}] },
+  { moves:30, colors:6, mask:[ '..G.G.G..','.........','.........','.........','....V....','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'lemon', count:35},{type:'kind', kind:'flower', count:35}] },
+  { moves:38, colors:5, mask:[ 'JJJJJJJJJ','JJJJ.JJJJ','JJJ.D.JJJ','JJ.....JJ','J.D...D.J','JJ.....JJ','JJJ.D.JJJ','JJJJ.JJJJ','JJJJJJJJJ' ],
+    goals:[{type:'dirt'}], hard:true },
+  { moves:28, colors:6, mask:[ 'B.......B','.........','.........','.........','.........','.........','.........','.........','B.......B' ],
+    goals:[{type:'kind', kind:'butterfly', count:40}] },
+  { moves:30, colors:6, mask:[ 'XX.....XX','X..D.D..X','.........','..JJJJJ..','..JJJJJ..','..JJJJJ..','.........','X.......X','XX.....XX' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'drop', count:30}] },
+  /* ---- Chapter 6: Lighthouse Point (41-50) ---- */
+  { moves:30, colors:6, mask:[ 'XXXX.XXXX','X.......X','X.......X','X.......X','.........','X.......X','X.......X','X.......X','XXXX.XXXX' ],
+    goals:[{type:'kind', kind:'leaf', count:40},{type:'kind', kind:'lemon', count:40}] },
+  { moves:30, colors:6, mask:[ '.V.....V.','.........','.........','.........','.........','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'flower', count:35},{type:'kind', kind:'apple', count:35}] },
+  { moves:30, colors:6, mask:[ 'X...B...X','.........','..JJJJJ..','..J...J..','.BJ...JB.','..J...J..','..JJJJJ..','.........','X...B...X' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'apple', count:30}], hard:true },
+  { moves:34, colors:5, mask:[ '.G.G.G.G.','.........','.........','.........','.........','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'drop', count:40}] },
+  { moves:30, colors:6, mask:[ '.........','.........','.........','.........','.........','.........','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'apple', count:30},{type:'kind', kind:'leaf', count:30},{type:'kind', kind:'butterfly', count:30}] },
+  { moves:30, colors:6, mask:[ '.........','..DDDDD..','..D...D..','..D...D..','..D...D..','..DDDDD..','.........','.........','.........' ],
+    goals:[{type:'kind', kind:'butterfly', count:35}] },
+  { moves:30, colors:5, mask:[ 'X.X...X.X','.........','X.......X','....V....','X.......X','....V....','X.......X','.........','X.X...X.X' ],
+    goals:[{type:'kind', kind:'lemon', count:45}], hard:true },
+  { moves:32, colors:6, mask:[ 'JJJJJJJJ.','.......J.','.JJJJJ.J.','.J...J.J.','.J.JJJ.J.','.J.....J.','.JJJJJJJ.','.........','.........' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'flower', count:30}] },
+  { moves:34, colors:6, mask:[ '..G...G..','.........','..B...B..','.........','...JJJ...','...JJJ...','.........','.........','.........' ],
+    goals:[{type:'dirt'},{type:'kind', kind:'leaf', count:35}] },
+  { moves:42, colors:6, mask:[ 'JJJJJJJJJ','JJJJJJJJJ','JJJ.D.JJJ','JJ.....JJ','JD..D..DJ','JJ.....JJ','JJJ.D.JJJ','JJJJJJJJJ','JJJJJJJJJ' ],
+    goals:[{type:'kind', kind:'apple', count:45},{type:'kind', kind:'drop', count:45},{type:'dirt'}], hard:true },
 ];
 LEVELS.forEach((L,i)=>{
   L.rows = L.mask.length; L.cols = L.mask[0].length;
@@ -1938,6 +1980,10 @@ const IT = {
   // tutorial
   'Swap to match 3!':'Scambia per fare tris!',
   // chapters
+  'Ch.5 — Harbour Docks':'Cap.5 — Il Porto',
+  'Ch.6 — Lighthouse Point':'Cap.6 — Il Faro',
+  "Hee hee... you got me. The fog was cold and Whaeleeno is bossy. Can I... deliver letters with you instead?":
+    'Ih ih... mi hai preso. La nebbia era fredda e Whaeleeno è prepotente. Posso... consegnare le lettere con voi, invece?',
   'Ch.1 — Nunu Farms':'Cap.1 — Fattorie di Nunu',
   'Ch.2 — Pipoville School':'Cap.2 — Scuola di Pipoville',
   'Ch.3 — Main Street':'Cap.3 — Corso Principale',
@@ -2065,8 +2111,10 @@ const QUEST_DEFS = [
   { id:'clear',   need:120, ico:'stamp',  rw:{stamps:4}, t: tf('Clear 120 pieces', 'Elimina 120 pezzi') },
   { id:'craft',   need:4,   ico:'medal',  rw:{hearts:1}, t: tf('Craft 4 boosters', 'Crea 4 potenziamenti') }
 ];
-function chapterFor(lv){ return lv >= 25 ? 4 : lv >= 17 ? 3 : lv >= 9 ? 2 : 1; }
-function chapterName(ch){ return CHAPTERS[[1,9,17,25][ch-1]].replace(/^[^—]*—\s*/, ''); }
+function chapterFor(lv){ return lv >= 41 ? 6 : lv >= 31 ? 5 : lv >= 25 ? 4 : lv >= 17 ? 3 : lv >= 9 ? 2 : 1; }
+// map growth migration: whoever already beat their frontier level moves forward
+while(save.stars[save.unlocked] > 0 && save.unlocked < LEVELS.length){ save.unlocked++; }
+function chapterName(ch){ return CHAPTERS[[1,9,17,25,31,41][ch-1]].replace(/^[^—]*—\s*/, ''); }
 function renderMeta(){
   regenHearts(); ensureQuests();
   $('#hearts-num').textContent = save.hearts;
@@ -2135,7 +2183,7 @@ function showScreen(id){
 function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 
 /* ---------------- the rescue of Pipoville ---------------- */
-const CHAPTERS = { 1:t('Ch.1 — Nunu Farms'), 9:t('Ch.2 — Pipoville School'), 17:t('Ch.3 — Main Street'), 25:t('Ch.4 — Town Hall') };
+const CHAPTERS = { 1:t('Ch.1 — Nunu Farms'), 9:t('Ch.2 — Pipoville School'), 17:t('Ch.3 — Main Street'), 25:t('Ch.4 — Town Hall'), 31:t('Ch.5 — Harbour Docks'), 41:t('Ch.6 — Lighthouse Point') };
 const RESCUES = {
   4:  { id:'ninni', line:t('Neigh! Those thieves tied me up in the hay barn. Thank you, Pipo!') },
   6:  { id:'cannolio', line:t("Woof woof! I KNEW you'd come! I'll dig for you from now on. (+1 shovel every level)") },
@@ -2149,7 +2197,8 @@ const RESCUES = {
   24: { id:'pancione', line:t('Fresh croissants for the hero! Your streak boosters just got tastier. (Streaks add a Bomb)') },
   26: { id:'winnie', line:t('Arf! The sheriff is still locked in the town hall — hurry, Pipo!') },
   28: { id:'sir_saltbread_cane', line:t("Sheriff Saltbread Cane, back on duty. Let's finish this, Deputy Pipo.") },
-  30: { id:'whaeleeno', villain:true, line:t('Blub... you win, mailbird. Baggu — give back the mail. ALL of it. Pipoville is saved!') }
+  30: { id:'whaeleeno', villain:true, line:t('Blub... you win, mailbird. Baggu — give back the mail. ALL of it. Pipoville is saved!') },
+  40: { id:'baggu', line:t("Hee hee... you got me. The fog was cold and Whaeleeno is bossy. Can I... deliver letters with you instead?") }
 };
 function isRescued(id){ return (save.rescued || []).includes(id); }
 
