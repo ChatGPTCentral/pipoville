@@ -518,7 +518,7 @@
     --ink:#1e3a52; --ink2:#7fa0b8; --ink-art:#123a2e;
   }
   #splash { background:var(--sky); }
-  #map { background:var(--sky); padding:64px 0 86px; }
+  #map { background:var(--sky); padding:64px 0 0; }
   #map::before { content:''; position:absolute; right:-40px; top:-30px; width:190px; height:190px; border-radius:50%; z-index:0;
     background:radial-gradient(circle at 42% 38%, rgba(255,255,255,.95), rgba(255,236,150,.55) 45%, rgba(255,214,90,0) 72%); pointer-events:none; }
   #game { background:var(--sky); }
@@ -554,7 +554,7 @@
   .pill img { width:26px; height:26px; }
   .pill .cap { font-weight:700; font-size:11px; color:var(--ink2); letter-spacing:.04em; }
   .pill.stamps { background:var(--cream); box-shadow:var(--cream-sh); color:#8a5a00; }
-  .chap { text-align:right; line-height:1.05; }
+  .chap { text-align:right; line-height:1.05; flex:1 1 auto; min-width:0; }
   #chap-label { font-weight:700; font-size:10px; letter-spacing:.12em; color:rgba(18,58,46,.55); }
   #chap-name { font-weight:800; font-size:15px; color:var(--ink-art); text-shadow:0 1px 0 rgba(255,255,255,.6); }
   body.in-meta #meta-nav { display:flex; position:absolute; left:10px; right:10px; bottom:calc(10px + env(safe-area-inset-bottom));
@@ -866,8 +866,11 @@
   /* layout: floating banners clear the meta top bar */
   .map-banner { top:calc(96px + env(safe-area-inset-top)); z-index:40; max-width:92vw; white-space:normal; text-align:center; }
   /* layout: chapter block never wrestles the gear button */
-  .chap { max-width:118px; }
-  #chap-name { font-size:13.5px; line-height:1.08; }
+  #chap-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  /* the chapter name may run to two lines; flex:1/min-width:0 keeps it from
+     ever shoving the settings button off the edge */
+  #chap-name { font-size:13.5px; line-height:1.08; overflow:hidden;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; }
   /* layout: delivery panel never clips on multi-goal levels */
   #goal-chips { gap:8px; }
   #goal-chips .goal-chip { font-size:15px; }
@@ -903,14 +906,23 @@
   /* ================= V24 GEOMETRY PASS ================= */
   /* full-bleed bottom nav: no see-through gap under the floating bar */
   body.in-meta #meta-nav { left:0; right:0; bottom:0; border-radius:26px 26px 0 0;
-    padding:8px 10px calc(10px + env(safe-area-inset-bottom));
-    background:linear-gradient(180deg,#ffffff,#e0effc); }
+    padding:8px 10px calc(14px + env(safe-area-inset-bottom));
+    justify-content:space-evenly;
+    background:linear-gradient(180deg,#ffffff,#e0effc);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(43,127,212,.10),
+               0 -3px 0 rgba(31,104,180,.16), 0 -10px 22px rgba(18,58,46,.22); }
+  /* a tab is a pill, not a slab: it stops growing on wide screens */
+  #meta-nav .tab { flex:1 1 0; max-width:104px; transition:transform .12s ease; }
+  #meta-nav .tab span { color:#5b7f99; }
+  #meta-nav .tab.active { transform:translateY(-1px); }
+  #meta-nav .tab:active { transform:translateY(2px); }
   .view-pad { padding-bottom:calc(104px + env(safe-area-inset-bottom)); }
   /* task banner floats over the diorama, not over the view header text */
   .map-banner { top:calc(178px + env(safe-area-inset-top)); }
   /* level nodes paint above the friends/cages standing beside them */
   .lvl-holder { z-index:3; }
-  .friend { z-index:1; }
+  .friend { z-index:0; }
+  .lvl-node { position:relative; z-index:1; }
   .win-pipop { margin:12px auto 0; }
   #route-hint { background:linear-gradient(180deg,#ffffff,#e8f3ff); }
 
@@ -994,7 +1006,8 @@
     background:radial-gradient(closest-side, rgba(255,255,255,.99), rgba(248,252,255,.92) 55%, rgba(255,255,255,0) 100%);
     animation:fogDrift ease-in-out infinite alternate; }
   #city-scroll { flex:1; min-height:0; overflow:auto; -webkit-overflow-scrolling:touch;
-    overscroll-behavior:contain; touch-action:pan-x pan-y; }
+    overscroll-behavior:contain; touch-action:pan-x pan-y;
+    position:relative; z-index:0; isolation:isolate; }
   #city-sizer { position:relative; width:3600px; height:2560px; }
   #city-world { transform-origin:0 0; }
   .city-zoom { width:38px; height:38px; border-radius:13px; border:none; cursor:pointer; flex:0 0 auto;
@@ -6083,6 +6096,7 @@ function solveLots(){
       if(!best || score > best.score) best = { score, trio, sg };
     });
     d.side = best.sg;                              // friends wait on the other side
+    d.signXY = [a[0] - n[0] * best.sg * 300, a[1] - n[1] * best.sg * 300];   // and the sign stands past them
     // nudge any lot the meandering lane still runs too close to
     best.trio.forEach(q=>{
       for(let pass = 0; pass < 24; pass++){
@@ -6313,7 +6327,7 @@ function renderWorldGround(){
   cv.id = 'city-ground';
   world.insertBefore(cv, world.firstChild);
 }
-function renderMap(){
+function renderMap(opts){
   renderWorldGround();
   citySky();
   cityTint();
@@ -6330,7 +6344,8 @@ function renderMap(){
     if(di > reached + 1) return;                 // beyond the next one: nothing at all yet
     const sign = document.createElement('div');
     sign.className = 'district-sign' + (known ? '' : ' unknown');
-    sign.style.cssText = `left:${d.cx}px; top:${d.cy - 250}px; z-index:${Math.round(d.cy / 4) + 2};`;
+    const [sx, sy] = d.signXY || [d.cx, d.cy - 250];
+    sign.style.cssText = `left:${sx.toFixed(0)}px; top:${sy.toFixed(0)}px; z-index:${Math.round(sy / 4) + 2};`;
     sign.textContent = known ? districtName(di) : tf('A new place…', 'Un posto nuovo…');
     world.appendChild(sign);
     if(known) return;
@@ -6381,7 +6396,7 @@ function renderMap(){
         Snd.ensure();
         if(save.stamps >= taskStamps(task)){
           doTask(task.id);
-          renderMap();
+          renderMap({ keepCamera:true });
           const fresh = [...world.querySelectorAll('.city-el.built')].pop();
           if(fresh) fresh.classList.add('pop');
           cityBubble(cx, cy - w * .8, '✨ ' + (LANG === 'it' ? (IT[task.name] || task.name) : task.name), 3000);
@@ -6431,7 +6446,7 @@ function renderMap(){
       // on the same bend never touch
       const nm = trailNormal(i);
       const sd = -(DISTRICTS[districtOf(lvl)].side || 1) * ((lvl >> 1) % 2 ? 1 : -1);
-      f.style.cssText = `left:${(nm[0] * sd * 104).toFixed(0)}px; top:${(nm[1] * sd * 104).toFixed(0)}px;`;
+      f.style.cssText = `left:${(nm[0] * sd * 80).toFixed(0)}px; top:${(nm[1] * sd * 80).toFixed(0)}px;`;
       f.innerHTML = `<img src="${SPRITES['c_' + rescue.id]}" alt="">`;
       holder.appendChild(f);
     }
@@ -6525,6 +6540,8 @@ function renderMap(){
 
   $('#route-hint-text').textContent = worldHint();
   startCityAnim();
+  // you always arrive standing next to Pipo, wherever you last wandered
+  if(!(opts && opts.keepCamera)) focusWorld(cur);
 }
 function worldHint(){
   const nextRescueLv = Object.keys(RESCUES).map(Number).filter(lv=>!isRescued(RESCUES[lv].id)).sort((a, b)=>a - b)[0];
@@ -6538,10 +6555,23 @@ function worldHint(){
   return tf('Every friend is home. Enjoy the round, Deputy Pipo!', 'Tutti gli amici sono a casa. Buon giro, vice Pipo!');
 }
 /* jump the camera to a place — used by the town list and by finishing a level */
+/* first look at the world: wide enough to read the street you are on */
+let cityZoomInit = false;
+function fitCityZoom(){
+  if(cityZoomInit) return;
+  const sc = $('#city-scroll');
+  if(!sc.clientWidth) return;
+  cityZoomInit = true;
+  setCityZoom(Math.max(.7, Math.min(1, sc.clientWidth / 480)));
+}
 function focusWorld(id, smooth){
+  fitCityZoom();
   const [fx, fy] = typeof id === 'number' ? worldTrail()[id - 1] : lotXY(id);
   const sc = $('#city-scroll');
-  const to = { left: Math.max(0, fx * cityZoom - sc.clientWidth / 2), top: Math.max(0, fy * cityZoom - sc.clientHeight / 2) };
+  // the nav bar floats over the bottom of the world, so centre on what is visible
+  const navH = ($('#meta-nav').getBoundingClientRect().height) || 0;
+  const to = { left: Math.max(0, fx * cityZoom - sc.clientWidth / 2),
+               top:  Math.max(0, fy * cityZoom - (sc.clientHeight - navH) / 2) };
   if(smooth && sc.scrollTo) sc.scrollTo({ ...to, behavior:'smooth' }); else { sc.scrollLeft = to.left; sc.scrollTop = to.top; }
 }
 
@@ -6668,7 +6698,7 @@ function openCity(focusId){
   showScreen('map');
   document.querySelectorAll('#meta-nav .tab').forEach(t2=>t2.classList.toggle('active', t2.dataset.view === 'map'));
   renderMap();
-  focusWorld(focusId || (nextTask() ? nextTask().id : Math.min(save.unlocked, LEVELS.length)));
+  focusWorld(focusId || Math.min(save.unlocked, LEVELS.length), true);
 }
 
 /* ---- Chi si nasconde? — daily hidden-critters round in the town diorama ---- */

@@ -539,3 +539,22 @@ inside the reached districts, open country between them, lamplight, rescued
 friends and Pipo standing at his next delivery. `openCity(id)` is now a thin
 shim onto the map screen plus `focusWorld(id)`, which pans the camera to a
 level number or a project id. Leaving the map stops the ride timer.
+
+**Chrome over the world.** With the map and the city merged, `#map` no
+longer reserves 86px of dead screen at the bottom — the world runs to the
+edge and the bottom bar floats over it, Gardenscapes-style. `#city-scroll`
+now carries `isolation:isolate` so a tree's depth-sorted `z-index` can
+never paint over the zoom buttons or the route hint. Nav tabs cap at 104px
+and spread with `space-evenly`, so on a tablet the active tab is still a
+pill and not a slab; the label colour was darkened for contrast and the bar
+picked up a lift shadow. The chapter block in the header is `flex:1` with
+`min-width:0` and a two-line clamp, so a long chapter name can never shove
+the settings button off the edge.
+
+**Where the camera lands.** `renderMap()` ends by centring on the player's
+current delivery (`focusWorld(cur)`) unless called with `{keepCamera:true}`
+— which the build-on-the-map handler does, so placing a building doesn't
+yank the view away from it. `fitCityZoom()` picks the opening zoom from the
+viewport (about 480 world px across, clamped to 0.7–1.0) so you arrive
+looking at your street rather than at a single node, and `focusWorld()`
+offsets for the floating nav bar so the target sits in the visible middle.
