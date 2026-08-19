@@ -25,6 +25,9 @@ screen (character names stay the same in both).
 - Five obstacle types: dirt, ice, two-layer ice, gnomes (guide to the
   bottom), spreading vines
 - Shovel tool (3 digs per level, no move cost)
+- A walkable painted city: every rebuilt project becomes an isometric
+  canvas-painted building in a scrolling town where rescued friends
+  stroll, hand out daily gifts, and Pipo keeps his dressing room
 - Restoration meta: stars are currency, spent on 12 garden tasks with
   Barnaby the groundskeeper, a day counter, and landmarks appearing on
   the map

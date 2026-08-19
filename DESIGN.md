@@ -386,3 +386,32 @@ The first release of the bestseller roadmap: four kid-safe retention systems.
 
 Save fields are additive (chest/lotd/critters/lastSeen default at runtime) —
 SAVE_VERSION stays 2, no migration needed.
+
+
+## v28 — The City of Pipoville
+
+The Gardenscapes-style town, kept true to the game's zero-image-asset
+philosophy: all 24 landmark buildings are **canvas-painted isometric
+sprites** (`TOWN_PAINT` — box/gable/cone/cylinder primitives with a
+sticker outline, baked at 256px into `TOWN_SPRITES` at boot; iterate with
+`scratchpad/shot-town.js`'s contact sheet).
+
+`#ov-city` is a full-screen overlay: a 1500×1150 pannable world
+(`#city-scroll` native two-axis scroll) with an SVG ground layer (sandy
+trail through the main squares, seeded flora), day/night tint
+(`cityTint()` by hour), and `.city-el` sprites placed via `cityXY()`
+(a direct scale-up of `TOWN_SPOTS`, z-sorted by y). The next project
+renders as a greyscale ghost with its ★cost: tapping it **builds in
+place** (`doTask` + pop-in + bubble) when affordable, wiggles with a
+kind hint when not.
+
+**Friends live there**: every rescued character strolls at a day-seeded
+spot; the first tap each day pays +2 stamps (`save.friendGifts`), later
+taps share a line of their lore. Pipo stands by the fountain and opens
+the dressing room. Entry: the "Passeggia per Pipoville" row in the Città
+view (the small diorama stays — the hidden-critters minigame uses it).
+
+**Stacking-context fix worth remembering**: `.screen` now sets
+`isolation:isolate`, `.overlay` z-index is 60 (above meta chrome), and
+`#confetti-layer` 80. Before this, the diorama's z-indexed children bled
+through any overlay opened above the mailroom.

@@ -975,6 +975,56 @@
   .find-critter.found { pointer-events:none; }
   #find-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:10px; }
   #find-hint { font-size:12.5px; font-weight:700; color:#a5804a; flex:1; }
+  /* screens contain their own z-index worlds so overlays always win */
+  .screen { isolation:isolate; }
+  .overlay { z-index:60; }
+  #confetti-layer { z-index:80; }
+  /* ---- the city of Pipoville (v28) ---- */
+  #ov-city { padding:0; background:rgba(15,40,10,.85); }
+  #city-frame { position:absolute; inset:0; display:flex; flex-direction:column; }
+  #city-head { flex:0 0 auto; display:flex; align-items:center; gap:10px; z-index:5;
+    padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+    background:linear-gradient(180deg,#ffffff,#e0effc);
+    box-shadow:0 6px 0 rgba(43,127,212,.18), 0 10px 16px rgba(18,58,46,.25); }
+  #city-title { font-family:var(--font-display); font-size:22px; color:var(--ink-art); flex:1; }
+  #city-count { font-weight:800; font-size:14px; color:#8a5a00; background:var(--cream);
+    border-radius:999px; padding:5px 13px; box-shadow:0 3px 0 #f0d9a8; }
+  #btn-city-close { width:44px; height:44px; border-radius:16px; border:none; cursor:pointer;
+    font-size:24px; font-weight:900; color:#fff; font-family:inherit;
+    background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.55), 0 4px 0 #14477f; }
+  #btn-city-close:active { transform:translateY(2px); }
+  #city-scroll { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+  #city-world { position:relative; width:1500px; height:1150px;
+    background:
+      radial-gradient(340px 200px at 18% 26%, rgba(255,255,255,.14), transparent 70%),
+      radial-gradient(300px 190px at 78% 56%, rgba(255,255,255,.12), transparent 70%),
+      radial-gradient(360px 220px at 45% 82%, rgba(30,90,30,.14), transparent 70%),
+      linear-gradient(180deg,#9adf7a 0%,#7fce62 34%,#5cb84e 68%,#3f9c47 100%); }
+  #city-ground { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
+  #city-tint { position:absolute; inset:0; pointer-events:none; z-index:400; mix-blend-mode:multiply; }
+  .city-el { position:absolute; transform:translate(-50%,-86%); filter:drop-shadow(0 5px 6px rgba(10,40,10,.28)); }
+  .city-el img { width:100%; display:block; pointer-events:none; }
+  .city-el.built.pop { animation:bornPop .6s cubic-bezier(.2,1.7,.4,1) backwards; }
+  .city-el.ghost { opacity:.55; filter:grayscale(.85) drop-shadow(0 5px 6px rgba(10,40,10,.2)); cursor:pointer; }
+  .city-el.ghost b { position:absolute; left:50%; bottom:-6px; transform:translateX(-50%); white-space:nowrap;
+    font-family:var(--font-display); font-weight:400; font-size:15px; color:#8a5a00; padding:3px 12px;
+    border-radius:999px; background:var(--cream); box-shadow:0 3px 0 #f0d9a8; filter:none; opacity:1; }
+  .city-el.ghost.cant b { color:#b8652e; }
+  .city-el.wiggle { animation:hintWig .5s ease-in-out 2; }
+  .city-friend { position:absolute; width:56px; height:56px; transform:translate(-50%,-90%); cursor:pointer;
+    filter:drop-shadow(0 4px 5px rgba(10,40,10,.3)); }
+  .city-friend img { width:100%; height:100%; animation:pipopBob 1.7s ease-in-out infinite; }
+  .city-pipo { position:absolute; width:64px; height:64px; transform:translate(-50%,-90%); cursor:pointer; z-index:300;
+    filter:drop-shadow(0 4px 5px rgba(10,40,10,.35)); }
+  .city-pipo img { width:100%; height:100%; animation:waddleIdle 1.5s ease-in-out infinite; }
+  .city-bubble { position:absolute; transform:translate(-50%,-100%); z-index:350; max-width:230px; text-align:center;
+    background:rgba(255,249,232,.98); color:#5e3416; font-weight:800; font-size:13.5px; line-height:1.35;
+    padding:9px 14px; border-radius:16px; border:2.5px solid #8a5a2e; box-shadow:0 4px 10px rgba(0,0,0,.3);
+    pointer-events:none; animation:modalIn .25s cubic-bezier(.2,1.4,.4,1); }
+  .city-bubble::after { content:''; position:absolute; left:50%; bottom:-9px; transform:translateX(-50%);
+    border:8px solid transparent; border-top-color:#8a5a2e; border-bottom:none; }
+  @media (prefers-reduced-motion: reduce){ .city-friend img, .city-pipo img { animation:none; } }
   .version-row { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:12px;
     padding:8px 12px; border-radius:14px; background:rgba(43,127,212,.08); }
   #version-label { font-size:13px; font-weight:800; color:var(--ink2); }
@@ -1212,6 +1262,20 @@
     <div id="card-perk" style="display:none;"><img data-ico="medal" alt=""><span id="card-perk-text"></span></div>
     <p id="card-where" style="font-size:12.5px;"></p>
     <div class="btns"><button class="btn blue small" id="btn-card-close">Close</button></div>
+  </div>
+</div>
+
+<div class="overlay" id="ov-city">
+  <div id="city-frame">
+    <div id="city-head">
+      <div id="city-title">Pipoville</div>
+      <div id="city-count"></div>
+      <button id="btn-city-close">‹</button>
+    </div>
+    <div id="city-scroll"><div id="city-world">
+      <svg id="city-ground" preserveAspectRatio="none"></svg>
+      <div id="city-tint"></div>
+    </div></div>
   </div>
 </div>
 
@@ -2065,6 +2129,398 @@ const ICONS = {};
     medal:paintMedal, gift:paintGift, quest:paintQuest, spade:paintSpade, clock:paintClock, gear:paintGearI, replay:paintReplayI, share:paintShareI };
   Object.keys(P).forEach(k => { ICONS[k] = bake(P[k]); });
 })();
+/* Pipoville city buildings — painted isometric sprites in the game's toy-sticker style.
+   All painters draw in a 100-unit space (bake() scales to 256px). Ground plane sits
+   around y=78..92; buildings rise from a base diamond centred near (50, 78). */
+const TOWN_PAINT = (() => {
+  const OUT = 'rgba(78,44,18,.9)';
+  function sh(hex, f){
+    const n = parseInt(hex.slice(1), 16);
+    const c = v => Math.max(0, Math.min(255, Math.round(v * f)));
+    return `rgb(${c(n >> 16 & 255)},${c(n >> 8 & 255)},${c(n & 255)})`;
+  }
+  // world -> screen. +wx right-down, +wy left-down, +wz up.
+  const pt = (cx, cy, wx, wy, wz) => [cx + (wx - wy), cy + (wx + wy) * .5 - wz];
+  function face(x, pts, fill, lw){
+    x.beginPath();
+    pts.forEach((p, i) => i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]));
+    x.closePath();
+    x.fillStyle = fill; x.fill();
+    x.strokeStyle = OUT; x.lineWidth = lw || 1.7; x.lineJoin = 'round'; x.stroke();
+  }
+  function poly(x, pts, fill){ // no outline
+    x.beginPath();
+    pts.forEach((p, i) => i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1]));
+    x.closePath(); x.fillStyle = fill; x.fill();
+  }
+  function box(x, cx, cy, W, D, H, col, topCol){
+    const P = (a, b, c) => pt(cx, cy, a, b, c);
+    face(x, [P(W, 0, 0), P(W, D, 0), P(W, D, H), P(W, 0, H)], sh(col, .74));
+    face(x, [P(0, D, 0), P(W, D, 0), P(W, D, H), P(0, D, H)], sh(col, .97));
+    face(x, [P(0, 0, H), P(W, 0, H), P(W, D, H), P(0, D, H)], topCol || sh(col, 1.22));
+  }
+  function gable(x, cx, cy, W, D, H, R, col){
+    const P = (a, b, c) => pt(cx, cy, a, b, c);
+    face(x, [P(W / 2, 0, H + R), P(W / 2, D, H + R), P(0, D, H), P(0, 0, H)], sh(col, 1.08));
+    face(x, [P(0, D, H), P(W, D, H), P(W / 2, D, H + R)], sh(col, .9));
+    face(x, [P(W / 2, 0, H + R), P(W / 2, D, H + R), P(W, D, H), P(W, 0, H)], sh(col, .74));
+  }
+  // window / door panel on the LEFT face (wy = D plane)
+  function lpanel(x, cx, cy, D, a, b, z0, z1, col){
+    const P = (w, z) => pt(cx, cy, w, D, z);
+    face(x, [P(a, z0), P(b, z0), P(b, z1), P(a, z1)], col, 1.3);
+  }
+  // panel on the RIGHT face (wx = W plane)
+  function rpanel(x, cx, cy, W, a, b, z0, z1, col){
+    const P = (w, z) => pt(cx, cy, W, w, z);
+    face(x, [P(a, z0), P(b, z0), P(b, z1), P(a, z1)], col, 1.3);
+  }
+  function cylBody(x, cx, cy, r, H, col){
+    const g = x.createLinearGradient(cx - r, 0, cx + r, 0);
+    g.addColorStop(0, sh(col, 1.05)); g.addColorStop(.45, sh(col, 1.2)); g.addColorStop(1, sh(col, .72));
+    x.beginPath();
+    x.moveTo(cx - r, cy - H);
+    x.lineTo(cx - r, cy);
+    x.ellipse(cx, cy, r, r * .45, 0, Math.PI, 0, true);
+    x.lineTo(cx + r, cy - H);
+    x.fillStyle = g; x.fill();
+    x.strokeStyle = OUT; x.lineWidth = 1.7; x.stroke();
+  }
+  function cylTop(x, cx, cy, r, H, col){
+    x.beginPath(); x.ellipse(cx, cy - H, r, r * .45, 0, 0, 7);
+    x.fillStyle = col; x.fill(); x.strokeStyle = OUT; x.lineWidth = 1.7; x.stroke();
+  }
+  function cone(x, cx, cy, r, H, R, col){ // cone sitting at height H, apex H+R
+    x.beginPath();
+    x.moveTo(cx - r, cy - H);
+    x.ellipse(cx, cy - H, r, r * .45, 0, Math.PI, 0, true);
+    x.lineTo(cx, cy - H - R);
+    x.closePath();
+    const g = x.createLinearGradient(cx - r, 0, cx + r, 0);
+    g.addColorStop(0, sh(col, 1.1)); g.addColorStop(.5, sh(col, 1.25)); g.addColorStop(1, sh(col, .75));
+    x.fillStyle = g; x.fill(); x.strokeStyle = OUT; x.lineWidth = 1.7; x.lineJoin = 'round'; x.stroke();
+  }
+  function blob(x, cx, cy, rx, ry, col){
+    x.beginPath(); x.ellipse(cx, cy, rx, ry, 0, 0, 7);
+    x.fillStyle = col; x.fill(); x.strokeStyle = OUT; x.lineWidth = 1.7; x.stroke();
+  }
+  function dot(x, cx, cy, r, col){
+    x.beginPath(); x.arc(cx, cy, r, 0, 7); x.fillStyle = col; x.fill();
+  }
+  function flag(x, px, py, col){
+    x.strokeStyle = OUT; x.lineWidth = 1.6;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px, py - 10); x.stroke();
+    face(x, [[px, py - 10], [px + 8, py - 8], [px, py - 5.5]], col, 1.3);
+  }
+  function groundShadow(x, cx, cy, rx){
+    x.beginPath(); x.ellipse(cx, cy, rx, rx * .38, 0, 0, 7);
+    x.fillStyle = 'rgba(24,60,20,.18)'; x.fill();
+  }
+  function flower(x, cx, cy, r, petal, heart){
+    for(let a = 0; a < 6; a++) dot(x, cx + Math.cos(a * 1.047) * r, cy + Math.sin(a * 1.047) * r * .8, r * .62, petal);
+    dot(x, cx, cy, r * .55, heart);
+    x.beginPath(); x.arc(cx, cy, r * .55, 0, 7); x.strokeStyle = OUT; x.lineWidth = 1.2; x.stroke();
+  }
+  function stem(x, x0, y0, y1){
+    x.strokeStyle = '#3f8f24'; x.lineWidth = 2.2; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(x0, y0); x.lineTo(x0, y1); x.stroke();
+  }
+
+  const T = {};
+
+  T.bench = x => {
+    groundShadow(x, 50, 86, 30);
+    box(x, 40, 74, 5, 5, 9, '#8a5a2e');            // back leg
+    box(x, 58, 65, 5, 5, 9, '#8a5a2e');            // front leg
+    box(x, 34, 68, 34, 10, 4, '#c98a45', '#e8b36e'); // seat
+    box(x, 34, 68, 34, 2.5, 15, '#c98a45');        // backrest
+  };
+
+  T.flowerbed = x => {
+    groundShadow(x, 50, 86, 34);
+    box(x, 30, 72, 40, 26, 5, '#8a5a2e', '#6b4423');
+    [[34, 70], [46, 64], [58, 70], [40, 78], [53, 79]].forEach(([px, py], i) => {
+      stem(x, px, py + 7, py + 2);
+      flower(x, px, py, 5.5, ['#ff8ac2', '#ffd21f', '#ff9d6e', '#c9a6f2', '#ff8ac2'][i], '#fff3c8');
+    });
+  };
+
+  T.fountain = x => {
+    groundShadow(x, 50, 86, 36);
+    cylBody(x, 50, 84, 30, 10, '#cfd8e8');
+    cylTop(x, 50, 84, 30, 10, '#8fd0ff');
+    cylBody(x, 50, 72, 10, 14, '#cfd8e8');
+    cylTop(x, 50, 72, 10, 14, '#b8dff5');
+    blob(x, 50, 50, 5, 3, '#8fd0ff');
+    dot(x, 42, 66, 2.2, '#d8f2ff'); dot(x, 58, 64, 2.2, '#d8f2ff'); dot(x, 50, 44, 2, '#d8f2ff');
+  };
+
+  T.path = x => {
+    groundShadow(x, 50, 84, 40);
+    box(x, 20, 74, 20, 14, 3, '#d9c9a8', '#f0e2c4');
+    box(x, 42, 80, 20, 14, 3, '#cbbd9e', '#e8d7b4');
+    box(x, 64, 86, 20, 14, 3, '#d9c9a8', '#f0e2c4');
+  };
+
+  T.oak = x => {
+    groundShadow(x, 50, 88, 34);
+    cylBody(x, 50, 86, 7, 22, '#8a5a2e');
+    blob(x, 38, 52, 18, 14, '#5cb040');
+    blob(x, 63, 50, 17, 13, '#6cc44e');
+    blob(x, 50, 38, 19, 14, '#7ed35c');
+    dot(x, 42, 44, 2.6, '#e23c3c'); dot(x, 58, 40, 2.6, '#e23c3c'); dot(x, 52, 55, 2.6, '#e23c3c');
+  };
+
+  T.house = x => {
+    groundShadow(x, 50, 88, 38);
+    box(x, 30, 78, 26, 20, 22, '#fff3d6');
+    gable(x, 30, 78, 26, 20, 22, 13, '#e2574c');
+    lpanel(x, 30, 78, 20, 9, 17, 6, 16, '#7ec8f0');
+    rpanel(x, 30, 78, 26, 5, 13, 2, 15, '#8a5a2e');
+    box(x, 44, 60, 5, 5, 12, '#c98a45');
+  };
+
+  T.bridge = x => {
+    groundShadow(x, 50, 88, 42);
+    blob(x, 50, 84, 40, 12, '#8fd0ff');
+    box(x, 18, 68, 52, 14, 10, '#b8b0a0', '#d8d0bd');
+    // arch opening on the left face
+    const A = pt(18, 68, 26, 14, 0);
+    x.beginPath(); x.ellipse(A[0], A[1], 13, 10, 0, Math.PI, 0, true);
+    x.fillStyle = 'rgba(45,60,80,.75)'; x.fill();
+    x.strokeStyle = OUT; x.lineWidth = 1.6; x.stroke();
+    for(let i = 0; i < 5; i++) box(x, 20 + i * 11, 66 + i * 2.6, 2.5, 2.5, 6, '#8a8274');
+  };
+
+  T.tent = x => {
+    groundShadow(x, 50, 86, 34);
+    const P = (a, b, c) => pt(28, 80, a, b, c);
+    face(x, [P(0, 44, 0), P(44, 44, 0), P(22, 22, 30)], '#ff9d8a');
+    face(x, [P(44, 0, 0), P(44, 44, 0), P(22, 22, 30)], sh('#ff9d8a', .74));
+    x.strokeStyle = '#fff3d6'; x.lineWidth = 3;
+    x.beginPath(); x.moveTo(...P(11, 44, 0)); x.lineTo(...P(22, 22, 30)); x.stroke();
+    x.beginPath(); x.moveTo(...P(33, 44, 0)); x.lineTo(...P(22, 22, 30)); x.stroke();
+    flag(x, P(22, 22, 30)[0], P(22, 22, 30)[1], '#ffd21f');
+  };
+
+  T.pond = x => {
+    groundShadow(x, 50, 84, 42);
+    blob(x, 50, 80, 38, 17, '#5db8e8');
+    x.beginPath(); x.ellipse(50, 79, 30, 12, 0, 0, 7); x.fillStyle = '#8fd0ff'; x.fill();
+    // swan
+    blob(x, 58, 74, 8, 5, '#ffffff');
+    x.strokeStyle = OUT; x.lineWidth = 2.4; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(52, 72); x.quadraticCurveTo(48, 64, 53, 61); x.stroke();
+    dot(x, 53.5, 60.5, 2.6, '#fff'); dot(x, 55.5, 61, 1.4, '#ff9d2e');
+    // reeds
+    stem(x, 20, 76, 62); stem(x, 24, 78, 66); blob(x, 20, 60, 2.2, 4, '#8a5a2e'); blob(x, 24, 64, 2.2, 4, '#8a5a2e');
+  };
+
+  T.lights = x => {
+    groundShadow(x, 46, 88, 22);
+    cylBody(x, 40, 86, 2.6, 34, '#4a5568');
+    box(x, 36, 46, 9, 8, 10, '#ffd21f', '#ffe98a');
+    cylBody(x, 62, 88, 2.2, 24, '#4a5568');
+    box(x, 58.5, 58, 8, 7, 9, '#ff9d6e', '#ffc9a8');
+    dot(x, 40, 46, 6, 'rgba(255,220,120,.35)'); dot(x, 62, 58, 5, 'rgba(255,180,120,.3)');
+  };
+
+  T.carousel = x => {
+    groundShadow(x, 50, 88, 40);
+    cylBody(x, 50, 86, 32, 6, '#e8b36e');
+    cylTop(x, 50, 86, 32, 6, '#f7d9a8');
+    x.strokeStyle = '#c98a45'; x.lineWidth = 2;
+    [[32, 24], [50, 18], [68, 24]].forEach(([px, py]) => {
+      x.beginPath(); x.moveTo(px, py + 14); x.lineTo(px, 74 - (50 - py) * .2); x.stroke();
+    });
+    blob(x, 36, 66, 4.5, 5.5, '#ff8ac2'); blob(x, 52, 62, 4.5, 5.5, '#8fd0ff'); blob(x, 65, 67, 4.5, 5.5, '#c9a6f2');
+    cone(x, 50, 84, 34, 44, 18, '#ff8ac2');
+    x.strokeStyle = '#fff'; x.lineWidth = 2.6;
+    x.beginPath(); x.moveTo(28, 39); x.lineTo(50, 22); x.stroke();
+    x.beginPath(); x.moveTo(72, 39); x.lineTo(50, 22); x.stroke();
+    dot(x, 50, 20, 3.4, '#ffd21f');
+  };
+
+  T.manor = x => {
+    groundShadow(x, 50, 90, 44);
+    box(x, 26, 80, 34, 22, 26, '#f5e2c8');
+    gable(x, 26, 80, 34, 22, 26, 12, '#8a6ab0');
+    cylBody(x, 22, 86, 8, 34, '#f5e2c8');
+    cone(x, 22, 86, 9, 34, 14, '#8a6ab0');
+    cylBody(x, 80, 86, 8, 34, '#f5e2c8');
+    cone(x, 80, 86, 9, 34, 14, '#8a6ab0');
+    lpanel(x, 26, 80, 22, 8, 15, 6, 18, '#8a5a2e');
+    lpanel(x, 26, 80, 22, 19, 26, 10, 18, '#7ec8f0');
+    rpanel(x, 26, 80, 34, 4, 11, 10, 18, '#7ec8f0');
+    flag(x, 22, 40, '#ffd21f'); flag(x, 80, 40, '#ffd21f');
+  };
+
+  T.school_bell = x => {
+    groundShadow(x, 50, 88, 26);
+    box(x, 38, 82, 18, 14, 26, '#f0d9b8');
+    // open arch with bell
+    lpanel(x, 38, 82, 14, 4.5, 13.5, 12, 24, '#5e3a17');
+    dot(x, pt(38, 82, 9, 14, 18)[0], pt(38, 82, 9, 14, 18)[1], 4.2, '#ffd21f');
+    x.beginPath(); x.arc(pt(38, 82, 9, 14, 18)[0], pt(38, 82, 9, 14, 18)[1], 4.2, 0, 7);
+    x.strokeStyle = OUT; x.lineWidth = 1.4; x.stroke();
+    gable(x, 38, 82, 18, 14, 26, 9, '#e2574c');
+  };
+
+  T.bakery = x => {
+    groundShadow(x, 50, 88, 38);
+    box(x, 30, 80, 28, 20, 20, '#f7d9a8');
+    box(x, 30, 80, 28, 20, 4, '#e2574c', '#f5e2c8'); // base band ... roof slab
+    // flat roof slab on top
+    box(x, 28, 76, 30, 22, 3, '#c98a45', '#e8b36e');
+    // striped awning over the left face
+    const A = (w, z) => pt(30, 80, w, 24, z);
+    for(let i = 0; i < 4; i++)
+      face(x, [A(2 + i * 6, 13), A(8 + i * 6, 13), A(8 + i * 6, 9), A(2 + i * 6, 9)], i % 2 ? '#fff3d6' : '#ff9d8a', 1.2);
+    lpanel(x, 30, 80, 20, 4, 12, 3, 12, '#7ec8f0');
+    lpanel(x, 30, 80, 20, 15, 23, 3, 12, '#8a5a2e');
+    // croissant sign
+    x.strokeStyle = '#ffb400'; x.lineWidth = 4.4; x.lineCap = 'round';
+    x.beginPath(); x.arc(pt(30, 80, 26, 20, 26)[0], pt(30, 80, 26, 20, 26)[1], 6, .6, 3.6); x.stroke();
+  };
+
+  T.grocery = x => {
+    groundShadow(x, 50, 88, 38);
+    box(x, 30, 80, 28, 20, 19, '#bfe8a8');
+    box(x, 28, 76, 30, 22, 3, '#5cb040', '#7ed35c');
+    const A = (w, z) => pt(30, 80, w, 24, z);
+    for(let i = 0; i < 4; i++)
+      face(x, [A(2 + i * 6, 12.5), A(8 + i * 6, 12.5), A(8 + i * 6, 8.5), A(2 + i * 6, 8.5)], i % 2 ? '#fff3d6' : '#5cb040', 1.2);
+    lpanel(x, 30, 80, 20, 4, 12, 2.5, 11, '#7ec8f0');
+    lpanel(x, 30, 80, 20, 15, 23, 2.5, 11, '#8a5a2e');
+    box(x, 58, 88, 9, 8, 6, '#c98a45', '#e8b36e');
+    dot(x, 66, 76, 2.4, '#e23c3c'); dot(x, 70, 78, 2.4, '#ffd21f'); dot(x, 68, 74, 2.4, '#ff9d2e');
+  };
+
+  T.postoffice = x => {
+    groundShadow(x, 50, 88, 40);
+    box(x, 28, 80, 30, 22, 22, '#8fd0ff');
+    gable(x, 28, 80, 30, 22, 22, 11, '#2b7fd4');
+    // envelope sign on the left face
+    lpanel(x, 28, 80, 22, 8, 22, 8, 17, '#fff');
+    const E = (w, z) => pt(28, 80, w, 22, z);
+    x.strokeStyle = '#e23c3c'; x.lineWidth = 2;
+    x.beginPath(); x.moveTo(...E(8, 17)); x.lineTo(...E(15, 11.5)); x.lineTo(...E(22, 17)); x.stroke();
+    rpanel(x, 28, 80, 30, 6, 14, 2, 14, '#1a5a94');
+    flag(x, pt(28, 80, 15, 11, 33)[0], pt(28, 80, 15, 11, 33)[1], '#e23c3c');
+  };
+
+  T.pier = x => {
+    groundShadow(x, 50, 84, 44);
+    blob(x, 60, 82, 34, 14, '#5db8e8');
+    box(x, 14, 72, 54, 12, 4, '#c98a45', '#e8b36e');
+    for(let i = 0; i < 4; i++) box(x, 18 + i * 14, 74 + i * 3, 3, 3, 8, '#8a5a2e');
+    // little boat
+    x.beginPath(); x.moveTo(70, 76); x.quadraticCurveTo(78, 84, 88, 76); x.lineTo(84, 72); x.lineTo(73, 72); x.closePath();
+    x.fillStyle = '#e2574c'; x.fill(); x.strokeStyle = OUT; x.lineWidth = 1.7; x.stroke();
+  };
+
+  T.beacon = x => {
+    groundShadow(x, 50, 90, 30);
+    // tapered striped tower
+    x.beginPath(); x.moveTo(36, 86); x.lineTo(42, 30); x.lineTo(58, 30); x.lineTo(64, 86);
+    x.ellipse(50, 86, 14, 6, 0, 0, Math.PI); x.closePath();
+    x.fillStyle = '#fff3d6'; x.fill(); x.strokeStyle = OUT; x.lineWidth = 1.8; x.stroke();
+    x.save(); x.clip();
+    [[78, 8], [58, 8], [38, 8]].forEach(([y, h]) => { x.fillStyle = '#e2574c'; x.fillRect(30, y, 40, h); });
+    x.restore();
+    box(x, 43, 32, 14, 10, 8, '#4a5568', '#ffd21f');
+    cone(x, 50, 40, 10, 16, 8, '#e2574c');
+    dot(x, 50, 22, 4, 'rgba(255,220,120,.85)');
+    dot(x, 50, 22, 8, 'rgba(255,220,120,.3)');
+  };
+
+  T.market = x => {
+    groundShadow(x, 50, 88, 40);
+    const P = (a, b, c) => pt(24, 82, a, b, c);
+    box(x, 26, 80, 26, 22, 12, '#f7d9a8');
+    // big striped canopy
+    face(x, [P(0, 26, 14), P(26, 26, 14), P(13, 13, 30)], '#8fd0ff');
+    face(x, [P(26, 0, 14), P(26, 26, 14), P(13, 13, 30)], sh('#8fd0ff', .74));
+    x.strokeStyle = '#fff'; x.lineWidth = 3;
+    x.beginPath(); x.moveTo(...P(6.5, 26, 14)); x.lineTo(...P(13, 13, 30)); x.stroke();
+    x.beginPath(); x.moveTo(...P(19.5, 26, 14)); x.lineTo(...P(13, 13, 30)); x.stroke();
+    flag(x, P(13, 13, 30)[0], P(13, 13, 30)[1], '#e23c3c');
+    box(x, 56, 90, 9, 8, 6, '#c98a45', '#e8b36e');
+  };
+
+  T.clock = x => {
+    groundShadow(x, 50, 90, 28);
+    box(x, 40, 84, 16, 14, 40, '#f0d9b8');
+    gable(x, 40, 84, 16, 14, 40, 9, '#2b7fd4');
+    // clock face on the left face
+    const C = pt(40, 84, 8, 14, 30);
+    dot(x, C[0], C[1], 8.4, '#fff');
+    x.beginPath(); x.arc(C[0], C[1], 8.4, 0, 7); x.strokeStyle = OUT; x.lineWidth = 1.8; x.stroke();
+    x.strokeStyle = '#20465e'; x.lineWidth = 2; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(C[0], C[1]); x.lineTo(C[0], C[1] - 5.5); x.stroke();
+    x.beginPath(); x.moveTo(C[0], C[1]); x.lineTo(C[0] + 4, C[1] + 2); x.stroke();
+    rpanel(x, 40, 84, 16, 4, 10, 2, 12, '#8a5a2e');
+  };
+
+  T.sunflowers = x => {
+    groundShadow(x, 50, 88, 40);
+    box(x, 26, 74, 46, 26, 4, '#6b8f3f', '#7ed35c');
+    [[32, 60], [46, 52], [60, 58], [39, 70], [54, 70]].forEach(([px, py]) => {
+      stem(x, px, py + 16, py + 4);
+      flower(x, px, py, 7, '#ffd21f', '#8a5a2e');
+    });
+  };
+
+  T.stage = x => {
+    groundShadow(x, 50, 88, 40);
+    // acoustic shell first (behind)
+    x.beginPath(); x.arc(46, 60, 25, Math.PI, 0);
+    x.lineTo(71, 66); x.lineTo(21, 66); x.closePath();
+    const g = x.createLinearGradient(22, 0, 74, 0);
+    g.addColorStop(0, '#c9a6f2'); g.addColorStop(.5, '#e0ccff'); g.addColorStop(1, '#9a78d0');
+    x.fillStyle = g; x.fill(); x.strokeStyle = OUT; x.lineWidth = 1.8; x.stroke();
+    x.fillStyle = '#5e3416'; x.font = '900 15px sans-serif'; x.fillText('♪', 42, 54);
+    box(x, 26, 68, 40, 22, 8, '#c98a45', '#e8b36e');
+  };
+
+  T.statue = x => {
+    groundShadow(x, 50, 90, 28);
+    box(x, 38, 80, 20, 16, 10, '#cfd8e8', '#e8eef7');
+    // stone Pipo on the pedestal
+    blob(x, 41, 66, 11, 13, '#b8c4d8');            // body
+    dot(x, 41, 50, 8, '#b8c4d8');
+    x.beginPath(); x.arc(41, 50, 8, 0, 7); x.strokeStyle = OUT; x.lineWidth = 1.7; x.stroke();
+    blob(x, 34, 65, 3, 6, '#a8b4c8'); blob(x, 48, 65, 3, 6, '#a8b4c8'); // flippers
+    dot(x, 38.5, 49, 1.4, '#5e6b80'); dot(x, 43.5, 49, 1.4, '#5e6b80');
+    face(x, [[39.5, 52], [42.5, 52], [41, 54.5]], '#ffd21f', 1);       // golden beak
+  };
+
+  T.ferris = x => {
+    groundShadow(x, 50, 92, 40);
+    x.strokeStyle = '#8a5a2e'; x.lineWidth = 3.4; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(36, 88); x.lineTo(50, 48); x.stroke();
+    x.beginPath(); x.moveTo(64, 88); x.lineTo(50, 48); x.stroke();
+    x.beginPath(); x.arc(50, 46, 28, 0, 7); x.strokeStyle = '#e2574c'; x.lineWidth = 3.6; x.stroke();
+    x.strokeStyle = 'rgba(226,87,76,.55)'; x.lineWidth = 2;
+    for(let a = 0; a < 6; a++){
+      x.beginPath(); x.moveTo(50, 46); x.lineTo(50 + Math.cos(a * 1.047) * 28, 46 + Math.sin(a * 1.047) * 28); x.stroke();
+    }
+    const cols = ['#ffd21f', '#8fd0ff', '#ff8ac2', '#7ed35c', '#ff9d6e', '#c9a6f2'];
+    for(let a = 0; a < 6; a++){
+      const gx = 50 + Math.cos(a * 1.047 + .52) * 28, gy = 46 + Math.sin(a * 1.047 + .52) * 28;
+      blob(x, gx, gy + 3, 4.6, 5.2, cols[a]);
+    }
+    dot(x, 50, 46, 4.4, '#ffd21f');
+    x.beginPath(); x.arc(50, 46, 4.4, 0, 7); x.strokeStyle = OUT; x.lineWidth = 1.6; x.stroke();
+  };
+
+  return T;
+})();
+
+const TOWN_SPRITES = {};
+(function bakeTownSprites(){
+  Object.keys(TOWN_PAINT).forEach(k => { TOWN_SPRITES[k] = bake(TOWN_PAINT[k]); });
+})();
 function applyIcons(root){
   (root || document).querySelectorAll('[data-ico]').forEach(el=>{
     const k = el.getAttribute('data-ico');
@@ -2285,7 +2741,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 27;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 28;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -2992,6 +3448,10 @@ function renderMailroom(){
       <div class="r-sub">${tf('5 friends are hiding in town — find them!', '5 amici si nascondono in città — trovali!')}</div></div>
       <button class="q-claim" id="btn-find-open">🔍</button></div>`}
     ${renderTownScene()}
+    <div class="pv-row lotd-card"><span class="r-icon" style="font-size:30px;display:flex;align-items:center;justify-content:center">🏙️</span>
+      <div class="r-main"><div class="r-title">${tf('Stroll through Pipoville', 'Passeggia per Pipoville')}</div>
+      <div class="r-sub">${tf('Visit the town you rebuilt — your friends live there now!', 'Visita la città che hai ricostruito — ora ci vivono i tuoi amici!')}</div></div>
+      <button class="q-claim" id="btn-city-open">🏙️</button></div>
     <div class="pv-row income-row"><img class="r-icon" src="${ICONS.mailbox}" alt="">
       <div class="r-main"><div class="r-title">${tf('Town post income', 'Rendita postale della città')}</div>
       <div class="r-sub">${income ? '+' + income + ' ' + tf('stamps every day', 'francobolli al giorno') : tf('Build something and the town pays you back', 'Costruisci qualcosa e la città ti ripaga')}</div></div>
@@ -3002,6 +3462,8 @@ function renderMailroom(){
     ${rows}
     ${last ? `<div class="keeper-card"><img src="${SPRITES.pipop}" alt=""><div class="k-line">${last.line}</div></div>` : ''}`;
   $('#mailroom-body').querySelectorAll('.t-do').forEach(b=>b.addEventListener('click', ()=>doTask(b.dataset.id)));
+  const cityBtn = $('#btn-city-open');
+  if(cityBtn) cityBtn.addEventListener('click', ()=>{ Snd.ensure(); openCity(); });
   const findBtn = $('#btn-find-open');
   if(findBtn) findBtn.addEventListener('click', ()=>{ Snd.ensure(); openCritters(); });
   const townPipo = $('#mailroom-body .town-pipo');
@@ -5188,6 +5650,146 @@ function renderCloudUI(){
     }
   } catch(e){}
 })();
+
+/* ---------------- the city of Pipoville: a walkable painted town ---------------- */
+const CITY_W = 1500, CITY_H = 1150;
+function cityXY(id){
+  const [px, py] = TOWN_SPOTS[id] || [50, 50];
+  return [px / 100 * (CITY_W - 160) + 80, 150 + py / 100 * (CITY_H - 300)];
+}
+function renderCityGround(){
+  const g = $('#city-ground');
+  if(g.dataset.done) return;
+  g.dataset.done = '1';
+  g.setAttribute('viewBox', `0 0 ${CITY_W} ${CITY_H}`);
+  // a sandy trail wandering through the main squares
+  const stops = ['manor', 'school_bell', 'house', 'postoffice', 'fountain', 'path', 'market', 'pier'];
+  const ptsList = stops.map(cityXY);
+  let d = `M ${ptsList[0][0]} ${ptsList[0][1] + 14}`;
+  for(let i = 1; i < ptsList.length; i++){
+    const [x0, y0] = ptsList[i - 1], [x1, y1] = ptsList[i];
+    d += ` Q ${(x0 + x1) / 2 + (i % 2 ? 90 : -90)} ${(y0 + y1) / 2}, ${x1} ${y1 + 14}`;
+  }
+  let extra = '';
+  let sd = 424242;
+  const r = () => (sd = (sd * 9301 + 49297) % 233280) / 233280;
+  for(let i = 0; i < 26; i++){
+    const fx = 40 + r() * (CITY_W - 80), fy = 90 + r() * (CITY_H - 160);
+    extra += r() < .5
+      ? `<circle cx="${fx.toFixed(0)}" cy="${fy.toFixed(0)}" r="${(4 + r() * 5).toFixed(1)}" fill="rgba(255,255,255,.35)"/>`
+      : `<text x="${fx.toFixed(0)}" y="${fy.toFixed(0)}" font-size="${(16 + r() * 12).toFixed(0)}">${['🌼', '🌷', '🌿', '🍄', '🌻'][Math.floor(r() * 5)]}</text>`;
+  }
+  g.innerHTML = `<path d="${d}" fill="none" stroke="rgba(31,104,60,.25)" stroke-width="34" stroke-linecap="round"/>
+    <path d="${d}" fill="none" stroke="#f4e3bd" stroke-width="24" stroke-linecap="round"/>
+    <path d="${d}" fill="none" stroke="rgba(43,127,212,.4)" stroke-width="4" stroke-dasharray="2 26" stroke-linecap="round"/>
+    ${extra}`;
+}
+function cityTint(){
+  const h = new Date().getHours();
+  const t = $('#city-tint');
+  t.style.background = h < 7 || h >= 21 ? 'rgba(90,106,176,.42)'
+    : h < 9 ? 'rgba(255,233,201,.35)'
+    : h >= 18 ? 'rgba(255,203,168,.32)'
+    : 'transparent';
+}
+function cityBubble(px, py, text, ms){
+  $('#city-world').querySelectorAll('.city-bubble').forEach(n => n.remove());
+  const b = document.createElement('div');
+  b.className = 'city-bubble';
+  b.style.cssText = `left:${px}px; top:${py - 70}px;`;
+  b.textContent = text;
+  $('#city-world').appendChild(b);
+  setTimeout(() => b.remove(), ms || 2600);
+}
+function ensureFriendGifts(){
+  const today = new Date().toDateString();
+  if(!save.friendGifts || save.friendGifts.day !== today){ save.friendGifts = { day: today, given: [] }; persist(); }
+  return save.friendGifts;
+}
+function renderCity(){
+  renderCityGround();
+  cityTint();
+  const world = $('#city-world');
+  world.querySelectorAll('.city-el, .city-friend, .city-pipo').forEach(n => n.remove());
+  const nextT = nextTask();
+  const doneCount = TASKS.filter(t => save.done.includes(t.id)).length;
+  $('#city-count').textContent = `🔨 ${doneCount}/${TASKS.length}`;
+  $('#city-title').textContent = tf('Pipoville', 'Pipoville');
+  TASKS.forEach(task => {
+    const built = save.done.includes(task.id);
+    const isNext = !built && nextT && nextT.id === task.id;
+    if(!built && !isNext) return;
+    const [cx, cy] = cityXY(task.id);
+    const fs = (TOWN_SPOTS[task.id] || [0, 0, 26])[2];
+    const w = Math.round(fs * 3.6);
+    const el = document.createElement('div');
+    el.className = 'city-el' + (built ? ' built' : ' ghost');
+    el.style.cssText = `left:${cx}px; top:${cy}px; width:${w}px; z-index:${Math.round(cy / 4)};`;
+    el.innerHTML = `<img src="${TOWN_SPRITES[task.id]}" alt="">` +
+      (built ? '' : `<b>★${taskStamps(task)}</b>`);
+    if(isNext){
+      if(save.stamps < taskStamps(task)) el.classList.add('cant');
+      el.addEventListener('click', () => {
+        Snd.ensure();
+        if(save.stamps >= taskStamps(task)){
+          doTask(task.id);
+          renderCity();
+          const fresh = [...world.querySelectorAll('.city-el.built')].pop();
+          if(fresh) fresh.classList.add('pop');
+          cityBubble(cx, cy - w * .8, '✨ ' + (LANG === 'it' ? (IT[task.name] || task.name) : task.name), 3000);
+        } else {
+          el.classList.remove('wiggle'); void el.offsetWidth; el.classList.add('wiggle');
+          Snd.bad();
+          cityBubble(cx, cy - w * .8, tf(`Needs ★${taskStamps(task)} — keep delivering!`, `Servono ★${taskStamps(task)} — continua a consegnare!`));
+        }
+      });
+    }
+    world.appendChild(el);
+  });
+  // rescued friends stroll the town; first tap of the day is a little gift
+  const gifts = ensureFriendGifts();
+  let sd = Math.floor(Date.now() / 864e5) * 77777 + 13;
+  const r = () => (sd = (sd * 1103515245 + 12345) % 2147483647) / 2147483647;
+  (save.rescued || []).forEach(id => {
+    if(!CAST_META[id]) return;
+    const fx = 140 + r() * (CITY_W - 280), fy = 220 + r() * (CITY_H - 380);
+    const f = document.createElement('div');
+    f.className = 'city-friend';
+    f.style.cssText = `left:${fx.toFixed(0)}px; top:${fy.toFixed(0)}px; z-index:${Math.round(fy / 4) + 1};`;
+    f.innerHTML = `<img src="${SPRITES['c_' + id]}" alt="">`;
+    f.addEventListener('click', () => {
+      Snd.ensure();
+      const lore = (CAST_LORE[id] || ['', ''])[LANG === 'it' ? 1 : 0];
+      if(!gifts.given.includes(id)){
+        gifts.given.push(id);
+        gainStamps(2);
+        persist(); renderMeta();
+        if(!Snd.play('pop', 1.1, .5)) Snd.special();
+        cityBubble(fx, fy - 60, `${CHARACTERS[id] ? CHARACTERS[id].name : id}: +2 ⭐ — ${tf('thanks for visiting!', 'grazie della visita!')}`, 2800);
+      } else {
+        cityBubble(fx, fy - 60, lore ? lore.split('. ')[0] + '.' : '♥', 3400);
+      }
+    });
+    world.appendChild(f);
+  });
+  // Pipo himself — tap to open the dressing room
+  const [mx, my] = cityXY('fountain');
+  const p = document.createElement('div');
+  p.className = 'city-pipo';
+  p.style.cssText = `left:${mx + 90}px; top:${my + 60}px;`;
+  p.innerHTML = `<img src="${SPRITES.pipop}" alt="">`;
+  p.addEventListener('click', () => { Snd.ensure(); openDressRoom(); });
+  world.appendChild(p);
+}
+function openCity(focusId){
+  renderCity();
+  showOverlay('ov-city', true);
+  const [fx, fy] = cityXY(focusId || (nextTask() ? nextTask().id : 'fountain'));
+  const sc = $('#city-scroll');
+  sc.scrollLeft = fx - sc.clientWidth / 2;
+  sc.scrollTop = fy - sc.clientHeight / 2;
+}
+$('#btn-city-close').addEventListener('click', () => showOverlay('ov-city', false));
 
 /* ---- Chi si nasconde? — daily hidden-critters round in the town diorama ---- */
 const CRITTERS = [
