@@ -28,6 +28,10 @@ screen (character names stay the same in both).
 - A walkable painted city: every rebuilt project becomes an isometric
   canvas-painted building in a scrolling town where rescued friends
   stroll, hand out daily gifts, and Pipo keeps his dressing room
+- The city is alive: the carousel and ferris wheel turn, flags fly,
+  chimneys smoke, cloud shadows drift, and it follows the real
+  calendar — blossom, high summer, falling leaves, snow — with
+  pinch-zoom and lantern light at dusk
 - Restoration meta: stars are currency, spent on 12 garden tasks with
   Barnaby the groundskeeper, a day counter, and landmarks appearing on
   the map

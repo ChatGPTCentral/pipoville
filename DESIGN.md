@@ -457,3 +457,31 @@ fades in warm pools of light under the lamps, carousel and lighthouse.
 **Audit note.** `audit-geometry2.js` is now clipping-aware — an element
 scrolled outside its clipping ancestor counts as off-screen — which is
 what a pannable world needs to be checked honestly.
+
+
+## v30 — A city that moves, breathes and follows the calendar
+
+**Animation.** `TOWN_PAINT.carousel` and `.ferris` take a phase argument, so
+`townFrames(id)` bakes an 8-frame strip per ride and one shared 130ms timer
+(`startCityAnim` / `stopCityAnim`, tied to the overlay's lifecycle) swaps
+`.anim-ride` sources. Flags are now baked **pole-only** (`POLE_ONLY` in the
+painter) and the cloth is a CSS `.flag-cloth` pinned at `FLAG_ANCHORS[id]`
+— coordinates in the sprite's own 0..100 space, which map directly to
+percentages of the `<img>` box. The house's chimney smokes via
+`.chimney-smoke`, and five `.cloud-shadow` ellipses drift over the ground.
+
+**Seasons.** `citySeason()` reads the real month: winter (Dec–Feb), spring
+(Mar–May), summer (Jun–Sep), autumn (Oct–Nov). Each stamps `sp-<season>` on
+`#city-world`, which grades the ground canvas with CSS filters, chooses the
+falling particles (`SEASON_FALL`: petals, none, leaves, snow) and picks the
+wildlife (no butterflies in the snow — doves and robins instead). Winter
+adds `#city-frost`, a cold wash over the whole town.
+
+**Camera.** `setCityZoom(z, cx, cy)` scales `#city-world` inside a
+`#city-sizer` whose size grows with the zoom, so the scrollable area stays
+correct, and it re-anchors the scroll so the point under the fingers stays
+put. Driven by pinch (two pointers on `#city-scroll`), double-tap (ignored
+when the tap lands on a building, friend or button, so building still
+works), and the `+` / `−` buttons in the header. Zoom resets on open.
+
+All of it honours `prefers-reduced-motion`.

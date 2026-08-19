@@ -994,7 +994,14 @@
     background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%);
     box-shadow:inset 0 3px 0 rgba(255,255,255,.55), 0 4px 0 #14477f; }
   #btn-city-close:active { transform:translateY(2px); }
-  #city-scroll { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain; }
+  #city-scroll { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
+    touch-action:pan-x pan-y; }
+  #city-sizer { position:relative; width:1500px; height:1150px; }
+  #city-world { transform-origin:0 0; }
+  .city-zoom { width:38px; height:38px; border-radius:13px; border:none; cursor:pointer; flex:0 0 auto;
+    font-family:inherit; font-size:21px; font-weight:900; color:#8a5a00; background:var(--cream);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 3px 0 #f0d9a8; }
+  .city-zoom:active { transform:translateY(2px); box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 1px 0 #f0d9a8; }
   #city-world { position:relative; width:1500px; height:1150px; background:#7fce62; }
   #city-ground { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .city-deco { position:absolute; transform:translate(-50%,-84%); pointer-events:none;
@@ -1014,7 +1021,44 @@
     background:radial-gradient(closest-side, rgba(255,224,150,.55), rgba(255,214,120,.18) 55%, rgba(255,214,120,0) 100%);
     opacity:0; transition:opacity .8s; }
   #city-world.dusk .lamp-glow { opacity:1; }
-  @media (prefers-reduced-motion: reduce){ .fly-bug { animation:none; } }
+  .flag-cloth { position:absolute; width:9%; height:5%; transform-origin:0 50%;
+    background:linear-gradient(90deg,#ffd21f,#ffb400); border-radius:1px 40% 40% 1px;
+    box-shadow:0 0 0 .9px rgba(72,40,16,.75); animation:flagWave 1.5s ease-in-out infinite; }
+  @keyframes flagWave {
+    0%,100% { transform:skewY(-7deg) scaleX(1); }
+    50%     { transform:skewY(9deg) scaleX(.86); }
+  }
+  .chimney-smoke { position:absolute; width:7%; height:7%; border-radius:50%;
+    background:radial-gradient(closest-side, rgba(255,255,255,.85), rgba(255,255,255,0));
+    animation:smokeUp 3.4s ease-out infinite; }
+  @keyframes smokeUp {
+    0%   { transform:translate(0,0) scale(.4); opacity:0; }
+    20%  { opacity:.75; }
+    100% { transform:translate(-26%,-150%) scale(1.9); opacity:0; }
+  }
+  .fall-bit { position:absolute; will-change:transform; animation:fallDrift linear infinite; }
+  @keyframes fallDrift {
+    0%   { transform:translate(0,0) rotate(0deg); opacity:0; }
+    8%   { opacity:.95; }
+    100% { transform:translate(var(--sway), 1250px) rotate(420deg); opacity:.9; }
+  }
+  .cloud-shadow { position:absolute; left:-620px; border-radius:50%; pointer-events:none; z-index:398;
+    background:radial-gradient(closest-side, rgba(28,66,30,.20), rgba(28,66,30,0));
+    animation:cloudPass linear infinite; }
+  @keyframes cloudPass { to { transform:translateX(2280px); } }
+  /* seasonal grading over the painted ground */
+  #city-world.sp-spring #city-ground { filter:saturate(1.06) brightness(1.03); }
+  #city-world.sp-autumn #city-ground { filter:sepia(.22) saturate(1.12) hue-rotate(-14deg) brightness(1.01); }
+  #city-world.sp-winter #city-ground { filter:saturate(.26) brightness(1.2) hue-rotate(12deg); }
+  #city-world.sp-winter .city-el img, #city-world.sp-winter .city-deco img { filter:saturate(.8) brightness(1.06); }
+  /* a cold wash that settles over the whole town in the snowy months */
+  #city-frost { position:absolute; inset:0; pointer-events:none; z-index:397; opacity:0; transition:opacity 1s;
+    background:linear-gradient(180deg, rgba(255,255,255,.30), rgba(226,240,255,.16) 60%, rgba(210,232,255,.24)); }
+  #city-world.sp-winter #city-frost { opacity:1; }
+  @media (prefers-reduced-motion: reduce){
+    .fly-bug, .flag-cloth, .chimney-smoke, .fall-bit, .cloud-shadow { animation:none; }
+    .fall-bit { display:none; }
+  }
   #city-tint { position:absolute; inset:0; pointer-events:none; z-index:400; mix-blend-mode:multiply; }
   .city-el { position:absolute; transform:translate(-50%,-86%); filter:drop-shadow(0 5px 6px rgba(10,40,10,.28)); }
   .city-el img { width:100%; display:block; pointer-events:none; }
@@ -1283,12 +1327,15 @@
     <div id="city-head">
       <div id="city-title">Pipoville</div>
       <div id="city-count"></div>
+      <button class="city-zoom" id="btn-city-out">−</button>
+      <button class="city-zoom" id="btn-city-in">+</button>
       <button id="btn-city-close">‹</button>
     </div>
-    <div id="city-scroll"><div id="city-world">
+    <div id="city-scroll"><div id="city-sizer"><div id="city-world">
       <div id="city-sky"></div>
+      <div id="city-frost"></div>
       <div id="city-tint"></div>
-    </div></div>
+    </div></div></div>
   </div>
 </div>
 
@@ -2295,8 +2342,10 @@ const TOWN_PAINT = (() => {
   function flag(x, px, py, col){
     x.strokeStyle = OUT; x.lineWidth = 1.4;
     x.beginPath(); x.moveTo(px, py); x.lineTo(px, py - 11); x.stroke();
+    if(POLE_ONLY) return;            // the cloth is an animated overlay instead
     face(x, [[px, py - 11], [px + 8.5, py - 8.5], [px, py - 5.5]], col, 1.2);
   }
+  const POLE_ONLY = true;
   /* soft contact shadow — a real gradient, not a flat ellipse */
   function shadow(x, cx, cy, rx){
     const g = x.createRadialGradient(cx, cy, 0, cx, cy, rx);
@@ -2509,7 +2558,8 @@ const TOWN_PAINT = (() => {
     });
   };
 
-  T.carousel = x => {
+  T.carousel = (x, ph) => {
+    ph = ph || 0;
     shadow(x, 50, 90, 42);
     cylBody(x, 50, 86, 32, 7, '#e8b36e');
     cylTop(x, 50, 86, 32, 7, '#f7dfb0');
@@ -2517,19 +2567,27 @@ const TOWN_PAINT = (() => {
     for(let a = 0; a < 8; a++){
       x.beginPath(); x.moveTo(50, 79); x.lineTo(50 + Math.cos(a * .785) * 32, 79 + Math.sin(a * .785) * 14.4); x.stroke();
     }
-    // brass poles + horses
-    [[33, 25], [50, 20], [67, 25]].forEach(([px, py], i) => {
+    // brass poles and horses ride an ellipse; the far side draws first
+    const cols3 = ['#ff8ac2', '#8fd0ff', '#c9a6f2'];
+    const riders = [0, 1, 2].map(i => {
+      const a = ph * Math.PI * 2 + i * 2.094;
+      return { a, px: 50 + Math.cos(a) * 27, py: 66 + Math.sin(a) * 11, c: cols3[i] };
+    }).sort((p, q) => p.py - q.py);
+    riders.forEach(h => {
       x.strokeStyle = '#e8c46a'; x.lineWidth = 2.4; x.lineCap = 'round';
-      x.beginPath(); x.moveTo(px, py + 12); x.lineTo(px, 76 - Math.abs(50 - px) * .1); x.stroke();
-      const hy = [66, 62, 67][i];
-      blob(x, px, hy, 5.4, 6.4, ['#ff8ac2', '#8fd0ff', '#c9a6f2'][i], 1.25);
-      dot(x, px + 2, hy - 3.4, 1.1, '#5e3416');
+      x.beginPath(); x.moveTo(h.px, h.py - 22); x.lineTo(h.px, h.py + 6); x.stroke();
+      const bob = Math.sin(h.a * 2) * 2.4;
+      blob(x, h.px, h.py + bob, 5.4, 6.4, h.c, 1.25);
+      dot(x, h.px + 2, h.py + bob - 3.4, 1.1, '#5e3416');
     });
     cone(x, 50, 84, 35, 45, 19, '#ff8ac2');
     // canopy stripes
     x.save(); x.beginPath(); x.moveTo(15, 39); x.ellipse(50, 39, 35, 15.75, 0, Math.PI, 0, true); x.lineTo(50, 20); x.closePath(); x.clip();
     x.strokeStyle = 'rgba(255,255,255,.85)'; x.lineWidth = 3.4;
-    for(let a = -3; a <= 3; a++){ x.beginPath(); x.moveTo(50, 20); x.lineTo(50 + a * 13, 45); x.stroke(); }
+    for(let a = 0; a < 8; a++){
+      const t = (a / 8 + ph) * Math.PI * 2;
+      x.beginPath(); x.moveTo(50, 20); x.lineTo(50 + Math.cos(t) * 36, 39 + Math.sin(t) * 15); x.stroke();
+    }
     x.restore();
     // bunting
     x.strokeStyle = '#ffd21f'; x.lineWidth = 1.4;
@@ -2773,7 +2831,8 @@ const TOWN_PAINT = (() => {
     blob(x, bx + 7, by + 4, 4.4, 3.6, '#9aa8bf');
   };
 
-  T.ferris = x => {
+  T.ferris = (x, ph) => {
+    ph = ph || 0;
     shadow(x, 50, 92, 42);
     // A-frame
     x.strokeStyle = '#8a5a2e'; x.lineWidth = 3.6; x.lineCap = 'round';
@@ -2789,11 +2848,13 @@ const TOWN_PAINT = (() => {
     x.strokeStyle = 'rgba(226,69,60,.6)'; x.lineWidth = 2; x.stroke();
     x.strokeStyle = 'rgba(226,69,60,.5)'; x.lineWidth = 1.6;
     for(let a = 0; a < 8; a++){
-      x.beginPath(); x.moveTo(50, 45); x.lineTo(50 + Math.cos(a * .785) * 29, 45 + Math.sin(a * .785) * 29); x.stroke();
+      const t = a * .785 + ph * Math.PI * 2;
+      x.beginPath(); x.moveTo(50, 45); x.lineTo(50 + Math.cos(t) * 29, 45 + Math.sin(t) * 29); x.stroke();
     }
     const cols = ['#ffd21f', '#8fd0ff', '#ff8ac2', '#7ed35c', '#ff9d6e', '#c9a6f2', '#ffd21f', '#8fd0ff'];
     for(let a = 0; a < 8; a++){
-      const gx = 50 + Math.cos(a * .785 + .39) * 29, gy = 45 + Math.sin(a * .785 + .39) * 29;
+      const t = a * .785 + .39 + ph * Math.PI * 2;
+      const gx = 50 + Math.cos(t) * 29, gy = 45 + Math.sin(t) * 29;
       x.strokeStyle = '#8a5a2e'; x.lineWidth = 1; 
       x.beginPath(); x.moveTo(gx, gy); x.lineTo(gx, gy + 2.6); x.stroke();
       blob(x, gx, gy + 5.6, 4.8, 4.4, cols[a], 1.28);
@@ -2856,9 +2917,16 @@ const TOWN_PAINT = (() => {
   return T;
 })();
 
-/* Pipoville terrain — the city floor, painted once into a canvas at boot.
-   Zones are anchored to the same lot coordinates the buildings use, so the
-   harbour really is under the pier and the plaza really is round the fountain. */
+/* flagpole tips in sprite space, so an animated cloth can be pinned there */
+const FLAG_ANCHORS = {
+  manor: [[9, 24], [55, 24]],
+  market: [[24, 51]],
+  tent: [[28, 57]],
+  postoffice: [[31, 45.5]],
+  school_bell: [],
+};
+const ANIM_TASKS = { carousel: 8, ferris: 8 };
+
 function paintCityGround(W, H, lot){
   const cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
@@ -3023,6 +3091,28 @@ function townSprite(k){
   if(!TOWN_SPRITES[k] && TOWN_PAINT[k]) TOWN_SPRITES[k] = bakeTown(TOWN_PAINT[k], k.startsWith('d_') ? 256 : 512);
   return TOWN_SPRITES[k];
 }
+/* rides get a strip of phase frames, cycled by one shared timer */
+const TOWN_FRAMES = {};
+function townFrames(k){
+  if(!TOWN_FRAMES[k]){
+    const n = ANIM_TASKS[k];
+    TOWN_FRAMES[k] = Array.from({ length: n }, (_, i) => bakeTown(x2 => TOWN_PAINT[k](x2, i / n), 512));
+  }
+  return TOWN_FRAMES[k];
+}
+let cityAnimTimer = null;
+function startCityAnim(){
+  clearInterval(cityAnimTimer);
+  let f = 0;
+  cityAnimTimer = setInterval(()=>{
+    f++;
+    document.querySelectorAll('#city-world .anim-ride').forEach(img=>{
+      const fr = TOWN_FRAMES[img.dataset.ride];
+      if(fr) img.src = fr[f % fr.length];
+    });
+  }, 130);
+}
+function stopCityAnim(){ clearInterval(cityAnimTimer); cityAnimTimer = null; }
 function applyIcons(root){
   (root || document).querySelectorAll('[data-ico]').forEach(el=>{
     const k = el.getAttribute('data-ico');
@@ -3243,7 +3333,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 29;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 30;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -6167,20 +6257,53 @@ function renderCityGround(){
   cv.id = 'city-ground';
   world.insertBefore(cv, world.firstChild);
 }
+/* the city follows the real calendar: blossom, high summer, falling leaves, snow */
+function citySeason(){
+  const m = new Date().getMonth();
+  return m <= 1 || m === 11 ? 'winter' : m <= 4 ? 'spring' : m <= 8 ? 'summer' : 'autumn';
+}
+const SEASON_FALL = { spring:['🌸','🌼'], summer:[], autumn:['🍂','🍁'], winter:['❄'] };
 function citySky(){
   const sky = $('#city-sky');
-  if(sky.dataset.done) return;
-  sky.dataset.done = '1';
+  const season = citySeason();
+  const world = $('#city-world');
+  world.classList.remove('sp-spring', 'sp-summer', 'sp-autumn', 'sp-winter');
+  world.classList.add('sp-' + season);
+  if(sky.dataset.done === season) return;
+  sky.dataset.done = season;
+  sky.innerHTML = '';
   let bs = 5150;
   const br = () => (bs = (bs * 1103515245 + 12345) % 2147483647) / 2147483647;
-  const bugs = ['🦋', '🦋', '🐝', '🕊️'];
-  for(let i = 0; i < 9; i++){
+  // who is out and about depends on the season
+  const bugs = season === 'winter' ? ['🕊️', '🐦'] : season === 'autumn' ? ['🦋', '🐦', '🕊️'] : ['🦋', '🦋', '🐝', '🕊️'];
+  for(let i = 0; i < (season === 'winter' ? 4 : 9); i++){
     const b = document.createElement('span');
     b.className = 'fly-bug';
     b.textContent = bugs[Math.floor(br() * bugs.length)];
     b.style.cssText = `left:${(80 + br() * (CITY_W - 200)).toFixed(0)}px; top:${(280 + br() * (CITY_H - 440)).toFixed(0)}px;` +
       `animation-duration:${(16 + br() * 16).toFixed(1)}s; animation-delay:-${(br() * 18).toFixed(1)}s; font-size:${(14 + br() * 9).toFixed(0)}px;`;
     sky.appendChild(b);
+  }
+  // seasonal fall: petals, leaves or snow drifting across the whole town
+  const fall = SEASON_FALL[season];
+  const fallN = season === 'winter' ? 46 : 26;
+  if(fall.length) for(let i = 0; i < fallN; i++){
+    const f = document.createElement('span');
+    f.className = 'fall-bit';
+    f.textContent = fall[Math.floor(br() * fall.length)];
+    f.style.cssText = `left:${(br() * CITY_W).toFixed(0)}px; top:${(-60 - br() * 300).toFixed(0)}px;` +
+      `font-size:${(11 + br() * 12).toFixed(0)}px; animation-duration:${(9 + br() * 10).toFixed(1)}s;` +
+      `animation-delay:-${(br() * 16).toFixed(1)}s; --sway:${(30 + br() * 70).toFixed(0)}px;`;
+    sky.appendChild(f);
+  }
+  // cloud shadows sliding over the ground give the world its depth
+  for(let i = 0; i < 5; i++){
+    const c = document.createElement('i');
+    c.className = 'cloud-shadow';
+    const w2 = 260 + br() * 300;
+    c.style.cssText = `top:${(120 + br() * (CITY_H - 260)).toFixed(0)}px; width:${w2.toFixed(0)}px; height:${(w2 * .42).toFixed(0)}px;` +
+      `animation-duration:${(46 + br() * 40).toFixed(0)}s; animation-delay:-${(br() * 60).toFixed(0)}s;`;
+    sky.appendChild(c);
   }
 }
 function cityTint(){
@@ -6226,8 +6349,23 @@ function renderCity(){
     const el = document.createElement('div');
     el.className = 'city-el' + (built ? ' built' : ' ghost');
     el.style.cssText = `left:${cx}px; top:${cy}px; width:${w}px; z-index:${Math.round(cy / 4)};`;
-    el.innerHTML = `<img src="${townSprite(task.id)}" alt="">` +
+    const ride = built && ANIM_TASKS[task.id];
+    el.innerHTML = (ride
+      ? `<img class="anim-ride" data-ride="${task.id}" src="${townFrames(task.id)[0]}" alt="">`
+      : `<img src="${townSprite(task.id)}" alt="">`) +
       (built ? '' : `<b>★${taskStamps(task)}</b>`);
+    if(built) (FLAG_ANCHORS[task.id] || []).forEach(([fx, fy], fi)=>{
+      const cloth = document.createElement('i');
+      cloth.className = 'flag-cloth';
+      cloth.style.cssText = `left:${fx}%; top:${fy}%; animation-delay:-${(fi * .4).toFixed(2)}s;`;
+      el.appendChild(cloth);
+    });
+    if(built && task.id === 'house'){
+      const sm = document.createElement('i');
+      sm.className = 'chimney-smoke';
+      sm.style.cssText = 'left:46%; top:44%;';
+      el.appendChild(sm);
+    }
     if(isNext){
       if(save.stamps < taskStamps(task)) el.classList.add('cant');
       el.addEventListener('click', () => {
@@ -6311,15 +6449,70 @@ function renderCity(){
   p.addEventListener('click', () => { Snd.ensure(); openDressRoom(); });
   world.appendChild(p);
 }
+/* camera: pinch, double-tap and the two buttons all drive one zoom setter that
+   keeps whatever the player is looking at under their fingers */
+let cityZoom = 1;
+function setCityZoom(z, cx, cy){
+  const sc = $('#city-scroll'), world = $('#city-world'), sizer = $('#city-sizer');
+  z = Math.max(.55, Math.min(1.9, z));
+  const r = sc.getBoundingClientRect();
+  const px = cx === undefined ? r.width / 2 : cx - r.left;
+  const py = cy === undefined ? r.height / 2 : cy - r.top;
+  const wx = (sc.scrollLeft + px) / cityZoom, wy = (sc.scrollTop + py) / cityZoom;
+  cityZoom = z;
+  world.style.transform = `scale(${z})`;
+  sizer.style.width = (CITY_W * z) + 'px';
+  sizer.style.height = (CITY_H * z) + 'px';
+  sc.scrollLeft = wx * z - px;
+  sc.scrollTop = wy * z - py;
+}
+(function wireCityCamera(){
+  const sc = $('#city-scroll');
+  const ptrs = new Map();
+  let pinchBase = 0, pinchFrom = 1, lastTap = 0, lastX = 0, lastY = 0;
+  sc.addEventListener('pointerdown', e=>{ ptrs.set(e.pointerId, e); });
+  sc.addEventListener('pointermove', e=>{
+    if(!ptrs.has(e.pointerId)) return;
+    ptrs.set(e.pointerId, e);
+    if(ptrs.size !== 2) return;
+    const [a, b] = [...ptrs.values()];
+    const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+    if(!pinchBase){ pinchBase = d; pinchFrom = cityZoom; return; }
+    e.preventDefault();
+    setCityZoom(pinchFrom * d / pinchBase, (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+  }, { passive:false });
+  const drop = e=>{
+    ptrs.delete(e.pointerId);
+    if(ptrs.size < 2) pinchBase = 0;
+  };
+  sc.addEventListener('pointerup', e=>{
+    // double-tap zooms, but never on something the player meant to tap
+    const solid = e.target.closest('.city-el, .city-friend, .city-pipo, button');
+    const now = Date.now();
+    if(!solid && now - lastTap < 320 && Math.hypot(e.clientX - lastX, e.clientY - lastY) < 34){
+      setCityZoom(cityZoom > 1.2 ? 1 : 1.6, e.clientX, e.clientY);
+      lastTap = 0;
+    } else { lastTap = now; lastX = e.clientX; lastY = e.clientY; }
+    drop(e);
+  });
+  sc.addEventListener('pointercancel', drop);
+  $('#btn-city-in').addEventListener('click', ()=>setCityZoom(cityZoom * 1.3));
+  $('#btn-city-out').addEventListener('click', ()=>setCityZoom(cityZoom / 1.3));
+})();
 function openCity(focusId){
   renderCity();
   showOverlay('ov-city', true);
+  cityZoom = 1;
+  $('#city-world').style.transform = 'scale(1)';
+  $('#city-sizer').style.width = CITY_W + 'px';
+  $('#city-sizer').style.height = CITY_H + 'px';
   const [fx, fy] = cityXY(focusId || (nextTask() ? nextTask().id : 'fountain'));
   const sc = $('#city-scroll');
   sc.scrollLeft = fx - sc.clientWidth / 2;
   sc.scrollTop = fy - sc.clientHeight / 2;
+  startCityAnim();
 }
-$('#btn-city-close').addEventListener('click', () => showOverlay('ov-city', false));
+$('#btn-city-close').addEventListener('click', () => { stopCityAnim(); showOverlay('ov-city', false); });
 
 /* ---- Chi si nasconde? — daily hidden-critters round in the town diorama ---- */
 const CRITTERS = [
