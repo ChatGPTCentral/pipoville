@@ -415,3 +415,45 @@ view (the small diorama stays — the hidden-critters minigame uses it).
 `isolation:isolate`, `.overlay` z-index is 60 (above meta chrome), and
 `#confetti-layer` 80. Before this, the diorama's z-indexed children bled
 through any overlay opened above the mailroom.
+
+
+## v29 — The city, properly painted
+
+v28 proved the city works; v29 makes it look like a game rather than a
+diagram. Everything is still canvas-painted at runtime — no image assets.
+
+**Lighting model.** One sun, top-left-front, applied consistently by the
+primitives in `TOWN_PAINT`: `gradFace()` gives every wall a vertical
+gradient (light at the top, ambient occlusion pooling at the base), tops
+are brightest, right-hand walls fall into shadow, and a warm rim
+(`rgba(255,248,210,.55)`) is stroked along the two edges that catch the
+light. `shadow()` lays a real radial contact shadow instead of a flat
+ellipse.
+
+**Material detail.** `gable({tiles:true})` draws shingle courses,
+`box({brick:true})` draws brick courses, `panel({glass, mullion, sill})`
+gives windows a frame, cross-bars and a warm glow at the sill, and
+`awning()` builds a striped, scalloped canopy that slopes out from the
+wall plane. Flower boxes, bunting, deck planks, cobble joints, lamp
+glows and water shimmer are painted per building.
+
+**Resolution.** Town sprites bake at 512px (scenery 256) — matched to a
+3x phone showing a 140px building — and are baked **lazily** by
+`townSprite()` the first time the city opens, so the boot path is
+untouched.
+
+**Terrain.** `paintCityGround()` paints the whole 1500x1150 floor into a
+canvas layer: grass with tonal meadow patches, a harbour bay anchored
+under the pier lot (wet-sand rim + shimmer), a cobbled plaza around the
+fountain with fanned setts, tilled garden beds under the growing lots, a
+sandy road threading the main squares, ~260 scattered tufts/daisies/
+pebbles, and a vignette so it reads as a diorama.
+
+**Life.** 34 seeded scenery sprites (trees, pines, bushes, planters,
+hedges, rocks) keep clear of the lots; butterflies and bees drift over
+the meadow; once the lanterns are built and the hour is late, `.dusk`
+fades in warm pools of light under the lamps, carousel and lighthouse.
+
+**Audit note.** `audit-geometry2.js` is now clipping-aware — an element
+scrolled outside its clipping ancestor counts as off-screen — which is
+what a pannable world needs to be checked honestly.
