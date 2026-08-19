@@ -16,7 +16,9 @@ screen (character names stay the same in both).
 
 ## What's inside
 
-- 70 levels across eight chapters on a winding map, badged hard levels
+- One world: the quest map **is** Pipoville. 70 deliveries wind through
+  eight districts of a single painted town — finish a district and the fog
+  lifts on the next one
 - Six painted pieces (apple, lemon, leaf, drop, flower, butterfly)
 - Explosive ladder by match size: 4 → Firecracker (3×3), 5 → Bomb (5×5),
   6 → Dynamite (7×7), 7+ → TNT (9×9); tap to detonate, swap two for a
@@ -25,9 +27,10 @@ screen (character names stay the same in both).
 - Five obstacle types: dirt, ice, two-layer ice, gnomes (guide to the
   bottom), spreading vines
 - Shovel tool (3 digs per level, no move cost)
-- A walkable painted city: every rebuilt project becomes an isometric
-  canvas-painted building in a scrolling town where rescued friends
-  stroll, hand out daily gifts, and Pipo keeps his dressing room
+- Every rebuilt project becomes an isometric canvas-painted building
+  standing on a real lot beside the lane, in the district it belongs to —
+  rescued friends stroll there, hand out daily gifts, and Pipo keeps his
+  dressing room
 - The city is alive: the carousel and ferris wheel turn, flags fly,
   chimneys smoke, cloud shadows drift, and it follows the real
   calendar — blossom, high summer, falling leaves, snow — with

@@ -114,6 +114,7 @@
   #map-inner { position:relative; width:100%; }
   #map-path { position:absolute; inset:0; width:100%; height:100%; }
   .map-deco { position:absolute; font-size:30px; filter:drop-shadow(0 3px 3px rgba(0,0,0,.25)); pointer-events:none; }
+  .lvl-holder { position:absolute; width:0; height:0; }
   .lvl-node {
     position:absolute; width:70px; height:70px; margin-left:-35px; margin-top:-35px;
     border-radius:50%; border:4px solid #ffe9c9; cursor:pointer;
@@ -980,29 +981,27 @@
   .overlay { z-index:60; }
   #confetti-layer { z-index:80; }
   /* ---- the city of Pipoville (v28) ---- */
-  #ov-city { padding:0; background:rgba(15,40,10,.85); }
-  #city-frame { position:absolute; inset:0; display:flex; flex-direction:column; }
-  #city-head { flex:0 0 auto; display:flex; align-items:center; gap:10px; z-index:5;
-    padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
-    background:linear-gradient(180deg,#ffffff,#e0effc);
-    box-shadow:0 6px 0 rgba(43,127,212,.18), 0 10px 16px rgba(18,58,46,.25); }
-  #city-title { font-family:var(--font-display); font-size:22px; color:var(--ink-art); flex:1; }
-  #city-count { font-weight:800; font-size:14px; color:#8a5a00; background:var(--cream);
-    border-radius:999px; padding:5px 13px; box-shadow:0 3px 0 #f0d9a8; }
-  #btn-city-close { width:44px; height:44px; border-radius:16px; border:none; cursor:pointer;
-    font-size:24px; font-weight:900; color:#fff; font-family:inherit;
-    background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%);
-    box-shadow:inset 0 3px 0 rgba(255,255,255,.55), 0 4px 0 #14477f; }
-  #btn-city-close:active { transform:translateY(2px); }
-  #city-scroll { flex:1; overflow:auto; -webkit-overflow-scrolling:touch; overscroll-behavior:contain;
-    touch-action:pan-x pan-y; }
-  #city-sizer { position:relative; width:1500px; height:1150px; }
+  /* the world fills the route screen: one place, one journey */
+  #world-zoom { position:absolute; right:12px; bottom:calc(104px + env(safe-area-inset-bottom));
+    display:flex; flex-direction:column; gap:8px; z-index:22; }
+  .district-sign { position:absolute; transform:translate(-50%,-50%); white-space:nowrap; pointer-events:none;
+    font-family:var(--font-display); font-weight:400; font-size:21px; color:#8a5a00;
+    background:var(--cream); padding:7px 20px; border-radius:999px;
+    box-shadow:0 4px 0 #f0d9a8, 0 9px 14px rgba(18,58,46,.22); }
+  .district-sign.unknown { color:#5f7f9c; background:linear-gradient(180deg,#ffffff,#dbe8f4);
+    box-shadow:0 4px 0 #c2d4e4, 0 9px 14px rgba(18,58,46,.2); }
+  .fog-bank { position:absolute; pointer-events:none; z-index:390; border-radius:50%;
+    background:radial-gradient(closest-side, rgba(255,255,255,.99), rgba(248,252,255,.92) 55%, rgba(255,255,255,0) 100%);
+    animation:fogDrift ease-in-out infinite alternate; }
+  #city-scroll { flex:1; min-height:0; overflow:auto; -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain; touch-action:pan-x pan-y; }
+  #city-sizer { position:relative; width:3600px; height:2560px; }
   #city-world { transform-origin:0 0; }
   .city-zoom { width:38px; height:38px; border-radius:13px; border:none; cursor:pointer; flex:0 0 auto;
     font-family:inherit; font-size:21px; font-weight:900; color:#8a5a00; background:var(--cream);
     box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 3px 0 #f0d9a8; }
   .city-zoom:active { transform:translateY(2px); box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 1px 0 #f0d9a8; }
-  #city-world { position:relative; width:1500px; height:1150px; background:#7fce62; }
+  #city-world { position:relative; width:3600px; height:2560px; background:#7fce62; }
   #city-ground { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; }
   .city-deco { position:absolute; transform:translate(-50%,-84%); pointer-events:none;
     filter:drop-shadow(0 4px 4px rgba(10,40,10,.22)); }
@@ -1118,9 +1117,15 @@
     <img class="char-img" data-char="sir_saltbread_cane" alt="">
     <div id="route-hint-text"></div>
   </div>
-  <div id="map-scroll"><div id="map-inner">
-    <svg id="map-path" preserveAspectRatio="none"></svg>
-  </div></div>
+  <div id="city-scroll"><div id="city-sizer"><div id="city-world">
+    <div id="city-sky"></div>
+    <div id="city-frost"></div>
+    <div id="city-tint"></div>
+  </div></div></div>
+  <div id="world-zoom">
+    <button class="city-zoom" id="btn-city-out">−</button>
+    <button class="city-zoom" id="btn-city-in">+</button>
+  </div>
 </div>
 
 <!-- GAME -->
@@ -1319,23 +1324,6 @@
     <div id="card-perk" style="display:none;"><img data-ico="medal" alt=""><span id="card-perk-text"></span></div>
     <p id="card-where" style="font-size:12.5px;"></p>
     <div class="btns"><button class="btn blue small" id="btn-card-close">Close</button></div>
-  </div>
-</div>
-
-<div class="overlay" id="ov-city">
-  <div id="city-frame">
-    <div id="city-head">
-      <div id="city-title">Pipoville</div>
-      <div id="city-count"></div>
-      <button class="city-zoom" id="btn-city-out">−</button>
-      <button class="city-zoom" id="btn-city-in">+</button>
-      <button id="btn-city-close">‹</button>
-    </div>
-    <div id="city-scroll"><div id="city-sizer"><div id="city-world">
-      <div id="city-sky"></div>
-      <div id="city-frost"></div>
-      <div id="city-tint"></div>
-    </div></div></div>
   </div>
 </div>
 
@@ -3333,7 +3321,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 30;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 31;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -3930,6 +3918,7 @@ function showScreen(id){
   $('#game').classList.remove('winning');
   const meta = META_VIEWS.includes(id);
   document.body.classList.toggle('in-meta', meta);
+  if(id !== 'map') stopCityAnim();          // the rides only turn while you are looking
   if(meta){
     document.querySelectorAll('#meta-nav .tab').forEach(b=>b.classList.toggle('active', b.dataset.view === id));
     renderMeta();
@@ -3996,7 +3985,7 @@ const TOWN_SPOTS = {
 };
 function taskYield(x){ return x.cost; }
 function townIncome(){ return TASKS.filter(x=>save.done.includes(x.id)).reduce((sum, x)=>sum + taskYield(x), 0); }
-function wave1Done(){ return TASKS.filter(x=>!x.wave).every(x=>save.done.includes(x.id)); }
+function wave1Done(){ return TASKS.filter(x=>!x.wave).every(x=>save.done.includes(x.id)); } // kept for old saves
 function renderTownScene(){
   const nextT = nextTask();
   const spots = TASKS.map(x=>{
@@ -4014,11 +4003,11 @@ function renderTownScene(){
 }
 function starsEarnedTotal(){ let t = 0; for(const k in save.stars) t += save.stars[k]; return t; }
 function starsAvailable(){ return starsEarnedTotal() - (save.spent || 0); }
-function nextTask(){ return TASKS.find(x => !save.done.includes(x.id) && (!x.wave || wave1Done())); }
+function nextTask(){ return TASKS.find(x => !save.done.includes(x.id) && taskUnlocked(x.id)); }
 function taskStamps(x){ return x.cost * 8; }
 function renderMailroom(){
   ensureQuests();
-  const open = TASKS.filter(x=>!save.done.includes(x.id) && (!x.wave || wave1Done())).slice(0, 3);
+  const open = TASKS.filter(x=>!save.done.includes(x.id) && taskUnlocked(x.id)).slice(0, 3);
   const doneTasks = TASKS.filter(x=>save.done.includes(x.id));
   const last = doneTasks[doneTasks.length - 1];
   const income = townIncome();
@@ -4027,7 +4016,7 @@ function renderMailroom(){
   const rows = open.length ? open.map(x=>`
     <div class="pv-row"><span class="r-icon" style="font-size:34px;display:flex;align-items:center;justify-content:center">${x.emoji}</span>
       <div class="r-main"><div class="r-title">${x.name}</div>
-      <div class="r-sub">${x.wave ? tf('Town project', 'Progetto cittadino') : tf('Garden project', 'Progetto del giardino')} · +${taskYield(x)}<img src="${ICONS.stamp}" style="width:13px;height:13px;vertical-align:-2px" alt="">/${tf('day', 'giorno')}</div></div>
+      <div class="r-sub">${districtName(taskDistrict(x.id))} · +${taskYield(x)}<img src="${ICONS.stamp}" style="width:13px;height:13px;vertical-align:-2px" alt="">/${tf('day', 'giorno')}</div></div>
       <button class="buy-btn blue t-do" data-id="${x.id}" ${save.stamps >= taskStamps(x) ? '' : 'disabled'}>★${taskStamps(x)}</button></div>`).join('')
     : `<div class="pv-row"><div class="r-main"><div class="r-title">${tf('All of Pipoville is rebuilt! 🌸', 'Tutta Pipoville è ricostruita! 🌸')}</div></div></div>`;
   $('#mailroom-body').innerHTML = `
@@ -4049,11 +4038,15 @@ function renderMailroom(){
       <div class="r-sub">${income ? '+' + income + ' ' + tf('stamps every day', 'francobolli al giorno') : tf('Build something and the town pays you back', 'Costruisci qualcosa e la città ti ripaga')}</div></div>
       ${income ? (collected ? `<div class="task-done"><img src="${ICONS.medal}" alt="">${tf('collected', 'ritirata')}</div>`
         : `<button class="q-claim" id="btn-town-collect">★${income}</button>`) : ''}</div>
-    ${!wave1Done() ? '' : `<div class="keeper-card"><img src="${SPRITES['c_sir_saltbread_cane']}" alt="">
+    ${districtReached() < 2 ? '' : `<div class="keeper-card"><img src="${SPRITES['c_sir_saltbread_cane']}" alt="">
       <div class="k-line">${tf('The garden is whole — now the town itself! Big projects, big pay.', 'Il giardino è completo — ora la città! Grandi progetti, grande rendita.')}</div></div>`}
     ${rows}
     ${last ? `<div class="keeper-card"><img src="${SPRITES.pipop}" alt=""><div class="k-line">${last.line}</div></div>` : ''}`;
-  $('#mailroom-body').querySelectorAll('.t-do').forEach(b=>b.addEventListener('click', ()=>doTask(b.dataset.id)));
+  $('#mailroom-body').querySelectorAll('.t-do').forEach(b=>b.addEventListener('click', ()=>{
+    const id = b.dataset.id;
+    doTask(id);
+    if(save.done.includes(id)) openCity(id);   // go and look at what you just built
+  }));
   const cityBtn = $('#btn-city-open');
   if(cityBtn) cityBtn.addEventListener('click', ()=>{ Snd.ensure(); openCity(); });
   const findBtn = $('#btn-find-open');
@@ -4370,212 +4363,6 @@ function checkDaily(){
 
 /* ---------------- level map ---------------- */
 const MAP_DECOS = ['🌳','🌷','🌻','🌼','🪻','🌿','🍄','🌲'];
-function renderMap(){
-  const inner = $('#map-inner');
-  inner.querySelectorAll('.lvl-node, .lvl-holder, .map-deco, .decor, .pipop-av, .heart-pop, .friend, .chapter-sign, .landmark, .map-terrain, .fog-puff').forEach(n=>n.remove());
-  const n = LEVELS.length;
-  const H = 170 * n + 160;
-  inner.style.height = H + 'px';
-  const svg = $('#map-path');
-  svg.setAttribute('viewBox', `0 0 100 ${H}`);
-  const pts = [];
-  for(let i=0;i<n;i++){
-    const y = H - 110 - i*170;
-    const x = 50 + Math.sin(i * 1.05) * 26;
-    pts.push([x,y]);
-  }
-  let d = `M ${pts[0][0]} ${pts[0][1]}`;
-  for(let i=1;i<n;i++){
-    const [x0,y0] = pts[i-1], [x1,y1] = pts[i];
-    d += ` C ${x0} ${(y0+y1)/2}, ${x1} ${(y0+y1)/2}, ${x1} ${y1}`;
-  }
-  svg.innerHTML = `<path d="${d}" fill="none" stroke="rgba(31,104,60,.28)" stroke-width="18" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
-                   <path d="${d}" fill="none" stroke="#f4e3bd" stroke-width="12" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
-                   <path d="${d}" fill="none" stroke="rgba(43,127,212,.55)" stroke-width="3" stroke-linecap="round" stroke-dasharray="2 16" vector-effect="non-scaling-stroke"/>`;
-  // painted terrain under the trail: chapter tints, hills, rivers, flora
-  let fogSeed = 1234567;
-  const srnd = ()=> (fogSeed = (fogSeed * 9301 + 49297) % 233280) / 233280;
-  const CH_TINTS = ['#7fce62', '#94d98e', '#d9cd7a', '#e8b36e', '#9fd8e8', '#b9a8e8', '#f2a8c4', '#8fc9f2'];
-  const chStarts = Object.keys(CHAPTERS).map(Number).sort((a, b)=>a - b);
-  let stops = '';
-  for(let ci = chStarts.length - 1; ci >= 0; ci--){   // top of the map first: stops must ascend
-    const yTop = ci + 1 < chStarts.length ? pts[chStarts[ci + 1] - 1][1] + 85 : 0;
-    const yBot = Math.min(H, pts[chStarts[ci] - 1][1] + 85);
-    const col = CH_TINTS[ci % CH_TINTS.length];
-    stops += `<stop offset="${Math.max(0, yTop / H * 100).toFixed(2)}%" stop-color="${col}"/>` +
-             `<stop offset="${(yBot / H * 100).toFixed(2)}%" stop-color="${col}"/>`;
-  }
-  let hills = '';
-  for(let i = 0; i < Math.floor(n / 2); i++){
-    const hx = srnd() < .5 ? srnd() * 7 : 93 + srnd() * 7;
-    const hy = 60 + srnd() * (H - 120);
-    hills += `<ellipse cx="${hx.toFixed(1)}" cy="${hy.toFixed(0)}" rx="${(8 + srnd() * 8).toFixed(1)}" ry="${(40 + srnd() * 50).toFixed(0)}" fill="rgba(23,92,44,.07)"/>`;
-  }
-  let rivers = '';
-  [0.3, 0.62, 0.88].forEach(f=>{
-    const ry = Math.round(H * f);
-    const b1 = 60 + srnd() * 80, b2 = 60 + srnd() * 80;
-    const rp = `M -5 ${ry - b1} C 25 ${ry + b1}, 45 ${ry - b2}, 60 ${ry + 20} S 90 ${ry - b2}, 105 ${ry + b1}`;
-    rivers += `<path d="${rp}" fill="none" stroke="#57b8dc" stroke-width="24" stroke-linecap="round" opacity=".55" vector-effect="non-scaling-stroke"/>` +
-              `<path d="${rp}" fill="none" stroke="#a8e4f5" stroke-width="10" stroke-linecap="round" opacity=".7" vector-effect="non-scaling-stroke"/>`;
-  });
-  const terr = document.createElement('div');
-  terr.className = 'map-terrain';
-  terr.innerHTML = `<svg viewBox="0 0 100 ${H}" preserveAspectRatio="none">
-    <defs><linearGradient id="chtint" x1="0" y1="0" x2="0" y2="1">${stops}</linearGradient></defs>
-    <rect x="0" y="0" width="100" height="${H}" fill="url(#chtint)" opacity=".38"/>
-    ${rivers}${hills}</svg>`;
-  inner.insertBefore(terr, svg);
-  // flora scattered beside the trail
-  const visLimit = Math.min(n, save.unlocked + 2);
-  pts.forEach(([x, y], i)=>{
-    if(srnd() < .4) return;
-    const emo = MAP_DECOS[Math.floor(srnd() * MAP_DECOS.length)];
-    const side = x > 50 ? -1 : 1;
-    const deco = document.createElement('span');
-    deco.className = 'map-deco';
-    deco.textContent = emo;
-    deco.style.cssText = `left:calc(${x}% + ${side * (95 + srnd() * 50)}px); top:${y - 30 + srnd() * 60}px; font-size:${20 + Math.round(srnd() * 14)}px; opacity:${i + 1 > visLimit ? .5 : 1};`;
-    inner.appendChild(deco);
-  });
-  let totalStars = 0;
-  pts.forEach(([x,y],i)=>{
-    const lvl = i+1;
-    const stars = save.stars[lvl] || 0; totalStars += stars;
-    const holder = document.createElement('div');
-    holder.className = 'lvl-holder';
-    holder.style.cssText = `position:absolute; left:${x}%; top:${y}px; width:0; height:0;`;
-    const b = document.createElement('button');
-    b.className = 'lvl-node' + (lvl > save.unlocked ? ' locked' : (lvl === save.unlocked ? ' current' : ''));
-    if(LEVELS[lvl-1].hard && lvl <= save.unlocked) b.classList.add('hardlvl');
-    if(lvl > save.unlocked) b.innerHTML = `<img src="${ICONS.mailbox}" alt="">`;
-    else b.innerHTML = lvl + `<div class="node-medals">${[1,2,3].map(sn=>`<img src="${ICONS.medal}" class="${sn<=stars?'':'off'}" alt="">`).join('')}</div>`;
-    if(lvl <= save.unlocked){
-      b.addEventListener('click', ()=>{ Snd.ensure(); openLevel(lvl); });
-    } else {
-      b.addEventListener('click', ()=>{ Snd.bad(); });
-    }
-    if(lvl > visLimit) b.style.visibility = 'hidden';
-    holder.appendChild(b);
-    if(stars > 0 && lvl !== save.unlocked){
-      const rp = document.createElement('div');
-      rp.className = 'replay-badge';
-      rp.innerHTML = `<img src="${ICONS.replay}" alt="">`;
-      holder.appendChild(rp);
-    }
-    if(lvl === save.unlocked){
-      const pill = document.createElement('div');
-      pill.className = 'next-pill';
-      pill.textContent = tf('NEXT DELIVERY', 'PROSSIMA CONSEGNA');
-      holder.appendChild(pill);
-    }
-    inner.appendChild(holder);
-    if(lvl > visLimit){
-      const puffs = lvl - visLimit <= 4 ? 3 : 2;
-      for(let k = 0; k < puffs; k++){
-        const p = document.createElement('div');
-        p.className = 'fog-puff';
-        const pw = 110 + srnd() * 85, ph = 58 + srnd() * 38;
-        p.style.cssText = `left:calc(${x}% + ${((srnd() * 2 - 1) * 52 - pw / 2).toFixed(0)}px); top:${(y - ph / 2 + (srnd() * 2 - 1) * 36).toFixed(0)}px; width:${pw.toFixed(0)}px; height:${ph.toFixed(0)}px; animation-duration:${(6 + srnd() * 5).toFixed(1)}s; animation-delay:-${(srnd() * 6).toFixed(1)}s;`;
-        inner.appendChild(p);
-      }
-    }
-  });
-  // town restoration: every finished mailroom task builds a landmark on the route
-  const nextT = nextTask();
-  TASKS.forEach((task, i)=>{
-    const built = save.done.includes(task.id);
-    const isNext = !built && nextT && nextT.id === task.id;
-    if(!built && !isNext) return;
-    const anchorLvl = Math.min(n - 1, 1 + i * 3) + 1;
-    if(anchorLvl > visLimit) return;
-    const anchor = pts[Math.min(n-1, 1 + i*3)];
-    const el = document.createElement('div');
-    el.className = 'landmark' + (built ? ' built' : ' ghost');
-    const side = (i % 2) ? 1 : -1;
-    el.style.left = `calc(${anchor[0]}% + ${side * 98}px)`;
-    el.style.top = (anchor[1] - 26) + 'px';
-    el.innerHTML = built ? `<span>${task.emoji}</span>` : `<span>${task.emoji}</span><b>★${taskStamps(task)}</b>`;
-    inner.appendChild(el);
-  });
-  if((save.landmarksSeen || 0) < save.done.length){
-    save.landmarksSeen = save.done.length; persist();
-    const builtEls = inner.querySelectorAll('.landmark.built');
-    const newest = builtEls[builtEls.length - 1];
-    if(newest && !REDUCED){ newest.classList.add('pop'); if(!Snd.play('task', 1, .5)) Snd.special(); }
-  }
-  const nextRescueLv = Object.keys(RESCUES).map(Number).filter(lv=>!isRescued(RESCUES[lv].id)).sort((a,b)=>a-b)[0];
-  $('#route-hint-text').textContent = nextRescueLv
-    ? tf(`The mail cart's still missing. ${CHARACTERS[RESCUES[nextRescueLv].id].name} is waiting at delivery ${nextRescueLv} — follow the trail!`,
-         `Il carretto della posta è ancora sparito. ${CHARACTERS[RESCUES[nextRescueLv].id].name} ti aspetta alla consegna ${nextRescueLv} — segui le tracce!`)
-    : tf('Every friend is home. Enjoy the round, Deputy Pipo!', 'Tutti gli amici sono a casa. Buon giro, vice Pipo!');
-  // rescued friends and captured cages along the path + chapter signs
-  Object.keys(RESCUES).forEach(lv=>{
-    if(Number(lv) > visLimit) return;
-    const rescue = RESCUES[lv];
-    const [x, y] = pts[lv-1];
-    const el = document.createElement('div');
-    el.className = 'friend ' + (isRescued(rescue.id) ? 'freed' : 'caged');
-    const side = x > 62 ? -1 : x < 38 ? 1 : ((lv % 2) ? -1 : 1);
-    el.style.left = `calc(${x}% + ${side * 74}px)`;
-    el.style.top = (y - 8) + 'px';
-    el.innerHTML = `<img src="${SPRITES['c_' + rescue.id]}" alt="">`;
-    inner.appendChild(el);
-  });
-  Object.keys(CHAPTERS).forEach(lv=>{
-    if(Number(lv) > visLimit) return;
-    const [x, y] = pts[lv-1];
-    const sign = document.createElement('div');
-    sign.className = 'chapter-sign';
-    sign.textContent = CHAPTERS[lv];
-    sign.style.left = '50%';
-    sign.style.top = (y + 52) + 'px';
-    inner.appendChild(sign);
-  });
-  // Pipo lives on the map: he stands at your current level and waddles up newly opened path
-  const cur = Math.min(save.unlocked, n);
-  const from = Math.max(1, Math.min(save.pipopAt || 1, cur));
-  const av = document.createElement('div');
-  av.className = 'pipop-av';
-  av.innerHTML = `<img src="${SPRITES.pipop}" alt="">`;
-  av.style.left = pts[from-1][0] + '%';
-  av.style.top = pts[from-1][1] + 'px';
-  inner.appendChild(av);
-  if(cur > from && window.gsap && !REDUCED){
-    const tl = gsap.timeline({ delay: .35, onComplete: ()=>{
-      save.pipopAt = cur; persist();
-      for(let i=0;i<8;i++){
-        const h = document.createElement('span');
-        h.className = 'heart-pop';
-        h.textContent = '❤';
-        h.style.left = av.style.left; h.style.top = av.style.top;
-        h.style.setProperty('--dx', (rnd(90)-45) + 'px');
-        h.style.setProperty('--dy', (-30 - rnd(50)) + 'px');
-        inner.appendChild(h);
-        setTimeout(()=>h.remove(), 900);
-      }
-      if(!Snd.play('pluck', 1.25, .5)) Snd.special();
-    }});
-    for(let i=from; i<cur; i++){
-      tl.to(av, { left: pts[i][0] + '%', top: pts[i][1] + 'px', duration: .55, ease: 'power1.inOut' });
-    }
-    const img = av.querySelector('img');
-    gsap.fromTo(img, { rotation: -7 }, { rotation: 7, duration: .16, yoyo: true,
-      repeat: Math.max(3, (cur - from) * 4), ease: 'sine.inOut', delay: .35,
-      onComplete: ()=>gsap.set(img, { rotation: 0 }) });
-  } else if(cur !== (save.pipopAt || 1)){
-    save.pipopAt = cur; persist();
-    av.style.left = pts[cur-1][0] + '%';
-    av.style.top = pts[cur-1][1] + 'px';
-  }
-  requestAnimationFrame(()=>{
-    const sc = $('#map-scroll');
-    const target = pts[Math.min(save.unlocked, n)-1][1];
-    sc.scrollTop = Math.max(0, target - sc.clientHeight * .55);
-  });
-}
-
-/* ---------------- goal chips ---------------- */
 function goalChipHTML(g, remaining){
   const done = remaining <= 0;
   const txt = done ? '✔' : remaining;
@@ -6244,106 +6031,328 @@ function renderCloudUI(){
 })();
 
 /* ---------------- the city of Pipoville: a walkable painted town ---------------- */
-const CITY_W = 1500, CITY_H = 1150;
-function cityXY(id){
-  const [px, py] = TOWN_SPOTS[id] || [50, 50];
-  return [px / 100 * (CITY_W - 160) + 80, 150 + py / 100 * (CITY_H - 300)];
+/* ---------------- ONE WORLD ----------------
+   Pipoville is a single place. Each chapter is a real district of the town,
+   the delivery trail runs through its streets, and its three projects stand
+   on its lots. Finish a district and the fog lifts on the next one. */
+const WORLD_W = 3600, WORLD_H = 2560;
+const DISTRICTS = [
+  { from:1,  to:8,  cx:462,  cy:2184, projects:['flowerbed', 'oak', 'sunflowers'] },
+  { from:9,  to:16, cx:1078, cy:2002, projects:['school_bell', 'bench', 'path'] },
+  { from:17, to:24, cx:1624, cy:1694, projects:['bakery', 'grocery', 'postoffice'] },
+  { from:25, to:30, cx:2198, cy:1484, projects:['manor', 'clock', 'statue'] },
+  { from:31, to:40, cx:2702, cy:1148, projects:['pier', 'market', 'bridge'] },
+  { from:41, to:50, cx:2870, cy:658,  projects:['beacon', 'house', 'lights'] },
+  { from:51, to:60, cx:2100, cy:448,  projects:['pond', 'fountain', 'tent'] },
+  { from:61, to:70, cx:1232, cy:350,  projects:['carousel', 'stage', 'ferris'] },
+];
+function districtName(i){ return CHAPTERS[DISTRICTS[i].from] || ''; }
+function districtOf(level){
+  for(let i = DISTRICTS.length - 1; i >= 0; i--) if(level >= DISTRICTS[i].from) return i;
+  return 0;
 }
-function renderCityGround(){
-  const world = $('#city-world');
+/* the newest district the player has actually reached */
+function districtReached(){ return districtOf(Math.min(save.unlocked, LEVELS.length)); }
+/* discovered = walked into it; the one after that is visible under fog as a tease */
+function districtDiscovered(i){ return i <= districtReached(); }
+function taskDistrict(id){ return DISTRICTS.findIndex(d => d.projects.includes(id)); }
+function taskUnlocked(id){ const i = taskDistrict(id); return i >= 0 && districtDiscovered(i); }
+/* the three lots of a district line the lane, set back from the kerb, all on
+   the same side so the road stays clear and the frontage reads as a street */
+const LOT_ALONG = [-205, 0, 205], LOT_BACK = [250, 320, 250];
+let LOTS = null;
+function solveLots(){
+  if(LOTS) return LOTS;
+  const pts = worldTrail();
+  LOTS = {};
+  DISTRICTS.forEach(d=>{
+    const ai = Math.round((d.from + d.to) / 2) - 1;
+    const a = pts[ai];
+    // the street runs with the district's overall heading, not the local meander
+    const b0 = pts[Math.max(0, ai - 3)], b1 = pts[Math.min(pts.length - 1, ai + 3)];
+    const hx = b1[0] - b0[0], hy = b1[1] - b0[1], hm = Math.hypot(hx, hy) || 1;
+    const u = [hx / hm, hy / hm], n = [-u[1], u[0]];
+    let best = null;
+    [1, -1].forEach(sg=>{
+      const trio = LOT_ALONG.map((tt, k)=>[a[0] + u[0] * tt + n[0] * sg * LOT_BACK[k],
+                                           a[1] + u[1] * tt + n[1] * sg * LOT_BACK[k]]);
+      const inb = trio.every(q => q[0] > 210 && q[0] < WORLD_W - 210 && q[1] > 210 && q[1] < WORLD_H - 210);
+      let near = 1e9;
+      trio.forEach(q => pts.forEach(w => { const dd = Math.hypot(q[0] - w[0], q[1] - w[1]); if(dd < near) near = dd; }));
+      const score = (inb ? 1e4 : 0) + near;
+      if(!best || score > best.score) best = { score, trio, sg };
+    });
+    d.side = best.sg;                              // friends wait on the other side
+    // nudge any lot the meandering lane still runs too close to
+    best.trio.forEach(q=>{
+      for(let pass = 0; pass < 24; pass++){
+        let near = 1e9, nq = null;
+        pts.forEach(w =>{ const dd = Math.hypot(q[0] - w[0], q[1] - w[1]); if(dd < near){ near = dd; nq = w; } });
+        if(near >= 168) break;
+        const dx = (q[0] - nq[0]) / (near || 1), dy = (q[1] - nq[1]) / (near || 1);
+        q[0] = Math.max(200, Math.min(WORLD_W - 200, q[0] + dx * 14));
+        q[1] = Math.max(200, Math.min(WORLD_H - 200, q[1] + dy * 14));
+      }
+    });
+    d.projects.forEach((id, k)=>{ LOTS[id] = best.trio[k]; });
+  });
+  return LOTS;
+}
+/* where a project stands, in world pixels */
+function lotXY(id){ return solveLots()[id] || [WORLD_W / 2, WORLD_H / 2]; }
+/* ONE continuous lane for the whole town: a single spline through every
+   district, given a slow meander, then cut into stops at an even walking
+   distance so no two deliveries ever crowd each other. */
+const TRAIL_WAVE = 660, TRAIL_SWING = 152;
+let WORLD_TRAIL = null, WORLD_NORMALS = null;
+function worldTrail(){
+  if(WORLD_TRAIL) return WORLD_TRAIL;
+  const way = [[DISTRICTS[0].cx - 280, DISTRICTS[0].cy + 182]]
+    .concat(DISTRICTS.map(d => [d.cx, d.cy]))
+    .concat([[DISTRICTS[DISTRICTS.length - 1].cx - 294, DISTRICTS[DISTRICTS.length - 1].cy - 133]]);
+  const P = [way[0]].concat(way, [way[way.length - 1]]);
+  const dense = [];
+  for(let i = 1; i < P.length - 2; i++){                        // catmull-rom through the districts
+    const p0 = P[i - 1], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2];
+    for(let k = 0; k < 40; k++){
+      const t = k / 40, t2 = t * t, t3 = t2 * t;
+      dense.push([
+        .5 * (2 * p1[0] + (-p0[0] + p2[0]) * t + (2 * p0[0] - 5 * p1[0] + 4 * p2[0] - p3[0]) * t2 + (-p0[0] + 3 * p1[0] - 3 * p2[0] + p3[0]) * t3),
+        .5 * (2 * p1[1] + (-p0[1] + p2[1]) * t + (2 * p0[1] - 5 * p1[1] + 4 * p2[1] - p3[1]) * t2 + (-p0[1] + 3 * p1[1] - 3 * p2[1] + p3[1]) * t3)]);
+    }
+  }
+  dense.push(P[P.length - 2]);
+  const walk = pl =>{ const c = [0]; for(let i = 1; i < pl.length; i++) c.push(c[i - 1] + Math.hypot(pl[i][0] - pl[i - 1][0], pl[i][1] - pl[i - 1][1])); return c; };
+  const at = (pl, c, s2)=>{
+    let j = 1; while(j < c.length - 1 && c[j] < s2) j++;
+    const f = (s2 - c[j - 1]) / ((c[j] - c[j - 1]) || 1);
+    return [pl[j - 1][0] + (pl[j][0] - pl[j - 1][0]) * f, pl[j - 1][1] + (pl[j][1] - pl[j - 1][1]) * f];
+  };
+  const cum = walk(dense), L = cum[cum.length - 1], wob = [];
+  for(let i = 0; i <= 1400; i++){                               // the lane wanders, gently and evenly
+    const s2 = L * i / 1400, p = at(dense, cum, s2);
+    const a = at(dense, cum, Math.max(0, s2 - 2)), b = at(dense, cum, Math.min(L, s2 + 2));
+    const tx = b[0] - a[0], ty = b[1] - a[1], m = Math.hypot(tx, ty) || 1;
+    const o = Math.sin(s2 / TRAIL_WAVE * Math.PI * 2) * TRAIL_SWING;
+    wob.push([p[0] - ty / m * o, p[1] + tx / m * o]);
+  }
+  const c2 = walk(wob), L2 = c2[c2.length - 1], pts = [], nrm = [];
+  for(let i = 0; i < LEVELS.length; i++){                       // one stop per delivery, evenly walked
+    const s2 = L2 * (i + .5) / LEVELS.length;
+    pts.push(at(wob, c2, s2));
+    const a = at(wob, c2, Math.max(0, s2 - 14)), b = at(wob, c2, Math.min(L2, s2 + 14));
+    const tx = b[0] - a[0], ty = b[1] - a[1], m = Math.hypot(tx, ty) || 1;
+    nrm.push([-ty / m, tx / m]);
+  }
+  WORLD_TRAIL = pts; WORLD_NORMALS = nrm;
+  return pts;
+}
+/* the direction that points off the side of the lane at a given stop */
+function trailNormal(i){
+  worldTrail();
+  return WORLD_NORMALS[Math.max(0, Math.min(WORLD_NORMALS.length - 1, i))];
+}
+
+/* the whole floor of Pipoville, painted once into a canvas */
+function paintWorldGround(){
+  const cv = document.createElement('canvas');
+  cv.width = WORLD_W; cv.height = WORLD_H;
+  const x = cv.getContext('2d');
+  let sd = 20260819;
+  const r = ()=> (sd = (sd * 1103515245 + 12345) % 2147483647) / 2147483647;
+
+  const g = x.createLinearGradient(0, WORLD_H, WORLD_W, 0);
+  g.addColorStop(0, '#8ed36a'); g.addColorStop(.42, '#7fce62');
+  g.addColorStop(.72, '#6cbe55'); g.addColorStop(1, '#8fd8b0');
+  x.fillStyle = g; x.fillRect(0, 0, WORLD_W, WORLD_H);
+
+  for(let i = 0; i < 100; i++){
+    const cx = r() * WORLD_W, cy = r() * WORLD_H, rad = 150 + r() * 330;
+    const p = x.createRadialGradient(cx, cy, 0, cx, cy, rad);
+    p.addColorStop(0, r() < .5 ? 'rgba(196,240,150,.28)' : 'rgba(44,120,52,.15)');
+    p.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = p;
+    x.save(); x.translate(cx, cy); x.scale(1, .58); x.translate(-cx, -cy);
+    x.beginPath(); x.arc(cx, cy, rad, 0, 7); x.fill(); x.restore();
+  }
+
+  // the sea washes in along the top-right; its shore is pushed back until it
+  // clears every stop and every lot, so the lane never runs over water
+  const coast = (()=>{
+    const obs = worldTrail().concat(Object.values(solveLots()));
+    const a = [WORLD_W + 160, 1880], b = [820, -220];
+    const dx = b[0] - a[0], dy = b[1] - a[1], dm = Math.hypot(dx, dy);
+    const sea = [-dy / dm, dx / dm];                 // the side the water is on
+    const out = [];
+    for(let i = 0; i <= 30; i++){
+      const u = i / 30;
+      const q = [a[0] + dx * u, a[1] + dy * u];
+      for(let pass = 0; pass < 40; pass++){
+        let near = 1e9;
+        obs.forEach(w =>{ const d = Math.hypot(q[0] - w[0], q[1] - w[1]); if(d < near) near = d; });
+        if(near >= 262) break;
+        q[0] += sea[0] * 18; q[1] += sea[1] * 18;
+      }
+      out.push(q);
+    }
+    return out;
+  })();
+  const shore = new Path2D();
+  shore.moveTo(coast[0][0], coast[0][1]);
+  for(let i = 1; i < coast.length; i++){
+    const m0 = coast[i - 1], m1 = coast[i];
+    shore.quadraticCurveTo(m0[0], m0[1], (m0[0] + m1[0]) / 2, (m0[1] + m1[1]) / 2);
+  }
+  shore.lineTo(coast[coast.length - 1][0], coast[coast.length - 1][1]);
+  x.save();
+  const water = new Path2D(shore);
+  water.lineTo(coast[coast.length - 1][0] + 900, coast[coast.length - 1][1] - 700);
+  water.lineTo(WORLD_W + 400, -400);
+  water.lineTo(WORLD_W + 400, coast[0][1] + 200);
+  water.closePath();
+  const wg = x.createLinearGradient(WORLD_W, WORLD_H * .55, WORLD_W * .38, 0);
+  wg.addColorStop(0, '#7fd0ee'); wg.addColorStop(.5, '#4fb0dd'); wg.addColorStop(1, '#2f86b8');
+  x.fillStyle = wg; x.fill(water);
+  x.strokeStyle = 'rgba(240,226,190,.92)'; x.lineWidth = 30; x.lineCap = 'round'; x.stroke(shore);
+  x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 8; x.stroke(shore);
+  x.clip(water);
+  x.strokeStyle = 'rgba(255,255,255,.4)'; x.lineWidth = 4; x.lineCap = 'round';
+  for(let i = 0; i < 80; i++){
+    const sx = WORLD_W * .3 + r() * WORLD_W * .8, sy = r() * WORLD_H * .62, len = 30 + r() * 74;
+    x.beginPath(); x.moveTo(sx, sy); x.quadraticCurveTo(sx + len / 2, sy - 6, sx + len, sy); x.stroke();
+  }
+  x.restore();
+
+  // the town square, spread in front of the Main Street shops
+  const sq = solveLots(), sqp = DISTRICTS[2].projects.map(id => sq[id]);
+  const pl = [sqp.reduce((a, q)=>a + q[0], 0) / 3, sqp.reduce((a, q)=>a + q[1], 0) / 3 + 40];
+  x.save();
+  x.beginPath(); x.ellipse(pl[0], pl[1] + 16, 250, 132, 0, 0, 7);
+  const pg = x.createRadialGradient(pl[0] - 64, pl[1] - 44, 22, pl[0], pl[1] + 16, 250);
+  pg.addColorStop(0, '#f2e6cc'); pg.addColorStop(.72, '#e2d3b6'); pg.addColorStop(1, '#d2c2a2');
+  x.fillStyle = pg; x.fill();
+  x.strokeStyle = 'rgba(150,124,80,.5)'; x.lineWidth = 6; x.stroke();
+  x.clip();
+  x.strokeStyle = 'rgba(150,124,80,.3)'; x.lineWidth = 1.8;
+  for(let a = 0; a < 26; a++){
+    x.beginPath(); x.moveTo(pl[0], pl[1] + 16);
+    x.lineTo(pl[0] + Math.cos(a * .2417) * 266, pl[1] + 16 + Math.sin(a * .2417) * 140); x.stroke();
+  }
+  for(let i = 1; i < 6; i++){
+    x.beginPath(); x.ellipse(pl[0], pl[1] + 16, 250 * i / 6, 132 * i / 6, 0, 0, 7); x.stroke();
+  }
+  x.restore();
+
+  // tilled fields out at the farms
+  const farm = solveLots()[DISTRICTS[0].projects[1]];
+  [[farm[0] - 250, farm[1] + 190], [farm[0] + 210, farm[1] + 250]].forEach(p=>{
+    x.save();
+    x.translate(p[0], p[1]); x.scale(1, .52); x.rotate(-.12);
+    x.beginPath(); x.roundRect(-96, -64, 192, 128, 20);
+    x.fillStyle = '#7a5a34'; x.fill();
+    x.strokeStyle = 'rgba(70,48,22,.55)'; x.lineWidth = 7; x.stroke();
+    x.clip();
+    x.strokeStyle = 'rgba(52,34,14,.35)'; x.lineWidth = 5;
+    for(let fy = -58; fy < 64; fy += 18){ x.beginPath(); x.moveTo(-100, fy); x.lineTo(100, fy); x.stroke(); }
+    x.restore();
+  });
+
+  // the lane itself follows the delivery trail, so the road IS the journey
+  const pts = worldTrail();
+  const road = new Path2D();
+  road.moveTo(pts[0][0], pts[0][1] + 16);
+  for(let i = 1; i < pts.length; i++){
+    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+    road.quadraticCurveTo((x0 + x1) / 2, (y0 + y1) / 2 + 14, x1, y1 + 16);
+  }
+  x.strokeStyle = 'rgba(66,120,52,.32)'; x.lineWidth = 78; x.lineCap = 'round'; x.lineJoin = 'round'; x.stroke(road);
+  x.strokeStyle = '#e8d6ae'; x.lineWidth = 62; x.stroke(road);
+  x.strokeStyle = '#f4e6c6'; x.lineWidth = 48; x.stroke(road);
+  x.strokeStyle = 'rgba(168,140,92,.4)'; x.lineWidth = 4; x.setLineDash([4, 30]); x.stroke(road); x.setLineDash([]);
+
+  for(let i = 0; i < 820; i++){
+    const gx = r() * WORLD_W, gy = 40 + r() * (WORLD_H - 60);
+    const k = r();
+    if(k < .5){
+      x.strokeStyle = 'rgba(58,132,54,.45)'; x.lineWidth = 2; x.lineCap = 'round';
+      for(let b = -1; b <= 1; b++){
+        x.beginPath(); x.moveTo(gx + b * 3, gy); x.quadraticCurveTo(gx + b * 5, gy - 5, gx + b * 7, gy - 9); x.stroke();
+      }
+    } else if(k < .72){
+      x.fillStyle = 'rgba(255,255,255,.7)';
+      for(let p = 0; p < 5; p++){
+        x.beginPath(); x.arc(gx + Math.cos(p * 1.257) * 3.4, gy + Math.sin(p * 1.257) * 2.4, 2.1, 0, 7); x.fill();
+      }
+      x.fillStyle = '#ffd21f'; x.beginPath(); x.arc(gx, gy, 1.8, 0, 7); x.fill();
+    } else if(k < .88){
+      x.fillStyle = 'rgba(198,232,160,.55)';
+      x.beginPath(); x.ellipse(gx, gy, 5 + r() * 9, 3 + r() * 4, r(), 0, 7); x.fill();
+    } else {
+      x.fillStyle = 'rgba(186,176,152,.6)';
+      x.beginPath(); x.ellipse(gx, gy, 3 + r() * 4, 2 + r() * 2.5, r(), 0, 7); x.fill();
+    }
+  }
+
+  const v = x.createRadialGradient(WORLD_W / 2, WORLD_H / 2, Math.min(WORLD_W, WORLD_H) * .34,
+                                   WORLD_W / 2, WORLD_H / 2, Math.max(WORLD_W, WORLD_H) * .72);
+  v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(20,58,24,.3)');
+  x.fillStyle = v; x.fillRect(0, 0, WORLD_W, WORLD_H);
+  return cv;
+}
+
+/* ---------------- the world, rendered ---------------- */
+function renderWorldGround(){
+  const world = $('#city-world'), sizer = $('#city-sizer');
+  // the layout follows the constants, so the town can grow without touching CSS
+  world.style.width = WORLD_W + 'px';  world.style.height = WORLD_H + 'px';
+  sizer.style.width = (WORLD_W * cityZoom) + 'px';
+  sizer.style.height = (WORLD_H * cityZoom) + 'px';
   if(world.dataset.ground) return;
   world.dataset.ground = '1';
-  const cv = paintCityGround(CITY_W, CITY_H, cityXY);
+  const cv = paintWorldGround();
   cv.id = 'city-ground';
   world.insertBefore(cv, world.firstChild);
 }
-/* the city follows the real calendar: blossom, high summer, falling leaves, snow */
-function citySeason(){
-  const m = new Date().getMonth();
-  return m <= 1 || m === 11 ? 'winter' : m <= 4 ? 'spring' : m <= 8 ? 'summer' : 'autumn';
-}
-const SEASON_FALL = { spring:['🌸','🌼'], summer:[], autumn:['🍂','🍁'], winter:['❄'] };
-function citySky(){
-  const sky = $('#city-sky');
-  const season = citySeason();
-  const world = $('#city-world');
-  world.classList.remove('sp-spring', 'sp-summer', 'sp-autumn', 'sp-winter');
-  world.classList.add('sp-' + season);
-  if(sky.dataset.done === season) return;
-  sky.dataset.done = season;
-  sky.innerHTML = '';
-  let bs = 5150;
-  const br = () => (bs = (bs * 1103515245 + 12345) % 2147483647) / 2147483647;
-  // who is out and about depends on the season
-  const bugs = season === 'winter' ? ['🕊️', '🐦'] : season === 'autumn' ? ['🦋', '🐦', '🕊️'] : ['🦋', '🦋', '🐝', '🕊️'];
-  for(let i = 0; i < (season === 'winter' ? 4 : 9); i++){
-    const b = document.createElement('span');
-    b.className = 'fly-bug';
-    b.textContent = bugs[Math.floor(br() * bugs.length)];
-    b.style.cssText = `left:${(80 + br() * (CITY_W - 200)).toFixed(0)}px; top:${(280 + br() * (CITY_H - 440)).toFixed(0)}px;` +
-      `animation-duration:${(16 + br() * 16).toFixed(1)}s; animation-delay:-${(br() * 18).toFixed(1)}s; font-size:${(14 + br() * 9).toFixed(0)}px;`;
-    sky.appendChild(b);
-  }
-  // seasonal fall: petals, leaves or snow drifting across the whole town
-  const fall = SEASON_FALL[season];
-  const fallN = season === 'winter' ? 46 : 26;
-  if(fall.length) for(let i = 0; i < fallN; i++){
-    const f = document.createElement('span');
-    f.className = 'fall-bit';
-    f.textContent = fall[Math.floor(br() * fall.length)];
-    f.style.cssText = `left:${(br() * CITY_W).toFixed(0)}px; top:${(-60 - br() * 300).toFixed(0)}px;` +
-      `font-size:${(11 + br() * 12).toFixed(0)}px; animation-duration:${(9 + br() * 10).toFixed(1)}s;` +
-      `animation-delay:-${(br() * 16).toFixed(1)}s; --sway:${(30 + br() * 70).toFixed(0)}px;`;
-    sky.appendChild(f);
-  }
-  // cloud shadows sliding over the ground give the world its depth
-  for(let i = 0; i < 5; i++){
-    const c = document.createElement('i');
-    c.className = 'cloud-shadow';
-    const w2 = 260 + br() * 300;
-    c.style.cssText = `top:${(120 + br() * (CITY_H - 260)).toFixed(0)}px; width:${w2.toFixed(0)}px; height:${(w2 * .42).toFixed(0)}px;` +
-      `animation-duration:${(46 + br() * 40).toFixed(0)}s; animation-delay:-${(br() * 60).toFixed(0)}s;`;
-    sky.appendChild(c);
-  }
-}
-function cityTint(){
-  const h = new Date().getHours();
-  const t = $('#city-tint');
-  $('#city-world').classList.toggle('dusk', h < 8 || h >= 18);
-  t.style.background = h < 7 || h >= 21 ? 'rgba(90,106,176,.42)'
-    : h < 9 ? 'rgba(255,233,201,.35)'
-    : h >= 18 ? 'rgba(255,203,168,.32)'
-    : 'transparent';
-}
-function cityBubble(px, py, text, ms){
-  $('#city-world').querySelectorAll('.city-bubble').forEach(n => n.remove());
-  const b = document.createElement('div');
-  b.className = 'city-bubble';
-  b.style.cssText = `left:${px}px; top:${py - 70}px;`;
-  b.textContent = text;
-  $('#city-world').appendChild(b);
-  setTimeout(() => b.remove(), ms || 2600);
-}
-function ensureFriendGifts(){
-  const today = new Date().toDateString();
-  if(!save.friendGifts || save.friendGifts.day !== today){ save.friendGifts = { day: today, given: [] }; persist(); }
-  return save.friendGifts;
-}
-function renderCity(){
-  renderCityGround();
+function renderMap(){
+  renderWorldGround();
   citySky();
   cityTint();
   const world = $('#city-world');
-  world.querySelectorAll('.city-el, .city-friend, .city-pipo, .city-deco, .lamp-glow').forEach(n => n.remove());
+  world.querySelectorAll('.city-el, .city-friend, .city-pipo, .city-deco, .lamp-glow, .lvl-holder, .district-sign, .fog-bank').forEach(n=>n.remove());
+  const pts = worldTrail();
+  solveLots();
+  const reached = districtReached();
   const nextT = nextTask();
-  const doneCount = TASKS.filter(t => save.done.includes(t.id)).length;
-  $('#city-count').textContent = `🔨 ${doneCount}/${TASKS.length}`;
-  $('#city-title').textContent = tf('Pipoville', 'Pipoville');
-  TASKS.forEach(task => {
+
+  // ---- districts: signs, and fog over the ones still to discover ----
+  DISTRICTS.forEach((d, di)=>{
+    const known = districtDiscovered(di);
+    if(di > reached + 1) return;                 // beyond the next one: nothing at all yet
+    const sign = document.createElement('div');
+    sign.className = 'district-sign' + (known ? '' : ' unknown');
+    sign.style.cssText = `left:${d.cx}px; top:${d.cy - 250}px; z-index:${Math.round(d.cy / 4) + 2};`;
+    sign.textContent = known ? districtName(di) : tf('A new place…', 'Un posto nuovo…');
+    world.appendChild(sign);
+    if(known) return;
+    // the next district sits under a bank of cloud until you walk in
+    for(let k = 0; k < 7; k++){
+      const p = document.createElement('div');
+      p.className = 'fog-bank';
+      const pw = 340 + (k % 3) * 120, ph = 200 + (k % 2) * 80;
+      p.style.cssText = `left:${(d.cx - 340 + (k % 4) * 200).toFixed(0)}px; top:${(d.cy - 230 + Math.floor(k / 4) * 200).toFixed(0)}px;` +
+        `width:${pw}px; height:${ph}px; animation-duration:${(7 + k)}s; animation-delay:-${k}s;`;
+      world.appendChild(p);
+    }
+  });
+
+  // ---- the projects standing on their lots ----
+  TASKS.forEach(task=>{
+    const di = taskDistrict(task.id);
+    if(di < 0 || di > reached) return;
     const built = save.done.includes(task.id);
     const isNext = !built && nextT && nextT.id === task.id;
     if(!built && !isNext) return;
-    const [cx, cy] = cityXY(task.id);
+    const [cx, cy] = lotXY(task.id);
     const fs = (TOWN_SPOTS[task.id] || [0, 0, 26])[2];
     const w = Math.round(fs * 5.4);
     const el = document.createElement('div');
@@ -6368,11 +6377,11 @@ function renderCity(){
     }
     if(isNext){
       if(save.stamps < taskStamps(task)) el.classList.add('cant');
-      el.addEventListener('click', () => {
+      el.addEventListener('click', ()=>{
         Snd.ensure();
         if(save.stamps >= taskStamps(task)){
           doTask(task.id);
-          renderCity();
+          renderMap();
           const fresh = [...world.querySelectorAll('.city-el.built')].pop();
           if(fresh) fresh.classList.add('pop');
           cityBubble(cx, cy - w * .8, '✨ ' + (LANG === 'it' ? (IT[task.name] || task.name) : task.name), 3000);
@@ -6385,15 +6394,61 @@ function renderCity(){
     }
     world.appendChild(el);
   });
-  // scenery: seeded scatter that keeps its distance from the lots and the road
+
+  // ---- every delivery is a stop on the lane ----
+  pts.forEach(([px, py], i)=>{
+    const lvl = i + 1;
+    if(districtOf(lvl) > reached) return;        // still out in the fog
+    const stars = save.stars[lvl] || 0;
+    const holder = document.createElement('div');
+    holder.className = 'lvl-holder';
+    holder.style.cssText = `left:${px}px; top:${py}px; z-index:${Math.round(py / 4) + 3};`;
+    const b = document.createElement('button');
+    b.className = 'lvl-node' + (lvl > save.unlocked ? ' locked' : (lvl === save.unlocked ? ' current' : ''));
+    if(LEVELS[lvl - 1].hard && lvl <= save.unlocked) b.classList.add('hardlvl');
+    if(lvl > save.unlocked) b.innerHTML = `<img src="${ICONS.mailbox}" alt="">`;
+    else b.innerHTML = lvl + `<div class="node-medals">${[1, 2, 3].map(sn=>`<img src="${ICONS.medal}" class="${sn <= stars ? '' : 'off'}" alt="">`).join('')}</div>`;
+    b.addEventListener('click', ()=>{ if(lvl <= save.unlocked){ Snd.ensure(); openLevel(lvl); } else Snd.bad(); });
+    holder.appendChild(b);
+    if(stars > 0 && lvl !== save.unlocked){
+      const rp = document.createElement('div');
+      rp.className = 'replay-badge';
+      rp.innerHTML = `<img src="${ICONS.replay}" alt="">`;
+      holder.appendChild(rp);
+    }
+    if(lvl === save.unlocked){
+      const pill = document.createElement('div');
+      pill.className = 'next-pill';
+      pill.textContent = tf('NEXT DELIVERY', 'PROSSIMA CONSEGNA');
+      holder.appendChild(pill);
+    }
+    // a friend still in a cage waits at their rescue level
+    const rescue = RESCUES[lvl];
+    if(rescue){
+      const f = document.createElement('div');
+      f.className = 'friend ' + (isRescued(rescue.id) ? 'freed' : 'caged');
+      // roadside, on the far side from the lots, alternating so two rescues
+      // on the same bend never touch
+      const nm = trailNormal(i);
+      const sd = -(DISTRICTS[districtOf(lvl)].side || 1) * ((lvl >> 1) % 2 ? 1 : -1);
+      f.style.cssText = `left:${(nm[0] * sd * 104).toFixed(0)}px; top:${(nm[1] * sd * 104).toFixed(0)}px;`;
+      f.innerHTML = `<img src="${SPRITES['c_' + rescue.id]}" alt="">`;
+      holder.appendChild(f);
+    }
+    world.appendChild(holder);
+  });
+
+  // ---- scenery, only where the town is already awake ----
   const DECOS = ['d_tree', 'd_tree', 'd_pine', 'd_bush', 'd_bush', 'd_planter', 'd_hedge', 'd_rock'];
-  const taken = TASKS.map(t2 => cityXY(t2.id));
   let ds = 987654321;
-  const dr = () => (ds = (ds * 1103515245 + 12345) % 2147483647) / 2147483647;
+  const dr = ()=> (ds = (ds * 1103515245 + 12345) % 2147483647) / 2147483647;
   let placed = 0, tries = 0;
-  while(placed < 34 && tries++ < 400){
-    const px = 60 + dr() * (CITY_W - 120), py = 150 + dr() * (CITY_H - 230);
-    if(taken.some(([tx, ty]) => Math.abs(tx - px) < 200 && Math.abs(ty - py) < 150)) continue;
+  while(placed < 90 && tries++ < 1600){
+    const px = 60 + dr() * (WORLD_W - 120), py = 120 + dr() * (WORLD_H - 220);
+    const near = DISTRICTS.findIndex(d => Math.abs(d.cx - px) < 540 && Math.abs(d.cy - py) < 420);
+    if(near < 0 || near > reached) continue;                       // nothing grows in the fog
+    if(pts.some(([tx, ty]) => Math.abs(tx - px) < 108 && Math.abs(ty - py) < 84)) continue;
+    if(TASKS.some(t2 => { const [lx, ly] = lotXY(t2.id); return Math.abs(lx - px) < 190 && Math.abs(ly - py) < 150; })) continue;
     const kind = DECOS[Math.floor(dr() * DECOS.length)];
     const w = kind === 'd_hedge' ? 148 : kind === 'd_tree' || kind === 'd_pine' ? 118 : 90;
     const d = document.createElement('div');
@@ -6403,29 +6458,48 @@ function renderCity(){
     world.appendChild(d);
     placed++;
   }
-  // lamps pool warm light once the lanterns are built and the sun is low
-  if(save.done.includes('lights')){
-    [['lights', 150], ['beacon', 230], ['carousel', 150]].forEach(([id, r2]) => {
-      if(!save.done.includes(id)) return;
-      const [gx, gy] = cityXY(id);
-      const gl = document.createElement('div');
-      gl.className = 'lamp-glow';
-      gl.style.cssText = `left:${gx - r2}px; top:${gy - r2 * .7}px; width:${r2 * 2}px; height:${r2 * 1.4}px;`;
-      world.appendChild(gl);
-    });
+
+  // ---- open country between the districts, so the world never reads as empty ----
+  const WILD = ['d_tree', 'd_pine', 'd_pine', 'd_bush', 'd_rock', 'd_tree'];
+  let wp2 = 0, wt = 0;
+  while(wp2 < 60 && wt++ < 1200){
+    const px = 70 + dr() * (WORLD_W - 140), py = 150 + dr() * (WORLD_H - 250);
+    if(DISTRICTS.some(d => Math.abs(d.cx - px) < 560 && Math.abs(d.cy - py) < 440)) continue;
+    if(pts.some(([tx, ty]) => Math.abs(tx - px) < 150 && Math.abs(ty - py) < 120)) continue;
+    const kind = WILD[Math.floor(dr() * WILD.length)];
+    const w = kind === 'd_tree' || kind === 'd_pine' ? 92 + dr() * 26 : 68;
+    const d = document.createElement('div');
+    d.className = 'city-deco';
+    d.style.cssText = `left:${px.toFixed(0)}px; top:${py.toFixed(0)}px; width:${w.toFixed(0)}px;` +
+      `z-index:${Math.round(py / 4)}; opacity:.86;`;
+    d.innerHTML = `<img src="${townSprite(kind)}" alt="">`;
+    world.appendChild(d);
+    wp2++;
   }
-  // rescued friends stroll the town; first tap of the day is a little gift
+
+  // ---- lamplight, once the lanterns are up ----
+  [['lights', 170], ['beacon', 250], ['carousel', 170]].forEach(([id, r2])=>{
+    if(!save.done.includes(id)) return;
+    const [gx, gy] = lotXY(id);
+    const gl = document.createElement('div');
+    gl.className = 'lamp-glow';
+    gl.style.cssText = `left:${gx - r2}px; top:${gy - r2 * .7}px; width:${r2 * 2}px; height:${r2 * 1.4}px;`;
+    world.appendChild(gl);
+  });
+
+  // ---- rescued friends stroll their own district ----
   const gifts = ensureFriendGifts();
-  let sd = Math.floor(Date.now() / 864e5) * 77777 + 13;
-  const r = () => (sd = (sd * 1103515245 + 12345) % 2147483647) / 2147483647;
-  (save.rescued || []).forEach(id => {
+  let fs2 = Math.floor(Date.now() / 864e5) * 77777 + 13;
+  const fr = ()=> (fs2 = (fs2 * 1103515245 + 12345) % 2147483647) / 2147483647;
+  (save.rescued || []).forEach(id=>{
     if(!CAST_META[id]) return;
-    const fx = 140 + r() * (CITY_W - 280), fy = 220 + r() * (CITY_H - 380);
+    const home = DISTRICTS[Math.min(reached, Math.floor(fr() * (reached + 1)))];
+    const fx = home.cx + (fr() * 2 - 1) * 330, fy = home.cy + (fr() * 2 - 1) * 240;
     const f = document.createElement('div');
     f.className = 'city-friend';
     f.style.cssText = `left:${fx.toFixed(0)}px; top:${fy.toFixed(0)}px; z-index:${Math.round(fy / 4) + 1};`;
     f.innerHTML = `<img src="${SPRITES['c_' + id]}" alt="">`;
-    f.addEventListener('click', () => {
+    f.addEventListener('click', ()=>{
       Snd.ensure();
       const lore = (CAST_LORE[id] || ['', ''])[LANG === 'it' ? 1 : 0];
       if(!gifts.given.includes(id)){
@@ -6434,35 +6508,124 @@ function renderCity(){
         persist(); renderMeta();
         if(!Snd.play('pop', 1.1, .5)) Snd.special();
         cityBubble(fx, fy - 60, `${CHARACTERS[id] ? CHARACTERS[id].name : id}: +2 ⭐ — ${tf('thanks for visiting!', 'grazie della visita!')}`, 2800);
-      } else {
-        cityBubble(fx, fy - 60, lore ? lore.split('. ')[0] + '.' : '♥', 3400);
-      }
+      } else cityBubble(fx, fy - 60, lore ? lore.split('. ')[0] + '.' : '♥', 3400);
     });
     world.appendChild(f);
   });
-  // Pipo himself — tap to open the dressing room
-  const [mx, my] = cityXY('fountain');
+
+  // ---- Pipo stands at the delivery he is about to make ----
+  const cur = Math.min(save.unlocked, LEVELS.length);
+  const [mx, my] = pts[cur - 1];
   const p = document.createElement('div');
   p.className = 'city-pipo';
-  p.style.cssText = `left:${mx + 90}px; top:${my + 60}px;`;
+  p.style.cssText = `left:${mx + 62}px; top:${my + 16}px; z-index:${Math.round(my / 4) + 4};`;
   p.innerHTML = `<img src="${SPRITES.pipop}" alt="">`;
-  p.addEventListener('click', () => { Snd.ensure(); openDressRoom(); });
+  p.addEventListener('click', ()=>{ Snd.ensure(); openDressRoom(); });
   world.appendChild(p);
+
+  $('#route-hint-text').textContent = worldHint();
+  startCityAnim();
+}
+function worldHint(){
+  const nextRescueLv = Object.keys(RESCUES).map(Number).filter(lv=>!isRescued(RESCUES[lv].id)).sort((a, b)=>a - b)[0];
+  const di = districtReached();
+  if(nextRescueLv) return tf(
+    `${CHARACTERS[RESCUES[nextRescueLv].id].name} is waiting at delivery ${nextRescueLv} — follow the lane!`,
+    `${CHARACTERS[RESCUES[nextRescueLv].id].name} ti aspetta alla consegna ${nextRescueLv} — segui la strada!`);
+  if(di + 1 < DISTRICTS.length) return tf(
+    `Keep delivering — there's a whole new place past ${districtName(di)}!`,
+    `Continua a consegnare — c'è un posto tutto nuovo oltre ${districtName(di)}!`);
+  return tf('Every friend is home. Enjoy the round, Deputy Pipo!', 'Tutti gli amici sono a casa. Buon giro, vice Pipo!');
+}
+/* jump the camera to a place — used by the town list and by finishing a level */
+function focusWorld(id, smooth){
+  const [fx, fy] = typeof id === 'number' ? worldTrail()[id - 1] : lotXY(id);
+  const sc = $('#city-scroll');
+  const to = { left: Math.max(0, fx * cityZoom - sc.clientWidth / 2), top: Math.max(0, fy * cityZoom - sc.clientHeight / 2) };
+  if(smooth && sc.scrollTo) sc.scrollTo({ ...to, behavior:'smooth' }); else { sc.scrollLeft = to.left; sc.scrollTop = to.top; }
+}
+
+function citySeason(){
+  const m = new Date().getMonth();
+  return m <= 1 || m === 11 ? 'winter' : m <= 4 ? 'spring' : m <= 8 ? 'summer' : 'autumn';
+}
+const SEASON_FALL = { spring:['🌸','🌼'], summer:[], autumn:['🍂','🍁'], winter:['❄'] };function citySky(){
+  const sky = $('#city-sky');
+  const season = citySeason();
+  const world = $('#city-world');
+  world.classList.remove('sp-spring', 'sp-summer', 'sp-autumn', 'sp-winter');
+  world.classList.add('sp-' + season);
+  if(sky.dataset.done === season) return;
+  sky.dataset.done = season;
+  sky.innerHTML = '';
+  let bs = 5150;
+  const br = () => (bs = (bs * 1103515245 + 12345) % 2147483647) / 2147483647;
+  // who is out and about depends on the season
+  const bugs = season === 'winter' ? ['🕊️', '🐦'] : season === 'autumn' ? ['🦋', '🐦', '🕊️'] : ['🦋', '🦋', '🐝', '🕊️'];
+  for(let i = 0; i < (season === 'winter' ? 4 : 9); i++){
+    const b = document.createElement('span');
+    b.className = 'fly-bug';
+    b.textContent = bugs[Math.floor(br() * bugs.length)];
+    b.style.cssText = `left:${(80 + br() * (WORLD_W - 200)).toFixed(0)}px; top:${(280 + br() * (WORLD_H - 440)).toFixed(0)}px;` +
+      `animation-duration:${(16 + br() * 16).toFixed(1)}s; animation-delay:-${(br() * 18).toFixed(1)}s; font-size:${(14 + br() * 9).toFixed(0)}px;`;
+    sky.appendChild(b);
+  }
+  // seasonal fall: petals, leaves or snow drifting across the whole town
+  const fall = SEASON_FALL[season];
+  const fallN = season === 'winter' ? 46 : 26;
+  if(fall.length) for(let i = 0; i < fallN; i++){
+    const f = document.createElement('span');
+    f.className = 'fall-bit';
+    f.textContent = fall[Math.floor(br() * fall.length)];
+    f.style.cssText = `left:${(br() * WORLD_W).toFixed(0)}px; top:${(-60 - br() * 300).toFixed(0)}px;` +
+      `font-size:${(11 + br() * 12).toFixed(0)}px; animation-duration:${(9 + br() * 10).toFixed(1)}s;` +
+      `animation-delay:-${(br() * 16).toFixed(1)}s; --sway:${(30 + br() * 70).toFixed(0)}px;`;
+    sky.appendChild(f);
+  }
+  // cloud shadows sliding over the ground give the world its depth
+  for(let i = 0; i < 5; i++){
+    const c = document.createElement('i');
+    c.className = 'cloud-shadow';
+    const w2 = 260 + br() * 300;
+    c.style.cssText = `top:${(120 + br() * (WORLD_H - 260)).toFixed(0)}px; width:${w2.toFixed(0)}px; height:${(w2 * .42).toFixed(0)}px;` +
+      `animation-duration:${(46 + br() * 40).toFixed(0)}s; animation-delay:-${(br() * 60).toFixed(0)}s;`;
+    sky.appendChild(c);
+  }
+}function cityTint(){
+  const h = new Date().getHours();
+  const t = $('#city-tint');
+  $('#city-world').classList.toggle('dusk', h < 8 || h >= 18);
+  t.style.background = h < 7 || h >= 21 ? 'rgba(90,106,176,.42)'
+    : h < 9 ? 'rgba(255,233,201,.35)'
+    : h >= 18 ? 'rgba(255,203,168,.32)'
+    : 'transparent';
+}function cityBubble(px, py, text, ms){
+  $('#city-world').querySelectorAll('.city-bubble').forEach(n => n.remove());
+  const b = document.createElement('div');
+  b.className = 'city-bubble';
+  b.style.cssText = `left:${px}px; top:${py - 70}px;`;
+  b.textContent = text;
+  $('#city-world').appendChild(b);
+  setTimeout(() => b.remove(), ms || 2600);
+}function ensureFriendGifts(){
+  const today = new Date().toDateString();
+  if(!save.friendGifts || save.friendGifts.day !== today){ save.friendGifts = { day: today, given: [] }; persist(); }
+  return save.friendGifts;
 }
 /* camera: pinch, double-tap and the two buttons all drive one zoom setter that
    keeps whatever the player is looking at under their fingers */
 let cityZoom = 1;
 function setCityZoom(z, cx, cy){
   const sc = $('#city-scroll'), world = $('#city-world'), sizer = $('#city-sizer');
-  z = Math.max(.55, Math.min(1.9, z));
+  z = Math.max(.32, Math.min(1.9, z));
   const r = sc.getBoundingClientRect();
   const px = cx === undefined ? r.width / 2 : cx - r.left;
   const py = cy === undefined ? r.height / 2 : cy - r.top;
   const wx = (sc.scrollLeft + px) / cityZoom, wy = (sc.scrollTop + py) / cityZoom;
   cityZoom = z;
   world.style.transform = `scale(${z})`;
-  sizer.style.width = (CITY_W * z) + 'px';
-  sizer.style.height = (CITY_H * z) + 'px';
+  sizer.style.width = (WORLD_W * z) + 'px';
+  sizer.style.height = (WORLD_H * z) + 'px';
   sc.scrollLeft = wx * z - px;
   sc.scrollTop = wy * z - py;
 }
@@ -6499,20 +6662,14 @@ function setCityZoom(z, cx, cy){
   $('#btn-city-in').addEventListener('click', ()=>setCityZoom(cityZoom * 1.3));
   $('#btn-city-out').addEventListener('click', ()=>setCityZoom(cityZoom / 1.3));
 })();
+
+/* the town list still opens places — it just walks you there now */
 function openCity(focusId){
-  renderCity();
-  showOverlay('ov-city', true);
-  cityZoom = 1;
-  $('#city-world').style.transform = 'scale(1)';
-  $('#city-sizer').style.width = CITY_W + 'px';
-  $('#city-sizer').style.height = CITY_H + 'px';
-  const [fx, fy] = cityXY(focusId || (nextTask() ? nextTask().id : 'fountain'));
-  const sc = $('#city-scroll');
-  sc.scrollLeft = fx - sc.clientWidth / 2;
-  sc.scrollTop = fy - sc.clientHeight / 2;
-  startCityAnim();
+  showScreen('map');
+  document.querySelectorAll('#meta-nav .tab').forEach(t2=>t2.classList.toggle('active', t2.dataset.view === 'map'));
+  renderMap();
+  focusWorld(focusId || (nextTask() ? nextTask().id : Math.min(save.unlocked, LEVELS.length)));
 }
-$('#btn-city-close').addEventListener('click', () => { stopCityAnim(); showOverlay('ov-city', false); });
 
 /* ---- Chi si nasconde? — daily hidden-critters round in the town diorama ---- */
 const CRITTERS = [

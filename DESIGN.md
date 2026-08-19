@@ -485,3 +485,57 @@ when the tap lands on a building, friend or button, so building still
 works), and the `+` / `−` buttons in the header. Zoom resets on open.
 
 All of it honours `prefers-reduced-motion`.
+
+## v31 — one world: the map *is* Pipoville
+
+Until v30 the game had two places: a route map with level nodes, and a
+separate city you opened from the town list. They told the same story
+twice. v31 merges them. There is now exactly one world, and every chapter
+is a **district** of it.
+
+**The data model.** `DISTRICTS` names eight districts, each with a level
+range, a centre in world pixels, and the three restoration projects that
+stand there. `districtOf(level)` maps a delivery to its district;
+`districtReached()` is the newest one the player has walked into;
+`districtDiscovered(i)` gates everything else. A project is only offered
+once its district is reached — `taskUnlocked(id)` drives the town list, the
+mailroom filter and the ghost buildings alike, so the restoration order now
+follows the journey instead of a flat list.
+
+**The lane.** `worldTrail()` builds one continuous path for the whole town:
+a centripetal Catmull-Rom spline through every district centre, given a
+slow meander (`TRAIL_WAVE` / `TRAIL_SWING`), then **cut into stops by arc
+length** — `LEVELS.length` points at an even walking distance along the
+finished curve. Spacing therefore does not depend on how many levels a
+district holds, and no two nodes can crowd each other (the world test
+asserts the minimum pairwise gap). `trailNormal(i)` gives the sideways
+direction at a stop, used to stand caged friends at the roadside.
+
+**The lots.** `solveLots()` places each district's three projects along the
+lane rather than at fixed offsets: it takes the district's mid stop, reads
+the street's overall heading (a wide window, not the local wobble), lays the
+three lots out along that heading and set back from the kerb, and picks
+whichever side of the road keeps them in bounds and furthest from the lane.
+A short repulsion pass then nudges any lot the meander still runs too close
+to. The town square and the tilled fields are painted from the solved lots,
+so they land in front of the shops and beside the farm — never on the road.
+
+**The shore.** The sea is no longer a hand-drawn polygon. `paintWorldGround`
+walks a baseline from the right edge to the top and pushes each shore point
+seaward until it clears every stop and every lot by 260px, so the coastline
+hugs the harbour and lighthouse districts without ever flooding the lane.
+
+**The floor.** `paintWorldGround()` renders the whole 3600×2560 world once
+into a canvas: grass gradient, meadow patches, sea and beach, the town
+square, tilled fields, the lane itself drawn **along the trail** (so the
+road and the level nodes are the same line), ~800 ground details and a
+vignette. `renderWorldGround()` sizes `#city-world` and `#city-sizer` from
+`WORLD_W`/`WORLD_H`, so the town can grow without touching CSS.
+
+**The render.** `renderMap()` is the single renderer: ground, sky, tint,
+then district signs, a `.fog-bank` over the *next* district only, the built
+and ghosted projects on their lots, every level node on its stop, scenery
+inside the reached districts, open country between them, lamplight, rescued
+friends and Pipo standing at his next delivery. `openCity(id)` is now a thin
+shim onto the map screen plus `focusWorld(id)`, which pans the camera to a
+level number or a project id. Leaving the map stops the ride timer.
