@@ -4442,7 +4442,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 47;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 48;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -6645,23 +6645,13 @@ boardEl.addEventListener('pointerdown', e=>{
   Snd.ensure();
   const cell = cellFromEvent(e);
   if(!cell) return;
-  const [r,c] = cell;
-  const p = pieceAt(r,c);
-  // A power-up's swipe target is wherever the finger actually ends up, not
-  // a guess from the first few px of motion — so it only ever swaps (and
-  // then detonates) with the piece you really dragged onto, and a rainbow
-  // orb only ever clears the colour you actually swiped it onto.
-  touch = { start:cell, x:e.clientX, y:e.clientY, done:false, power: !!(p && p.power), target:null };
+  touch = { start:cell, x:e.clientX, y:e.clientY, done:false };
 });
 boardEl.addEventListener('pointermove', e=>{
   if(!touch || touch.done || G.busy || G.over) return;
-  if(touch.power){
-    const cell = cellFromEvent(e);
-    if(!cell) return;
-    const [r,c] = touch.start, [r2,c2] = cell;
-    touch.target = (Math.abs(r2-r) + Math.abs(c2-c) === 1) ? [r2,c2] : null;
-    return;
-  }
+  // same quick flick for every piece, power-ups included — trySwap already
+  // knows how to swap-then-detonate a power or colour-clear a rainbow, so
+  // there is nothing power-specific left for the gesture itself to do
   const dx = e.clientX - touch.x, dy = e.clientY - touch.y;
   const th = Math.max(14, G.cellPx * .3);
   if(Math.abs(dx) < th && Math.abs(dy) < th) return;
@@ -6675,16 +6665,6 @@ boardEl.addEventListener('pointermove', e=>{
 });
 boardEl.addEventListener('pointerup', e=>{
   if(!touch || touch.done){ touch = null; return; }
-  if(touch.power && touch.target){
-    // the drag actually reached a neighbour: swap now, then it detonates
-    // from its new cell — same as trySwap's tap-independent power branch
-    const [r,c] = touch.start, [r2,c2] = touch.target;
-    touch = null;
-    if(G.busy || G.over) return;
-    deselect();
-    trySwap(r,c,r2,c2);
-    return;
-  }
   const cell = cellFromEvent(e);
   touch = null;
   if(!cell || G.busy || G.over) return;
