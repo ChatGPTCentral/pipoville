@@ -256,6 +256,17 @@
   @keyframes thrownNudge { 0%{transform:translate(0,0)} 55%{transform:translate(var(--tx,0), var(--ty,0)) scale(1.12)} 100%{transform:translate(0,0)} }
   .candy.hint svg, .candy.hint img { animation:hintWig .5s ease-in-out 4; }
   @keyframes hintWig { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-10deg) scale(1.08)} 75%{transform:rotate(10deg) scale(1.08)} }
+  /* every piece the rainbow is about to sweep up glows brighter together
+     before it pops, instead of just vanishing — the "whole colour lights
+     up" beat from Gardenscapes' colour-bomb combo. */
+  .candy.rainbow-lit { z-index:4; }
+  .candy.rainbow-lit svg, .candy.rainbow-lit img { animation:rainbowLitPulse .26s ease-in-out infinite alternate; }
+  @keyframes rainbowLitPulse { from{ filter:brightness(1) saturate(1); transform:scale(1); }
+    to{ filter:brightness(1.9) saturate(1.6) drop-shadow(0 0 8px #fff); transform:scale(1.14); } }
+  .candy.rainbow-lit::after { content:''; position:absolute; inset:-18%; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, rgba(255,255,255,.85) 0%, rgba(255,255,255,.15) 55%, rgba(255,255,255,0) 75%);
+    animation:rainbowLitGlow .26s ease-in-out infinite alternate; }
+  @keyframes rainbowLitGlow { from{ opacity:.35 } to{ opacity:.9 } }
   .candy.pop svg, .candy.pop img { transition:transform .18s ease-in, opacity .18s; transform:scale(0); opacity:0; }
   .boom {
     position:absolute; z-index:4; pointer-events:none; border-radius:50%; mix-blend-mode:screen;
@@ -1291,8 +1302,6 @@
       <span class="ll-tag">LEVEL</span>
     </button>
     <button class="city-zoom" id="btn-mailroom"><img data-ico="letter" alt=""></button>
-    <button class="city-zoom" id="btn-city-out">−</button>
-    <button class="city-zoom" id="btn-city-in">+</button>
   </div>
 </div>
 
@@ -4407,7 +4416,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 44;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 45;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -5790,6 +5799,7 @@ function rainbowTargetKind(){
 }
 function expandDestroy(initialKeys){
   const out = new Set(), effects = [];
+  const litKeys = new Set(); // pieces swept in by a rainbow's colour match — they get a light-up beat of their own before they pop
   const queue = [...initialKeys];
   while(queue.length){
     const k = queue.shift();
@@ -5804,7 +5814,7 @@ function expandDestroy(initialKeys){
       const kind = rainbowTargetKind();
       if(kind) for(let rr=0;rr<G.L.rows;rr++) for(let cc=0;cc<G.L.cols;cc++){
         const q = pieceAt(rr,cc);
-        if(q && q.kind === kind) queue.push(key(rr,cc));
+        if(q && q.kind === kind){ const qk = key(rr,cc); litKeys.add(qk); queue.push(qk); }
       }
     } else if(p.power){
       const rad = POWERS[p.power].rad;
@@ -5812,7 +5822,7 @@ function expandDestroy(initialKeys){
       blastCells(r, c, rad, queue);
     }
   }
-  return { out, effects };
+  return { out, effects, litKeys };
 }
 
 /* ---- visual effects ---- */
@@ -5854,7 +5864,7 @@ function spawnBurst(r, c, colors, n){
     setTimeout(()=>{ d.remove(); liveParts--; }, 650);
   }
 }
-function spawnRing(r, c, rad){
+function spawnRing(r, c, rad, rainbow){
   if(REDUCED) return;
   const size = G.cellPx * (rad*2+1);
   const mk = cls => {
@@ -5877,7 +5887,9 @@ function spawnRing(r, c, rad){
     }
     setTimeout(()=>rays.remove(), 560);
   }
-  if(rad >= 2){
+  // the multicolour ring is the rainbow orb's own signature — a firecracker,
+  // bomb, dynamite or TNT pop never wears it, no matter how big the blast
+  if(rainbow){
     const rb = mk('rainbow-ring');
     setTimeout(()=>rb.remove(), 800);
   }
@@ -5970,7 +5982,7 @@ function playEffects(effects){
     const tier = e.tier || (e.rad >= 4 ? 'tnt' : e.rad >= 3 ? 'dyna' : e.rad >= 2 ? 'bomb' : 'fire');
     const B = BLAST_SND[tier] || BLAST_SND.fire;
     fxBoom(e.r, e.c, e.rad);
-    spawnRing(e.r, e.c, e.rad);
+    spawnRing(e.r, e.c, e.rad, tier === 'rainbow');
     spawnBurst(e.r, e.c, BLAST_PARTS[tier] || BLAST_PARTS.fire, B.parts);
     maxRad = Math.max(maxRad, e.rad);
     if(!top || (BLAST_SND[top] || {}).shake < B.shake) top = tier;
@@ -6341,8 +6353,18 @@ async function resolveCascades(initial, initialCreations){
       if(!res) break;
       matchedKeys = res.matched; creations = res.creations;
     }
-    const { out, effects } = expandDestroy(matchedKeys);
+    const { out, effects, litKeys } = expandDestroy(matchedKeys);
     if(!out.size) break;
+    // every piece the rainbow is about to sweep away lights up together first,
+    // Gardenscapes-style, instead of just vanishing under the ring
+    if(litKeys.size && !REDUCED){
+      litKeys.forEach(k=>{
+        const [lr,lc] = unkey(k);
+        const q = pieceAt(lr,lc);
+        if(q) q.el.classList.add('rainbow-lit');
+      });
+      await sleep(260);
+    }
     // destruction cracks any adjacent ice blocks (chain-shatters through clusters)
     out.forEach(k=>{
       const [r,c] = unkey(k);
@@ -6391,7 +6413,7 @@ async function afterMove(){
         p.el.classList.add('power','born');
         p.el.innerHTML = spriteImg('p_rainbow');
         setTimeout(()=>p.el.classList.remove('born'), 520);
-        spawnRing(r, c, 2);
+        spawnRing(r, c, 2, true);
         toast(t('Rainbow Blast!'));
         if(!Snd.play('orb', 1, .55)) Snd.special();
         updateHUD();
@@ -6446,6 +6468,15 @@ $('#btn-shovel').addEventListener('click', ()=>{
 });
 
 /* ---- power-up activation ---- */
+/* the shared beat every lone power-up plays before it goes off, whether
+   it was tapped in place or just landed here after a swipe-swap */
+async function detonateAt(r, c){
+  const p = pieceAt(r, c);
+  p.el.classList.add('prime');
+  Snd.special();
+  await sleep(240);
+  await resolveCascades(new Set([key(r, c)]), []);
+}
 async function activatePower(r, c){
   const p = pieceAt(r,c);
   if(!p || !p.power || G.busy || G.over) return;
@@ -6455,10 +6486,7 @@ async function activatePower(r, c){
   deselect();
   G.movesLeft--;
   updateHUD();
-  p.el.classList.add('prime'); // anticipation beat before the blast
-  Snd.special();
-  await sleep(240);
-  await resolveCascades(new Set([key(r,c)]), []);
+  await detonateAt(r, c);
   await afterMove();
 }
 /* Swapping two power-ups: one combined blast, radius = biggest + 2 */
@@ -6473,7 +6501,7 @@ async function executePowerCombo(a, ra, ca, b, rb, cb){
   blastCells(ra, ca, rad, queue);
   blastCells(rb, cb, rad, queue);
   queue.forEach(k=>set.add(k));
-  fxBoom(ra, ca, rad); spawnRing(ra, ca, Math.max(2, rad));
+  fxBoom(ra, ca, rad); spawnRing(ra, ca, Math.max(2, rad), false);
   spawnBurst(ra, ca, BLAST_PARTS.tnt, 40);
   fxShake(3); fxFlash(); Snd.blast('tnt');
   Snd.sweep(1760, 340, .5, 'triangle', .1, .1);   // the extra flourish of a double
@@ -6522,7 +6550,7 @@ async function trySwap(r1,c1,r2,c2){
       }
       toast(t('Rainbow Blast!'));
     }
-    spawnRing(Math.floor(G.L.rows/2), Math.floor(G.L.cols/2), Math.floor(G.L.rows/2));
+    spawnRing(Math.floor(G.L.rows/2), Math.floor(G.L.cols/2), Math.floor(G.L.rows/2), true);
     Snd.blast('rainbow'); vibrate(BLAST_SND.rainbow.buzz);
     await resolveCascades(set, []);
     await afterMove();
@@ -6532,6 +6560,17 @@ async function trySwap(r1,c1,r2,c2){
     G.movesLeft--;
     updateHUD();
     await executePowerCombo(a, r2, c2, b, r1, c1);
+    await afterMove();
+    return;
+  }
+  if(a.power || b.power){
+    // a lone power always goes off after the swap — it has no colour to
+    // match, so falling through to analyzeMatches would just read as a
+    // failed move and swap right back.
+    G.movesLeft--;
+    updateHUD();
+    const [pr, pc] = a.power ? [r2, c2] : [r1, c1];
+    await detonateAt(pr, pc);
     await afterMove();
     return;
   }
@@ -6660,18 +6699,24 @@ async function winSequence(){
   toast(t('Level Complete!'));
   Snd.win();
   await sleep(700);
-  // Bloom Burst: leftover moves become firecrackers that all detonate
+  // Bloom Burst: every leftover move becomes a detonation, not just the first
+  // few — save 3 moves and you get 3 firecrackers; save 15 and the board goes
+  // out in a fire-bomb-dynamite-TNT crescendo. Conservative play should pay.
   const wonOnLastMove = G.movesLeft === 0;
-  const convert = Math.min(G.movesLeft, 6);
+  const convert = Math.min(G.movesLeft, 24);
   const extra = G.movesLeft - convert;
   G.movesLeft = 0;
-  if(extra > 0) G.score += extra * 120;
+  if(extra > 0) G.score += extra * 200;
+  const burstTier = i=>{
+    const t = convert <= 1 ? 0 : i / (convert - 1);
+    return t < .35 ? 'fire' : t < .65 ? 'bomb' : t < .9 ? 'dyna' : 'tnt';
+  };
   const burstCells = [];
   for(let i=0;i<convert;i++){
     for(let tries=0; tries<60; tries++){
       const r = rnd(G.L.rows), c = rnd(G.L.cols);
       const p = pieceAt(r,c);
-      if(p && !p.power && !p.block && p.kind){ setPower(p, 'fire'); burstCells.push(key(r,c)); break; }
+      if(p && !p.power && !p.block && p.kind){ setPower(p, burstTier(i)); burstCells.push(key(r,c)); break; }
     }
   }
   updateHUD();
@@ -7997,8 +8042,6 @@ function setCityZoom(z, cx, cy){
     drop(e);
   });
   sc.addEventListener('pointercancel', drop);
-  $('#btn-city-in').addEventListener('click', ()=>setCityZoom(cityZoom * 1.3));
-  $('#btn-city-out').addEventListener('click', ()=>setCityZoom(cityZoom / 1.3));
 })();
 /* Gardenscapes-style: one round button always shows the level Pipo is
    walking to, and opens it straight from the city screen. */
