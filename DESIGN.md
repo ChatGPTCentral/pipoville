@@ -558,3 +558,75 @@ yank the view away from it. `fitCityZoom()` picks the opening zoom from the
 viewport (about 480 world px across, clamped to 0.7–1.0) so you arrive
 looking at your street rather than at a single node, and `focusWorld()`
 offsets for the floating nav bar so the target sits in the visible middle.
+
+## v32 — the town, properly rendered
+
+v31 made Pipoville one place. v32 makes it look like one. The whole
+`TOWN_PAINT` primitive layer was rewritten around a single lighting model,
+so every roof, wall, lamp and tree agrees about where the sun is — which is
+most of what makes a flat canvas read as a solid object.
+
+**One sun.** `SUN` holds the multipliers for the left wall, the right wall
+and the roof deck, top and bottom. `tone(hex, f, warm)` shades a colour and
+pushes it toward warm sunlight or cool sky-shadow; `hx()` does the same but
+returns hex, so a result can be shaded again (the old `sh()` returned
+`rgb()` and quietly produced black when re-shaded — that was the bug behind
+the pitch-dark bushes).
+
+**Parametric faces.** `box()` now hands every face its own projector
+`q(u, v)` in wall coordinates. Materials, ambient occlusion and openings are
+all placed in that space, so courses run along the wall in world terms and
+the isometric foreshortening comes out for free.
+
+**Materials.** `MAT.brick` lays staggered courses with a mortar bed and a
+per-brick tint plus a few weathered patches; `MAT.stone` cuts irregular
+ashlar with a lit top arris; `MAT.plank` runs vertical boards with seams,
+lit lips and grain streaks; `MAT.plaster` is a diagonal wash with mottling
+and grain. Pass `mat:'stone'` to `box()`, or `{ mat:'stone' }` to
+`cylBody()` for a coursed drum (the manor towers, the lighthouse).
+
+**Ambient occlusion.** `ao(q, uMax, vMax, side, depth, alpha)` stacks quads
+along one edge of a parametric face so the shade follows the plane instead
+of sliding off it the way a screen-space gradient would. Every wall gets it
+at the ground line and at the inside corner; every roof slope gets it at
+the eaves.
+
+**Roofs.** `gable()` overhangs by `eave`, lays 11 courses of tile with a
+hard shadow lip and a lit lip per course, caps the ridge, and drops the
+eaves' own shadow onto the wall below. `cone()` gets tile rings.
+
+**Windows.** `panel({glass:true})` is a hole in a wall, not a sticker: a
+dark reveal, sky at the top of the pane, room-warmth at the sill, a rotated
+specular streak across it, and a sill with its own drip shadow.
+`panel({door:true})` gets recessed panels.
+
+**Water.** `water(cx, cy, rx, ry)` paints depth (dark at the far bank,
+bright where it shallows), the sky lying on the surface, caustic threads,
+shade hugging the far bank, and foam at the waterline. Used by the pond,
+the harbour under the pier and the stream under the bridge.
+
+**Foliage.** `canopy()` builds a crown from eight lobes: the whole
+silhouette in shadow first, then lit lobes, then sun-struck clumps and dark
+gaps clipped to that silhouette, then a warm rim where light comes through
+the far leaves. `conifer()` gives each pine tier a needled skirt;
+`trunk()` adds bark relief and roots flaring into the ground.
+
+**Ground contact.** `shadow()` is now two pools — a wide soft ambient one
+and a tighter, darker one thrown away from the sun — and it clamps itself
+so it can never be clipped by the bottom of the sprite (a clipped gradient
+reads as a hard black band under a building).
+
+**Plinths and rainwater goods.** `box({plinth})` adds a proud base course;
+`gutter()` runs a gutter along the eaves and drops a downpipe to the
+ground. Small things, but they are what make a shape read as a building
+instead of a block.
+
+**The land.** `paintWorldGround()` now lays two octaves of soft rises and
+hollows before anything else is drawn, so the map has relief; adds faint
+mown bands; runs the road as five stacked strokes (verge, gravel shoulder,
+body, worn crown) with two wheel tracks and grit; and scatters 1400 pieces
+of ground cover — clumps of blades with a shaded base and one sunlit blade,
+daisies, clover, pebbles with lit tops and their own contact shadows.
+
+Baking all 30 sprites costs ~210ms and the ground ~50ms on desktop, both
+lazy and one-off.

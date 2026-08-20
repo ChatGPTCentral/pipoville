@@ -31,6 +31,10 @@ screen (character names stay the same in both).
   standing on a real lot beside the lane, in the district it belongs to —
   rescued friends stroll there, hand out daily gifts, and Pipo keeps his
   dressing room
+- Everything is painted under one sun: brick, ashlar, plank and plaster
+  walls with real courses, tiled roofs with shadow lips, windows set into
+  reveals with sky reflections, water with depth and caustics, layered
+  tree canopies, and a landscape with rises, hollows and a worn road
 - The city is alive: the carousel and ferris wheel turn, flags fly,
   chimneys smoke, cloud shadows drift, and it follows the real
   calendar — blossom, high summer, falling leaves, snow — with
