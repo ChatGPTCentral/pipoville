@@ -14,7 +14,10 @@
 <title>Pipoville</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; touch-action:manipulation; }
-  html,body { height:100%; overflow:hidden; overscroll-behavior:none; }
+  /* 100% can lag behind Safari's address bar collapsing/expanding, which
+     leaves a gap under bottom-anchored chrome; 100dvh tracks the real
+     visible viewport. Kept as a fallback since dvh isn't universal. */
+  html,body { height:100%; height:100dvh; overflow:hidden; overscroll-behavior:none; }
   #board { touch-action:none; }
   body {
     font-family: "Baloo 2","Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded","Arial Rounded MT Bold",system-ui,sans-serif;
@@ -811,11 +814,11 @@
   .task-done img { width:20px; height:20px; }
   @media (max-height:760px){ .view-pad { gap:8px; } .pv-row { padding:9px; } }
   .b-corner { display:none !important; }
-  #btn-settings, #btn-mailroom { width:44px; height:44px; flex:0 0 auto; border:none; cursor:pointer; border-radius:16px;
+  #btn-settings { width:44px; height:44px; flex:0 0 auto; border:none; cursor:pointer; border-radius:16px;
     display:flex; align-items:center; justify-content:center;
     background:var(--panel); box-shadow:var(--panel-sh); }
-  #btn-settings img, #btn-mailroom img { width:28px; height:28px; }
-  #btn-settings:active, #btn-mailroom:active { transform:translateY(2px); }
+  #btn-settings img { width:28px; height:28px; }
+  #btn-settings:active { transform:translateY(2px); }
   .reset-box { margin-top:16px; padding-top:14px; border-top:2px dashed #c3ddf2; }
   .cell.jelly { background:linear-gradient(160deg, rgba(255,158,196,.85), rgba(240,80,150,.8)) !important;
     box-shadow:inset 0 3px 0 rgba(255,255,255,.55), inset 0 -4px 6px rgba(140,20,80,.45) !important; }
@@ -1043,6 +1046,8 @@
     font-family:inherit; font-size:21px; font-weight:900; color:#8a5a00; background:var(--cream);
     box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 3px 0 #f0d9a8; }
   .city-zoom:active { transform:translateY(2px); box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 1px 0 #f0d9a8; }
+  #btn-mailroom.city-zoom { display:flex; align-items:center; justify-content:center; }
+  #btn-mailroom.city-zoom img { width:22px; height:22px; }
   /* the Gardenscapes-style round launcher: always the level you're walking to */
   .level-launch { width:58px; height:58px; border-radius:20px; border:none; cursor:pointer; flex:0 0 auto;
     font-family:var(--font-display); color:#fff; margin-bottom:2px;
@@ -1200,6 +1205,7 @@
       <span class="ll-num" id="level-launch-num">1</span>
       <span class="ll-tag">LEVEL</span>
     </button>
+    <button class="city-zoom" id="btn-mailroom"><img data-ico="letter" alt=""></button>
     <button class="city-zoom" id="btn-city-out">−</button>
     <button class="city-zoom" id="btn-city-in">+</button>
   </div>
@@ -1265,7 +1271,6 @@
   <div class="pill stamps"><img data-ico="stamp" alt=""><span id="stamps-num">0</span></div>
   <div style="flex:1"></div>
   <div class="chap"><div id="chap-label">CHAPTER 1</div><div id="chap-name">Nunu Farms</div></div>
-  <button id="btn-mailroom"><img data-ico="letter" alt=""></button>
   <button id="btn-settings"><img data-ico="gear" alt=""></button>
 </div>
 <div id="meta-nav">
