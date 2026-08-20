@@ -486,6 +486,9 @@
     background:repeating-linear-gradient(90deg, rgba(51,65,85,.85) 0 3px, transparent 3px 11px); }
   .friend.caged::before { content:'🔒'; position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:13px; z-index:2; }
   .friend.freed img { animation:pipopBob 1.6s ease-in-out infinite; }
+  .friend.freed::before { content:''; position:absolute; left:50%; bottom:-2px; width:96%; height:26%;
+    transform:translateX(-50%); border-radius:50%; pointer-events:none; z-index:-1;
+    background:radial-gradient(closest-side, rgba(20,52,18,.34), rgba(20,52,18,0) 100%); }
   .chapter-sign { position:absolute; z-index:2; transform:translateX(-50%); white-space:nowrap; pointer-events:none;
     background:linear-gradient(180deg,#a97142,#7c4a24); color:#ffe9c9; font-weight:900; font-size:13px;
     padding:5px 14px; border-radius:10px; border:2.5px solid #d9a066; box-shadow:0 3px 6px rgba(0,0,0,.3); }
@@ -1049,6 +1052,9 @@
   #city-world.sp-autumn #city-ground { filter:sepia(.22) saturate(1.12) hue-rotate(-14deg) brightness(1.01); }
   #city-world.sp-winter #city-ground { filter:saturate(.26) brightness(1.2) hue-rotate(12deg); }
   #city-world.sp-winter .city-el img, #city-world.sp-winter .city-deco img { filter:saturate(.8) brightness(1.06); }
+  /* whoever is out in the town is out in the weather too */
+  #city-world.sp-winter .city-friend img, #city-world.sp-winter .city-pipo img { filter:saturate(.86) brightness(1.05); }
+  #city-world.sp-autumn .city-friend img, #city-world.sp-autumn .city-pipo img { filter:sepia(.12) saturate(1.06); }
   /* a cold wash that settles over the whole town in the snowy months */
   #city-frost { position:absolute; inset:0; pointer-events:none; z-index:397; opacity:0; transition:opacity 1s;
     background:linear-gradient(180deg, rgba(255,255,255,.30), rgba(226,240,255,.16) 60%, rgba(210,232,255,.24)); }
@@ -1068,11 +1074,22 @@
   .city-el.ghost.cant b { color:#b8652e; }
   .city-el.wiggle { animation:hintWig .5s ease-in-out 2; }
   .city-friend { position:absolute; width:56px; height:56px; transform:translate(-50%,-90%); cursor:pointer;
-    filter:drop-shadow(0 4px 5px rgba(10,40,10,.3)); }
+    filter:drop-shadow(1px 3px 3px rgba(14,44,16,.4)); }
   .city-friend img { width:100%; height:100%; animation:pipopBob 1.7s ease-in-out infinite; }
   .city-pipo { position:absolute; width:64px; height:64px; transform:translate(-50%,-90%); cursor:pointer; z-index:300;
-    filter:drop-shadow(0 4px 5px rgba(10,40,10,.35)); }
+    filter:drop-shadow(1px 3px 3px rgba(14,44,16,.44)); }
   .city-pipo img { width:100%; height:100%; animation:waddleIdle 1.5s ease-in-out infinite; }
+  /* a character standing in the world gets the same two-pool contact shadow
+     the buildings are painted with: a wide ambient pool and a tighter one
+     thrown away from the sun. Without it they float. */
+  .city-friend::before, .city-pipo::before, .find-critter-shadow {
+    content:''; position:absolute; left:50%; bottom:2%; width:104%; height:26%;
+    transform:translateX(-50%); border-radius:50%; pointer-events:none; z-index:-1;
+    background:radial-gradient(closest-side, rgba(20,52,18,.34), rgba(20,52,18,.16) 58%, rgba(20,52,18,0) 100%); }
+  .city-friend::after, .city-pipo::after {
+    content:''; position:absolute; left:56%; bottom:1%; width:66%; height:17%;
+    transform:translateX(-50%); border-radius:50%; pointer-events:none; z-index:-1;
+    background:radial-gradient(closest-side, rgba(14,44,14,.4), rgba(14,44,14,0) 100%); }
   .city-bubble { position:absolute; transform:translate(-50%,-100%); z-index:350; max-width:230px; text-align:center;
     background:rgba(255,249,232,.98); color:#5e3416; font-weight:800; font-size:13.5px; line-height:1.35;
     padding:9px 14px; border-radius:16px; border:2.5px solid #8a5a2e; box-shadow:0 4px 10px rgba(0,0,0,.3);
@@ -1971,6 +1988,133 @@ function bake(fn){
   fn(x);
   return cv.toDataURL('image/png');
 }
+/* ---------------- the cast, lit like the town ----------------
+   The buildings are painted under one sun: light from the front-left, shade
+   pooling to the lower-right, a warm rim on the sun-facing edge and shade
+   where a thing meets the ground. The cast art arrived flat, which made it
+   read as stickers laid on top of a rendered world. Rather than repaint
+   fifteen characters, we relight them: every layer below is derived from the
+   art's own alpha, so it costs no new bytes and it obeys exactly the same
+   sun as TOWN_PAINT does. */
+function relightSprite(img){
+  const S = img.naturalWidth || img.width;
+  if(!S) return null;
+  const mk = ()=>{ const c = document.createElement('canvas'); c.width = c.height = S; return c; };
+  const cv = mk(), x = cv.getContext('2d');
+  x.imageSmoothingQuality = 'high';
+  // flat fills read as paper next to a rendered building; a small grade helps
+  x.filter = 'saturate(1.1) contrast(1.05)';
+  x.drawImage(img, 0, 0);
+  x.filter = 'none';
+
+  x.globalCompositeOperation = 'source-atop';
+  // 1. form shadow — the light wraps from the upper left, shade pools opposite
+  const fg = x.createRadialGradient(S * .22, S * .12, S * .06, S * .3, S * .26, S * 1.02);
+  fg.addColorStop(0, 'rgba(72,74,104,0)'); fg.addColorStop(.3, 'rgba(72,74,104,0)');
+  fg.addColorStop(.66, 'rgba(72,74,104,.16)'); fg.addColorStop(1, 'rgba(66,68,100,.42)');
+  x.fillStyle = fg; x.fillRect(0, 0, S, S);
+  // 2. bounce — warm light kicking back up off the ground
+  const bg = x.createRadialGradient(S * .5, S * 1.02, S * .04, S * .5, S * 1.02, S * .62);
+  bg.addColorStop(0, 'rgba(255,232,180,.2)'); bg.addColorStop(1, 'rgba(255,232,180,0)');
+  x.fillStyle = bg; x.fillRect(0, 0, S, S);
+  // 3. contact shade where the body meets the ground
+  const ag = x.createLinearGradient(0, S * .78, 0, S);
+  ag.addColorStop(0, 'rgba(22,44,34,0)'); ag.addColorStop(1, 'rgba(22,44,34,.3)');
+  x.fillStyle = ag; x.fillRect(0, 0, S, S);
+  x.globalCompositeOperation = 'source-over';
+
+  // 4. rim light — the silhouette minus itself shifted away from the sun.
+  //    Erode by a pixel first, or the highlight lands on the anti-aliased
+  //    outer edge and reads as a white halo instead of as light.
+  const er = mk(), erx = er.getContext('2d');
+  erx.drawImage(img, 0, 0);
+  erx.globalCompositeOperation = 'destination-in';
+  const e = Math.max(1, S * .006);
+  [[e,0],[-e,0],[0,e],[0,-e],[e,e],[-e,-e]].forEach(([ex, ey]) => erx.drawImage(img, ex, ey));
+  erx.globalCompositeOperation = 'source-over';
+  const d = S * .03;
+  const rc = mk(), r = rc.getContext('2d');
+  r.drawImage(er, 0, 0);
+  r.globalCompositeOperation = 'destination-out';
+  r.drawImage(er, d, d);
+  r.globalCompositeOperation = 'source-in';
+  const rg = r.createLinearGradient(0, 0, S * .9, S * .9);
+  rg.addColorStop(0, 'rgba(255,248,214,.95)'); rg.addColorStop(.5, 'rgba(255,238,196,.5)');
+  rg.addColorStop(1, 'rgba(255,238,196,0)');
+  r.fillStyle = rg; r.fillRect(0, 0, S, S);
+  const rb = mk(), rbx = rb.getContext('2d');
+  rbx.filter = `blur(${(S * .006).toFixed(2)}px)`;
+  rbx.drawImage(rc, 0, 0);
+  x.globalCompositeOperation = 'lighter'; x.globalAlpha = .62;
+  x.drawImage(rb, 0, 0);
+  x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
+
+  // 4b. grade the white sticker keyline so it behaves like a rim: bright where
+  //     the sun hits it, warm and dropping away in the shade. Without this the
+  //     cast keeps a cold white halo the painted town never has.
+  const kw = S * .026;
+  const inn = mk(), inx = inn.getContext('2d');
+  inx.drawImage(img, 0, 0);
+  inx.globalCompositeOperation = 'destination-in';
+  for(let a = 0; a < 8; a++) inx.drawImage(img, Math.cos(a * .785) * kw, Math.sin(a * .785) * kw);
+  inx.globalCompositeOperation = 'source-over';
+  const bnd = mk(), bx = bnd.getContext('2d');
+  bx.drawImage(img, 0, 0);
+  bx.globalCompositeOperation = 'destination-out';
+  bx.drawImage(inn, 0, 0);
+  bx.globalCompositeOperation = 'source-in';
+  const kg = bx.createLinearGradient(S * .1, 0, S * .95, S * .95);
+  kg.addColorStop(0, '#ffffff'); kg.addColorStop(.34, '#f4e4c2'); kg.addColorStop(1, '#9e8460');
+  bx.fillStyle = kg; bx.fillRect(0, 0, S, S);
+  x.globalCompositeOperation = 'multiply'; x.globalAlpha = .95;
+  x.drawImage(bnd, 0, 0);
+  x.globalAlpha = 1; x.globalCompositeOperation = 'source-over';
+
+  // 5. a whisper of sheen on the lit shoulder
+  const sc = mk(), s2 = sc.getContext('2d');
+  s2.drawImage(img, 0, 0);
+  s2.globalCompositeOperation = 'source-atop';
+  const sg = s2.createRadialGradient(S * .34, S * .24, S * .02, S * .34, S * .24, S * .46);
+  sg.addColorStop(0, 'rgba(255,255,240,.18)'); sg.addColorStop(1, 'rgba(255,255,240,0)');
+  s2.fillStyle = sg; s2.fillRect(0, 0, S, S);
+  s2.globalCompositeOperation = 'destination-in';
+  s2.drawImage(img, 0, 0);
+  x.drawImage(sc, 0, 0);
+  // webp keeps the relit art about a fifth of the size in memory; browsers
+  // that cannot encode it hand back a PNG data URL, which still works
+  const url = cv.toDataURL('image/webp', .94);
+  return url.startsWith('data:image/webp') ? url : cv.toDataURL('image/png');
+}
+let castLit = false;
+function relightCast(){
+  if(castLit) return;
+  castLit = true;
+  // one character per frame: the whole pass is a few hundred milliseconds of
+  // canvas work, and doing it in one block would drop a visible run of frames
+  const keys = Object.keys(CAST_META);
+  const step = i =>{
+    if(i >= keys.length){ applyCosmetic(); return; }   // hats go on over the relit art
+    const k = keys[i];
+    const img = new Image();
+    const next = ()=> requestAnimationFrame(()=> step(i + 1));
+    img.onload = ()=>{
+      try {
+        const url = relightSprite(img);
+        if(url){
+          CAST_META[k].src = url;
+          SPRITES['c_' + k] = url;
+          if(k === 'pipop') SPRITES.pipop = url;
+          refreshCharImgs(k, url);
+        }
+      } catch(e){}
+      next();
+    };
+    img.onerror = next;
+    img.src = CAST_META[k].src;
+  };
+  step(0);
+}
+
 /* ---------------- chibi cast art (design handoff, base64-inlined, ~226KB) ----------------
    Replaces the vector-drawn cast sprites everywhere characters appear; each entry
    carries its signature idle loop. CHARACTERS keeps names/dialogue. */
@@ -2015,6 +2159,7 @@ const CAST_META = {
   if(orb) orb.src = SPRITES.p_rainbow;
   Object.keys(CAST_META).forEach(k => { SPRITES['c_' + k] = CAST_META[k].src; });
   SPRITES.pipop = CAST_META.pipop.src;
+  relightCast();          // and then put the whole cast under the town's sun
   const noMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   document.querySelectorAll('.char-img').forEach(el=>{
     el.src = SPRITES['c_' + el.dataset.char];
@@ -3772,7 +3917,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 33;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 34;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
