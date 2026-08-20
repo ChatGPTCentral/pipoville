@@ -39,9 +39,10 @@ screen (character names stay the same in both).
   chimneys smoke, cloud shadows drift, and it follows the real
   calendar — blossom, high summer, falling leaves, snow — with
   pinch-zoom and lantern light at dusk
-- Restoration meta: stars are currency, spent on 12 garden tasks with
-  Barnaby the groundskeeper, a day counter, and landmarks appearing on
-  the map
+- Restoration meta: stamps are currency, spent on 24 projects that appear
+  on the map where they belong, with a daily post income from the town
+- A daily hide-and-seek round played in the town itself — five friends
+  hide somewhere in Pipoville and you pan the world to find them
 - Win streaks, soft pity, daily gifts, Bloom Burst endings, tutorial
   hand, hints, deadlock recovery, generative music, full juice stack
   (particles, rainbow shockwaves, hit-stop, squash-and-stretch)
