@@ -566,7 +566,9 @@
   /* fixed padding here didn't clear a real notch: on a phone with a
      tall safe-area-inset-top, #meta-top's true height went past 64px
      and the route-hint banner underneath started rendering under it. */
-  #map { background:var(--sky); padding:calc(64px + env(safe-area-inset-top)) 0 0; }
+  /* #map now sits in #meta-content, sized by the flex shell between the
+     real top bar and bottom nav — no compensating padding needed here. */
+  #map { background:var(--sky); }
   #map::before { content:''; position:absolute; right:-40px; top:-30px; width:190px; height:190px; border-radius:50%; z-index:0;
     background:radial-gradient(circle at 42% 38%, rgba(255,255,255,.95), rgba(255,236,150,.55) 45%, rgba(255,214,90,0) 72%); pointer-events:none; }
   #game { background:var(--sky); }
@@ -593,14 +595,22 @@
   .btn:active, .btn.blue:active, .btn.orange:active { transform:translateY(4px); box-shadow:inset 0 3px 0 rgba(255,255,255,.4), 0 2px 0 rgba(0,0,0,.25), 0 4px 8px rgba(18,58,46,.25); border-image:none !important; }
   .btn.small { padding:10px 18px; font-size:16px; }
 
-  /* ---- meta top bar + bottom nav ---- */
-  #meta-top, #meta-nav { display:none; }
-  /* a scrim of its own — without it, the strip behind the notch showed
-     whatever that screen's own background/decoration happened to be
-     (the City screen's sun-glow, a flat sky elsewhere), so the same HUD
-     read as a different colour depending which screen you were on */
-  body.in-meta #meta-top { display:flex; position:absolute; left:0; right:0; top:0; z-index:30;
-    align-items:center; gap:8px; padding:calc(12px + env(safe-area-inset-top)) 14px 10px; pointer-events:auto;
+  /* ---- meta shell: a real flex column, not stacked absolute layers ----
+     #meta-shell holds the top bar, the scrollable content area and the
+     bottom nav as three ordinary flex children. The browser computes
+     #meta-content's height from what's actually left over after the top
+     and bottom bars render — including their own safe-area padding — so
+     there is no hand-calculated offset anywhere in this chain to drift
+     out of sync with a notch or a home indicator ever again. */
+  #meta-shell { display:none; position:fixed; inset:0; z-index:1; flex-direction:column; }
+  body.in-meta #meta-shell { display:flex; }
+  #meta-content { position:relative; flex:1 1 auto; min-height:0; overflow:hidden; }
+  #meta-top { flex:0 0 auto; position:relative; z-index:2;
+    display:flex; align-items:center; gap:8px; padding:calc(12px + env(safe-area-inset-top)) 14px 10px;
+    /* a scrim of its own — without it, the strip behind the notch showed
+       whatever that screen's own background/decoration happened to be
+       (the City screen's sun-glow, a flat sky elsewhere), so the same HUD
+       read as a different colour depending which screen you were on */
     background:linear-gradient(180deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.6) 60%, rgba(255,255,255,0) 100%); }
   .pill { display:flex; align-items:center; gap:6px; padding:7px 14px 7px 8px; border-radius:999px;
     background:var(--panel); box-shadow:var(--panel-sh); font-weight:800; font-size:19px; color:var(--ink); }
@@ -610,14 +620,17 @@
   .chap { text-align:right; line-height:1.05; flex:1 1 auto; min-width:0; }
   #chap-label { font-weight:700; font-size:10px; letter-spacing:.12em; color:rgba(18,58,46,.55); }
   #chap-name { font-weight:800; font-size:15px; color:var(--ink-art); text-shadow:0 1px 0 rgba(255,255,255,.6); }
-  body.in-meta #meta-nav { display:flex; position:absolute; left:10px; right:10px; bottom:calc(10px + env(safe-area-inset-bottom));
-    z-index:30; gap:6px; padding:8px; border-radius:26px;
-    background:linear-gradient(180deg,rgba(255,255,255,.97),rgba(224,239,252,.95));
-    box-shadow:inset 0 3px 0 rgba(255,255,255,.95), 0 6px 0 rgba(43,127,212,.22), 0 14px 22px rgba(18,58,46,.28); }
-  #meta-nav .tab { flex:1; border:none; cursor:pointer; font-family:inherit; padding:7px 0 6px; border-radius:19px;
-    display:flex; flex-direction:column; align-items:center; gap:2px; background:transparent; }
+  #meta-nav { flex:0 0 auto; position:relative; z-index:2; display:flex; gap:6px; justify-content:space-evenly;
+    padding:8px 10px calc(14px + env(safe-area-inset-bottom)); border-radius:26px 26px 0 0;
+    background:linear-gradient(180deg,#ffffff,#e0effc);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(43,127,212,.10),
+               0 -3px 0 rgba(31,104,180,.16), 0 -10px 22px rgba(18,58,46,.22); }
+  #meta-nav .tab { flex:1 1 0; max-width:104px; border:none; cursor:pointer; font-family:inherit; padding:7px 0 6px; border-radius:19px;
+    display:flex; flex-direction:column; align-items:center; gap:2px; background:transparent; transition:transform .12s ease; }
   #meta-nav .tab img { width:30px; height:30px; }
   #meta-nav .tab span { font-weight:800; font-size:10.5px; color:var(--ink2); }
+  #meta-nav .tab.active { transform:translateY(-1px); }
+  #meta-nav .tab:active { transform:translateY(2px); }
   #meta-nav .tab.active { background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%);
     box-shadow:inset 0 3px 0 rgba(255,255,255,.55), 0 5px 0 #14477f; }
   #meta-nav .tab.active span { color:#fff; }
@@ -759,7 +772,9 @@
 
   /* ---- meta views ---- */
   .meta-view { background:var(--sky); }
-  .view-pad { position:absolute; inset:0; padding:calc(64px + env(safe-area-inset-top)) 14px calc(92px + env(safe-area-inset-bottom));
+  /* this screen is already sized between the real top bar and bottom nav
+     by the flex shell, so a plain padding is all it needs now */
+  .view-pad { position:absolute; inset:0; padding:18px 14px 24px;
     display:flex; flex-direction:column; gap:11px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .view-head { display:flex; align-items:center; gap:10px; }
   .view-head img.hicon { width:34px; height:34px; }
@@ -904,7 +919,8 @@
   .r-title, .a-name, .t-name, .sc-eyebrow, #meta-nav .tab span { letter-spacing:.01em; }
 
   /* layout: floating banners clear the meta top bar */
-  .map-banner { top:calc(96px + env(safe-area-inset-top)); z-index:40; max-width:92vw; white-space:normal; text-align:center; }
+  /* clears #route-hint, which can run to two lines */
+  .map-banner { top:158px; z-index:40; max-width:92vw; white-space:normal; text-align:center; }
   /* layout: chapter block never wrestles the gear button */
   #chap-label { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   /* the chapter name may run to two lines; flex:1/min-width:0 keeps it from
@@ -947,21 +963,6 @@
   .dress-ico { width:44px; height:44px; display:flex; align-items:center; justify-content:center; }
 
   /* ================= V24 GEOMETRY PASS ================= */
-  /* full-bleed bottom nav: no see-through gap under the floating bar */
-  body.in-meta #meta-nav { left:0; right:0; bottom:0; border-radius:26px 26px 0 0;
-    padding:8px 10px calc(14px + env(safe-area-inset-bottom));
-    justify-content:space-evenly;
-    background:linear-gradient(180deg,#ffffff,#e0effc);
-    box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(43,127,212,.10),
-               0 -3px 0 rgba(31,104,180,.16), 0 -10px 22px rgba(18,58,46,.22); }
-  /* a tab is a pill, not a slab: it stops growing on wide screens */
-  #meta-nav .tab { flex:1 1 0; max-width:104px; transition:transform .12s ease; }
-  #meta-nav .tab span { color:#5b7f99; }
-  #meta-nav .tab.active { transform:translateY(-1px); }
-  #meta-nav .tab:active { transform:translateY(2px); }
-  .view-pad { padding-bottom:calc(104px + env(safe-area-inset-bottom)); }
-  /* task banner floats over the diorama, not over the view header text */
-  .map-banner { top:calc(178px + env(safe-area-inset-top)); }
   /* level nodes paint above the friends/cages standing beside them */
   .lvl-holder { z-index:3; }
   .friend { z-index:0; }
@@ -1038,7 +1039,10 @@
   #confetti-layer { z-index:80; }
   /* ---- the city of Pipoville (v28) ---- */
   /* the world fills the route screen: one place, one journey */
-  #world-zoom { position:absolute; right:12px; bottom:calc(104px + env(safe-area-inset-bottom));
+  /* #map already ends exactly at the top edge of the real #meta-nav below
+     it (they're flex siblings, not stacked layers), so this only needs a
+     plain margin from that edge — not a guess at the nav bar's height */
+  #world-zoom { position:absolute; right:12px; bottom:12px;
     display:flex; flex-direction:column; gap:8px; z-index:22; }
   .district-sign { position:absolute; transform:translate(-50%,-50%); white-space:nowrap; pointer-events:none;
     font-family:var(--font-display); font-weight:400; font-size:21px; color:#8a5a00;
@@ -1193,6 +1197,19 @@
   <div class="note">Works offline · Progress saved on this device</div>
 </div>
 
+<!-- META SHELL: a real flex column (top bar / scrollable content / bottom
+     nav), so the content area's height is computed by the browser from
+     the chrome's actual rendered size — never a hand-guessed offset that
+     can drift out of sync with a notch or a home indicator. -->
+<div id="meta-shell">
+<div id="meta-top">
+  <div class="pill hearts"><img data-ico="heart" alt=""><span id="hearts-num">5</span><span class="cap">/5</span></div>
+  <div class="pill stamps"><img data-ico="stamp" alt=""><span id="stamps-num">0</span></div>
+  <div style="flex:1"></div>
+  <div class="chap"><div id="chap-label">CHAPTER 1</div><div id="chap-name">Nunu Farms</div></div>
+  <button id="btn-settings"><img data-ico="gear" alt=""></button>
+</div>
+<div id="meta-content">
 <!-- LEVEL MAP -->
 <div id="map" class="screen">
   <div id="route-hint">
@@ -1276,21 +1293,14 @@
 <div id="album" class="screen meta-view"><div class="view-pad" id="album-body"></div></div>
 <div id="shop" class="screen meta-view"><div class="view-pad" id="shop-body"></div></div>
 <div id="mailroom" class="screen meta-view"><div class="view-pad" id="mailroom-body"></div></div>
-
-<!-- META CHROME -->
-<div id="meta-top">
-  <div class="pill hearts"><img data-ico="heart" alt=""><span id="hearts-num">5</span><span class="cap">/5</span></div>
-  <div class="pill stamps"><img data-ico="stamp" alt=""><span id="stamps-num">0</span></div>
-  <div style="flex:1"></div>
-  <div class="chap"><div id="chap-label">CHAPTER 1</div><div id="chap-name">Nunu Farms</div></div>
-  <button id="btn-settings"><img data-ico="gear" alt=""></button>
-</div>
+</div><!-- /meta-content -->
 <div id="meta-nav">
   <button class="tab" data-view="map"><img data-ico="mailbox" alt=""><span data-nav="route">City</span></button>
   <button class="tab" data-view="quests"><img data-ico="quest" alt=""><span data-nav="round">Round</span></button>
   <button class="tab" data-view="album"><img data-ico="stamp" alt=""><span data-nav="book">Book</span></button>
   <button class="tab" data-view="shop"><img data-ico="gift" alt=""><span data-nav="shop">Shop</span></button>
 </div>
+</div><!-- /meta-shell -->
 
 <!-- MODALS -->
 <div class="overlay sheet-overlay" id="ov-intro">
@@ -4389,7 +4399,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 40;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 41;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
