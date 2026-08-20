@@ -4380,7 +4380,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 37;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 38;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -4652,12 +4652,34 @@ const COSMETICS = {
    whoever is wearing it — so a hat is a hat, not a hat-for-one-penguin.
    [cx, brow, r]: the middle of the face, the line a brim rests on, and the
    half-width of the head there. Measured off the sprites, not guessed. */
+/* [cx, top, neck, r]: head-centre x, the skull apex, the pinch where the
+   head narrows into the neck/body, and the half-width at the widest point
+   in that band. Measured off each sprite's own alpha silhouette. */
 const HEAD_ANCHOR = {
-  pipop: [47, 24, 27], cannolio: [76, 31, 17], ninni: [38, 33, 14], nunu: [58, 30, 17],
-  sir_saltbread_cane: [42, 27, 13], winnie: [44, 27, 12], ms_moomoo: [52, 30, 17],
-  ms_saltchow: [46, 30, 15], ms_toni: [65, 32, 14], mr_bobo: [51, 28, 16],
-  mayalee: [48, 31, 20], ovalee: [50, 31, 20], pancione: [48, 30, 20],
-  whaeleeno: [52, 42, 19], baggu: [45, 31, 17]
+  pipop: [49.31, 4.5, 60.5, 36.5], cannolio: [55.36, 6.5, 60, 44.25], ninni: [41.25, 4, 60.5, 41],
+  nunu: [46.88, 4, 40, 34.75], sir_saltbread_cane: [46.28, 13, 59, 45], winnie: [46.15, 14.5, 58, 44.5],
+  ms_moomoo: [56.86, 8, 60, 38.5], ms_saltchow: [42.44, 9, 60, 38], ms_toni: [49.16, 11, 58.5, 41],
+  mr_bobo: [49.95, 4, 60.5, 29.25], mayalee: [49.7, 6, 60, 41.25], ovalee: [46.11, 6, 61, 40],
+  pancione: [49.44, 4, 60.5, 30.25], whaeleeno: [43.66, 21, 57, 45.25], baggu: [44.43, 5, 60, 40.5]
+};
+/* Two the automated scan gets wrong and a look at the art explains why:
+   nunu's straw hat brim is wider than her face, so the scan reads the hat
+   as the head and her real face starts well below it; ninni's body is
+   wider than her actual (small) head within the scan band, so the head
+   radius came out body-sized and every item landed oversized on her. */
+HEAD_ANCHOR.nunu[1] = 27; HEAD_ANCHOR.nunu[2] = 58;
+HEAD_ANCHOR.ninni[2] = 42; HEAD_ANCHOR.ninni[3] = 21;
+/* Where a painted item naturally sits in Pipo's own 100-unit frame — its
+   own alpha centroid, measured once from the baked art, not guessed. A
+   worn item keeps its proportional depth between the wearer's head-top
+   and neck line, so a bandana lands at the throat on a stout little cow
+   exactly as it does on a long-necked penguin, instead of both using the
+   same absolute offset. */
+const ITEM_ANCHOR = {
+  cap: [46.87, 20.88], scarf: [52.52, 54.23], sailor: [49.87, 22.33],
+  glasses: [50.37, 35.49], bowtie: [49.88, 48.19], crown: [52.12, 12.72],
+  bandana: [47.25, 53.46], flowers: [46.86, 22.63], bow: [40.38, 16.38],
+  keeper: [46.87, 18.66]
 };
 /* one shared wardrobe: what you own, and who is wearing what */
 (function migrateWardrobe(){
@@ -4771,11 +4793,15 @@ function drawCosmetic(x, kind){
 function drawWorn(x, ch, kind){
   const a = HEAD_ANCHOR[ch], p = HEAD_ANCHOR.pipop;
   if(!a || ch === 'pipop'){ drawCosmetic(x, kind); return; }
-  const k = a[2] / p[2];
+  const item = ITEM_ANCHOR[kind] || [50, 20];
+  // how deep the item sits between Pipo's own head-top and neck line
+  const t = (item[1] - p[1]) / (p[2] - p[1]);
+  const ty = a[1] + t * (a[2] - a[1]);
+  const s = a[3] / p[3];
   x.save();
-  x.translate(a[0], a[1]);
-  x.scale(k, k);
-  x.translate(-p[0], -p[1]);
+  x.translate(a[0], ty);
+  x.scale(s, s);
+  x.translate(-item[0], -item[1]);
   drawCosmetic(x, kind);
   x.restore();
 }
