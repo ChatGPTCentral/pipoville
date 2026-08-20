@@ -591,8 +591,13 @@
 
   /* ---- meta top bar + bottom nav ---- */
   #meta-top, #meta-nav { display:none; }
+  /* a scrim of its own — without it, the strip behind the notch showed
+     whatever that screen's own background/decoration happened to be
+     (the City screen's sun-glow, a flat sky elsewhere), so the same HUD
+     read as a different colour depending which screen you were on */
   body.in-meta #meta-top { display:flex; position:absolute; left:0; right:0; top:0; z-index:30;
-    align-items:center; gap:8px; padding:calc(12px + env(safe-area-inset-top)) 14px 10px; pointer-events:auto; }
+    align-items:center; gap:8px; padding:calc(12px + env(safe-area-inset-top)) 14px 10px; pointer-events:auto;
+    background:linear-gradient(180deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.6) 60%, rgba(255,255,255,0) 100%); }
   .pill { display:flex; align-items:center; gap:6px; padding:7px 14px 7px 8px; border-radius:999px;
     background:var(--panel); box-shadow:var(--panel-sh); font-weight:800; font-size:19px; color:var(--ink); }
   .pill img { width:26px; height:26px; }
