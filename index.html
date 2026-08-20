@@ -23,7 +23,11 @@
     font-family: "Baloo 2","Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded","Arial Rounded MT Bold",system-ui,sans-serif;
     background:#2f6e2b;
     color:#fff;
-    position:fixed; inset:0;
+    /* inset:0 (both top AND bottom set) forces the box to whatever height
+       the fixed-position containing block resolves to, which silently
+       overrides the 100dvh already set above — the real bug behind the
+       gap under the bottom nav. Height, not inset, has to drive this. */
+    position:fixed; top:0; left:0; right:0; height:100%; height:100dvh;
   }
   .screen { position:absolute; inset:0; display:none; flex-direction:column; }
   .screen.active { display:flex; }
@@ -4385,7 +4389,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 39;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 40;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
