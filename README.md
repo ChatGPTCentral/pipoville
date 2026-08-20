@@ -35,6 +35,9 @@ screen (character names stay the same in both).
   walls with real courses, tiled roofs with shadow lips, windows set into
   reveals with sky reflections, water with depth and caustics, layered
   tree canopies, and a landscape with rises, hollows and a worn road
+- The cast is lit by that same sun — form shadow, ground bounce, rim light
+  and a real contact shadow, all derived from the art's own silhouette at
+  boot, so the characters stand in the town instead of on top of it
 - The city is alive: the carousel and ferris wheel turn, flags fly,
   chimneys smoke, cloud shadows drift, and it follows the real
   calendar — blossom, high summer, falling leaves, snow — with

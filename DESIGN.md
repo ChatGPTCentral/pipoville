@@ -674,3 +674,54 @@ usual camera re-centring while a hunt is on.
 **The Town tab is now the ledger.** No scene, just what it is for: the
 hunt, a "go and see the *thing you last built*" row that walks the camera
 there, the daily post income, and the project list.
+
+## v34 — the cast, lit like the town
+
+After v32 the buildings were painted under one sun and the characters were
+not, which made a lovingly rendered town with fifteen stickers walking
+around in it. The cast art is raster (a design handoff, base64-inlined), so
+repainting fifteen characters was never the answer. Instead we **relight**
+them at boot: every layer is derived from the art's own alpha, so it costs
+no new bytes and it obeys exactly the same sun as `TOWN_PAINT`.
+
+`relightSprite(img)` runs six passes on a canvas the size of the source:
+
+1. **Grade** — `saturate(1.1) contrast(1.05)` on the base. Flat fills read
+   as paper next to a rendered building; a small grade is most of the fix.
+2. **Form shadow** — a radial ramp anchored at the upper-left light,
+   `source-atop` so it only touches the silhouette. Warm-grey rather than
+   blue, or white bellies go cold.
+3. **Bounce** — a warm pool rising from below, the light the ground kicks
+   back up.
+4. **Contact shade** — a gradient in the bottom fifth of the silhouette.
+5. **Rim light** — the silhouette minus itself shifted away from the sun,
+   blurred and added with `lighter`. The silhouette is **eroded by a pixel
+   first**: without that the highlight lands on the anti-aliased outer edge
+   and reads as a white halo instead of as light.
+6. **Keyline grade** — the cast art carries a white sticker keyline the
+   painted town never has. The outer band (silhouette minus silhouette
+   eroded by 2.6%) is multiplied by a diagonal ramp from white to warm tan,
+   so the keyline stays bright where the sun hits it and drops away warm in
+   the shade.
+
+The result is encoded as **WebP** (`toDataURL('image/webp', .94)`, falling
+back to PNG when a browser cannot encode it): the relit art is 639KB in
+memory versus 2.5MB as PNG, and about the same as the flat originals.
+
+`relightCast()` walks the cast **one character per animation frame** — the
+whole pass is a few hundred milliseconds of canvas work and doing it in one
+block would drop a visible run of frames. Each finished character updates
+`CAST_META[k].src`, `SPRITES['c_' + k]`, `SPRITES.pipop` and any `.char-img`
+already on screen, and `applyCosmetic()` re-runs at the end so hats
+composite over the relit base rather than the flat one.
+
+**Footing.** A character standing in the world now gets the same two-pool
+contact shadow the buildings are painted with — a wide ambient pool plus a
+tighter one thrown away from the sun — as `::before`/`::after` on
+`.city-friend`, `.city-pipo` and `.friend.freed`. Without it they float.
+They also join the seasonal grade: winter desaturates them along with the
+town, autumn warms them.
+
+Resolution was never the problem, and we checked rather than assumed: at 3×
+device pixels every context renders the cast at a ratio of 1.76–3.3 source
+pixels per device pixel. Upscaling would have made them softer, not sharper.
