@@ -620,7 +620,7 @@
   #meta-shell { display:none; }
   body.in-meta #meta-shell { display:contents; }
   #meta-content { position:fixed; left:0; right:0; z-index:1; overflow:hidden;
-    top:var(--meta-top-h, 0px); bottom:var(--meta-nav-h, 0px); }
+    top:var(--meta-top-h, 0px); bottom:0; }
   #meta-top { position:fixed; top:0; left:0; right:0; z-index:30;
     display:flex; align-items:center; gap:8px; padding:calc(12px + env(safe-area-inset-top)) 14px 10px;
     /* real glass: blurred and translucent, not a flat scrim — also
@@ -636,21 +636,39 @@
   .chap { text-align:right; line-height:1.05; flex:1 1 auto; min-width:0; }
   #chap-label { font-weight:700; font-size:10px; letter-spacing:.12em; color:rgba(18,58,46,.55); }
   #chap-name { font-weight:800; font-size:15px; color:var(--ink-art); text-shadow:0 1px 0 rgba(255,255,255,.6); }
-  #meta-nav { position:fixed; bottom:0; left:0; right:0; z-index:30; display:flex; gap:6px; justify-content:space-evenly;
-    padding:8px 10px calc(14px + env(safe-area-inset-bottom)); border-radius:26px 26px 0 0;
-    background:rgba(255,255,255,.82);
-    backdrop-filter:blur(18px) saturate(1.5); -webkit-backdrop-filter:blur(18px) saturate(1.5);
-    box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(43,127,212,.10),
-               0 -3px 0 rgba(31,104,180,.16), 0 -10px 22px rgba(18,58,46,.22); }
-  #meta-nav .tab { flex:1 1 0; max-width:104px; border:none; cursor:pointer; font-family:inherit; padding:7px 0 6px; border-radius:19px;
-    display:flex; flex-direction:column; align-items:center; gap:2px; background:transparent; transition:transform .12s ease; }
-  #meta-nav .tab img { width:30px; height:30px; }
-  #meta-nav .tab span { font-weight:800; font-size:10.5px; color:var(--ink2); }
-  #meta-nav .tab.active { transform:translateY(-1px); }
-  #meta-nav .tab:active { transform:translateY(2px); }
+  /* A full-width bar has to agree with the notch/home-indicator on its
+     exact edge-to-edge geometry — the one thing that kept breaking across
+     devices. A small floating ring sidesteps the whole problem: it never
+     touches an edge, so there is nothing left to misalign. Tap it to pop
+     a stack of glass buttons open above it. */
+  #meta-nav { position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom));
+    transform:translateX(-50%); z-index:30; }
+  #nav-ring-fab { position:relative; width:64px; height:64px; border-radius:50%; border:none; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; z-index:2;
+    background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%);
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.55), 0 5px 0 #14477f, 0 12px 20px rgba(18,58,46,.32);
+    transition:transform .18s cubic-bezier(.34,1.4,.64,1); }
+  #nav-ring-fab img { width:30px; height:30px; }
+  #nav-ring-fab:active { transform:scale(.92); }
+  /* a nudge, not a flip — the icon still has to read as "you are here" */
+  #meta-nav.open #nav-ring-fab { transform:scale(.94); }
+  #nav-ring-menu { position:absolute; left:50%; bottom:76px; transform:translateX(-50%);
+    display:flex; flex-direction:column-reverse; align-items:center; gap:10px; }
+  #meta-nav .tab { width:52px; height:52px; flex:0 0 auto; border:none; cursor:pointer; font-family:inherit; padding:0;
+    border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,.72); backdrop-filter:blur(14px) saturate(1.5); -webkit-backdrop-filter:blur(14px) saturate(1.5);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 4px 0 rgba(43,127,212,.22), 0 8px 14px rgba(18,58,46,.28);
+    opacity:0; transform:scale(.4) translateY(14px); pointer-events:none;
+    transition:opacity .16s ease, transform .16s cubic-bezier(.34,1.4,.64,1); }
+  #meta-nav .tab img { width:26px; height:26px; }
+  #meta-nav .tab span { display:none; } /* the ring reads by icon; the label is for screen readers via aria-label below */
+  #meta-nav.open .tab { opacity:1; transform:none; pointer-events:auto; }
+  #meta-nav.open .tab:nth-child(1){ transition-delay:.02s }
+  #meta-nav.open .tab:nth-child(2){ transition-delay:.05s }
+  #meta-nav.open .tab:nth-child(3){ transition-delay:.08s }
+  #meta-nav.open .tab:nth-child(4){ transition-delay:.11s }
   #meta-nav .tab.active { background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%);
-    box-shadow:inset 0 3px 0 rgba(255,255,255,.55), 0 5px 0 #14477f; }
-  #meta-nav .tab.active span { color:#fff; }
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.5), 0 4px 0 #14477f, 0 8px 14px rgba(18,58,46,.3); }
 
   /* ---- route (map) ---- */
   #route-hint { display:flex; align-items:center; gap:10px; margin:8px 14px 4px; padding:10px 14px; border-radius:20px; z-index:5; position:relative;
@@ -791,7 +809,9 @@
   .meta-view { background:var(--sky); }
   /* this screen is already sized between the real top bar and bottom nav
      by the flex shell, so a plain padding is all it needs now */
-  .view-pad { position:absolute; inset:0; padding:18px 14px 24px;
+  /* extra bottom clearance so the last row can scroll clear of the
+     floating ring nav instead of hiding behind it */
+  .view-pad { position:absolute; inset:0; padding:18px 14px 108px;
     display:flex; flex-direction:column; gap:11px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
   .view-head { display:flex; align-items:center; gap:10px; }
   .view-head img.hicon { width:34px; height:34px; }
@@ -985,7 +1005,10 @@
   .friend { z-index:0; }
   .lvl-node { position:relative; z-index:1; }
   .win-pipop { margin:12px auto 0; }
-  #route-hint { background:linear-gradient(180deg,#ffffff,#e8f3ff); }
+  /* this rule wins the cascade over #route-hint's own earlier declaration,
+     so the glass treatment has to live here to actually take effect */
+  #route-hint { background:rgba(255,255,255,.55);
+    backdrop-filter:blur(16px) saturate(1.5); -webkit-backdrop-filter:blur(16px) saturate(1.5); }
 
   /* ================= V25 MAP TERRAIN + FOG-OF-WAR ================= */
   .map-terrain { position:absolute; inset:0; z-index:0; pointer-events:none; }
@@ -1312,10 +1335,13 @@
 <div id="mailroom" class="screen meta-view"><div class="view-pad" id="mailroom-body"></div></div>
 </div><!-- /meta-content -->
 <div id="meta-nav">
-  <button class="tab" data-view="map"><img data-ico="mailbox" alt=""><span data-nav="route">City</span></button>
-  <button class="tab" data-view="quests"><img data-ico="quest" alt=""><span data-nav="round">Round</span></button>
-  <button class="tab" data-view="album"><img data-ico="stamp" alt=""><span data-nav="book">Book</span></button>
-  <button class="tab" data-view="shop"><img data-ico="gift" alt=""><span data-nav="shop">Shop</span></button>
+  <div id="nav-ring-menu">
+    <button class="tab" data-view="shop"><img data-ico="gift" alt=""><span data-nav="shop">Shop</span></button>
+    <button class="tab" data-view="album"><img data-ico="stamp" alt=""><span data-nav="book">Book</span></button>
+    <button class="tab" data-view="quests"><img data-ico="quest" alt=""><span data-nav="round">Round</span></button>
+    <button class="tab" data-view="map"><img data-ico="mailbox" alt=""><span data-nav="route">City</span></button>
+  </div>
+  <button id="nav-ring-fab" aria-label="Menu"><img id="nav-ring-fab-ico" data-ico="mailbox" alt=""></button>
 </div>
 </div><!-- /meta-shell -->
 
@@ -4416,7 +4442,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 46;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 47;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -5076,6 +5102,15 @@ const META_VIEWS = ['map','quests','album','shop','mailroom'];
    whenever that could have changed: entering/leaving the meta chrome,
    the viewport resizing, or Safari's address bar collapsing/expanding
    (visualViewport is the one API that fires for that specifically). */
+/* the ring keeps only one thing lit at a time and wears that section's
+   icon on its own face — and always folds shut once you've picked */
+function syncNavRing(id){
+  document.querySelectorAll('#meta-nav .tab').forEach(b=>b.classList.toggle('active', b.dataset.view === id));
+  const activeImg = document.querySelector('#meta-nav .tab.active img');
+  const fabIco = $('#nav-ring-fab-ico');
+  if(activeImg && fabIco && activeImg.src) fabIco.src = activeImg.src;
+  $('#meta-nav').classList.remove('open');
+}
 function syncMetaChromeHeights(){
   const top = document.getElementById('meta-top');
   const nav = document.getElementById('meta-nav');
@@ -5094,7 +5129,7 @@ function showScreen(id){
   document.body.classList.toggle('in-meta', meta);
   if(id !== 'map'){ stopCityAnim(); endHunt(); }   // the rides only turn while you are looking
   if(meta){
-    document.querySelectorAll('#meta-nav .tab').forEach(b=>b.classList.toggle('active', b.dataset.view === id));
+    syncNavRing(id);
     renderMeta();
   }
   requestAnimationFrame(syncMetaChromeHeights);
@@ -7134,6 +7169,10 @@ document.querySelectorAll('#meta-nav .tab').forEach(b=>{
     else { showScreen(v); RENDER_VIEW[v](); }
   });
 });
+$('#nav-ring-fab').addEventListener('click', ()=>{
+  Snd.ensure();
+  $('#meta-nav').classList.toggle('open');
+});
 $('#btn-sheet-close').addEventListener('click', ()=>{ showOverlay('ov-intro', false); showScreen('map'); renderMap(); });
 $('#btn-start').addEventListener('click', ()=>{
   Snd.ensure();
@@ -8065,7 +8104,7 @@ $('#btn-mailroom').addEventListener('click', ()=>{
 /* the town list still opens places — it just walks you there now */
 function openCity(focusId){
   showScreen('map');
-  document.querySelectorAll('#meta-nav .tab').forEach(t2=>t2.classList.toggle('active', t2.dataset.view === 'map'));
+  syncNavRing('map');
   renderMap();
   focusWorld(focusId || Math.min(save.unlocked, LEVELS.length), true);
 }
@@ -8123,7 +8162,7 @@ function openCritters(){
   Snd.ensure();
   showOverlay('ov-win', false);
   showScreen('map');
-  document.querySelectorAll('#meta-nav .tab').forEach(t2=>t2.classList.toggle('active', t2.dataset.view === 'map'));
+  syncNavRing('map');
   renderMap();
   document.body.classList.add('hunting');
   requestAnimationFrame(syncMetaChromeHeights);
