@@ -19,7 +19,9 @@ screen (character names stay the same in both).
 - One world: the quest map **is** Pipoville. 70 deliveries wind through
   eight districts of a single painted town — finish a district and the fog
   lifts on the next one
-- Six painted pieces (apple, lemon, leaf, drop, flower, butterfly)
+- Six painted pieces, each with its own material — waxy apple skin,
+  dimpled lemon peel, light through a leaf, a water drop with real
+  refraction and a caustic, veined petals, scaled butterfly wings
 - Explosive ladder by match size: 4 → Firecracker (3×3), 5 → Bomb (5×5),
   6 → Dynamite (7×7), 7+ → TNT (9×9); tap to detonate, swap two for a
   mega blast
