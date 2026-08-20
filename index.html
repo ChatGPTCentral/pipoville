@@ -559,7 +559,10 @@
     --ink:#1e3a52; --ink2:#7fa0b8; --ink-art:#123a2e;
   }
   #splash { background:var(--sky); }
-  #map { background:var(--sky); padding:64px 0 0; }
+  /* fixed padding here didn't clear a real notch: on a phone with a
+     tall safe-area-inset-top, #meta-top's true height went past 64px
+     and the route-hint banner underneath started rendering under it. */
+  #map { background:var(--sky); padding:calc(64px + env(safe-area-inset-top)) 0 0; }
   #map::before { content:''; position:absolute; right:-40px; top:-30px; width:190px; height:190px; border-radius:50%; z-index:0;
     background:radial-gradient(circle at 42% 38%, rgba(255,255,255,.95), rgba(255,236,150,.55) 45%, rgba(255,214,90,0) 72%); pointer-events:none; }
   #game { background:var(--sky); }
