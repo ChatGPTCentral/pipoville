@@ -6500,7 +6500,7 @@ boardEl.addEventListener('pointerdown', e=>{
   if(!cell) return;
   touch = { start:cell, x:e.clientX, y:e.clientY, done:false };
 });
-boardEl.addEventListener('pointermove', e=>{
+boardEl.addEventListener('pointermove', async e=>{
   if(!touch || touch.done || G.busy || G.over) return;
   const dx = e.clientX - touch.x, dy = e.clientY - touch.y;
   const th = Math.max(14, G.cellPx * .3);
@@ -6516,12 +6516,15 @@ boardEl.addEventListener('pointermove', e=>{
   // to hunt for the tap. The one exception is throwing it at another power:
   // that pairing is worth more than the swipe, so it still swaps.
   if(src && src.power && !(dst && dst.power)){
+    // Let the throw actually land before it goes off — explode-on-release
+    // read as an instant fizzle with no swipe in it at all.
     if(!REDUCED){
       const nudge = Math.abs(dx) > Math.abs(dy) ? [dx > 0 ? 1 : -1, 0] : [0, dy > 0 ? 1 : -1];
       src.el.style.setProperty('--tx', (nudge[0] * 9) + 'px');
       src.el.style.setProperty('--ty', (nudge[1] * 9) + 'px');
       src.el.classList.add('thrown');
-      setTimeout(()=>{ if(src.el.isConnected) src.el.classList.remove('thrown'); }, 180);
+      await sleep(160);
+      if(src.el.isConnected) src.el.classList.remove('thrown');
     }
     activatePower(r, c);
     return;
