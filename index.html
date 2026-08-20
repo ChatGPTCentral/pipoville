@@ -1203,50 +1203,9 @@
   <div class="note">Works offline · Progress saved on this device</div>
 </div>
 
-<!-- META SHELL: a real flex column (top bar / scrollable content / bottom
-     nav), so the content area's height is computed by the browser from
-     the chrome's actual rendered size — never a hand-guessed offset that
-     can drift out of sync with a notch or a home indicator. -->
-<div id="meta-shell">
-<div id="meta-top">
-  <div class="pill hearts"><img data-ico="heart" alt=""><span id="hearts-num">5</span><span class="cap">/5</span></div>
-  <div class="pill stamps"><img data-ico="stamp" alt=""><span id="stamps-num">0</span></div>
-  <div style="flex:1"></div>
-  <div class="chap"><div id="chap-label">CHAPTER 1</div><div id="chap-name">Nunu Farms</div></div>
-  <button id="btn-settings"><img data-ico="gear" alt=""></button>
-</div>
-<div id="meta-content">
-<!-- LEVEL MAP -->
-<div id="map" class="screen">
-  <div id="route-hint">
-    <img class="char-img" id="route-hint-face" data-char="pipop" alt="">
-    <div id="route-hint-text"></div>
-  </div>
-  <div id="city-scroll"><div id="city-sizer"><div id="city-world">
-    <div id="city-sky"></div>
-    <div id="city-frost"></div>
-    <div id="city-tint"></div>
-  </div></div></div>
-  <div id="find-bar">
-    <div id="find-row">
-      <div id="find-slots"></div>
-      <div id="find-timer"><img data-ico="clock" alt=""><b id="find-secs">90</b></div>
-      <button class="btn grey small" id="btn-find-close" aria-label="Close">✕</button>
-    </div>
-    <div id="find-hint">Look around town — 5 friends are hiding!</div>
-  </div>
-  <div id="world-zoom">
-    <button class="level-launch" id="btn-level-launch">
-      <span class="ll-num" id="level-launch-num">1</span>
-      <span class="ll-tag">LEVEL</span>
-    </button>
-    <button class="city-zoom" id="btn-mailroom"><img data-ico="letter" alt=""></button>
-    <button class="city-zoom" id="btn-city-out">−</button>
-    <button class="city-zoom" id="btn-city-in">+</button>
-  </div>
-</div>
-
-<!-- GAME -->
+<!-- GAME: a top-level screen of its own, outside the meta shell — it must
+     stay reachable while body.in-meta is false (mid-level, #meta-shell is
+     display:none, which would hide anything nested inside it too). -->
 <div id="game" class="screen">
   <div class="cloud c1"></div><div class="cloud c2"></div>
   <div class="scene">
@@ -1292,6 +1251,49 @@
   <div id="pipop-side"><span id="pipop-emote"></span><img class="pipop-img" alt=""></div>
   <div id="toast"></div>
   <div id="flash"></div>
+</div>
+
+<!-- META SHELL: a real flex column (top bar / scrollable content / bottom
+     nav), so the content area's height is computed by the browser from
+     the chrome's actual rendered size — never a hand-guessed offset that
+     can drift out of sync with a notch or a home indicator. -->
+<div id="meta-shell">
+<div id="meta-top">
+  <div class="pill hearts"><img data-ico="heart" alt=""><span id="hearts-num">5</span><span class="cap">/5</span></div>
+  <div class="pill stamps"><img data-ico="stamp" alt=""><span id="stamps-num">0</span></div>
+  <div style="flex:1"></div>
+  <div class="chap"><div id="chap-label">CHAPTER 1</div><div id="chap-name">Nunu Farms</div></div>
+  <button id="btn-settings"><img data-ico="gear" alt=""></button>
+</div>
+<div id="meta-content">
+<!-- LEVEL MAP -->
+<div id="map" class="screen">
+  <div id="route-hint">
+    <img class="char-img" id="route-hint-face" data-char="pipop" alt="">
+    <div id="route-hint-text"></div>
+  </div>
+  <div id="city-scroll"><div id="city-sizer"><div id="city-world">
+    <div id="city-sky"></div>
+    <div id="city-frost"></div>
+    <div id="city-tint"></div>
+  </div></div></div>
+  <div id="find-bar">
+    <div id="find-row">
+      <div id="find-slots"></div>
+      <div id="find-timer"><img data-ico="clock" alt=""><b id="find-secs">90</b></div>
+      <button class="btn grey small" id="btn-find-close" aria-label="Close">✕</button>
+    </div>
+    <div id="find-hint">Look around town — 5 friends are hiding!</div>
+  </div>
+  <div id="world-zoom">
+    <button class="level-launch" id="btn-level-launch">
+      <span class="ll-num" id="level-launch-num">1</span>
+      <span class="ll-tag">LEVEL</span>
+    </button>
+    <button class="city-zoom" id="btn-mailroom"><img data-ico="letter" alt=""></button>
+    <button class="city-zoom" id="btn-city-out">−</button>
+    <button class="city-zoom" id="btn-city-in">+</button>
+  </div>
 </div>
 
 <!-- META VIEWS -->
@@ -4405,7 +4407,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 43;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 44;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
