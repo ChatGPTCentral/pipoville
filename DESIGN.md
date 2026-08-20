@@ -725,3 +725,57 @@ town, autumn warms them.
 Resolution was never the problem, and we checked rather than assumed: at 3×
 device pixels every context renders the cast at a ratio of 1.76–3.3 source
 pixels per device pixel. Upscaling would have made them softer, not sharper.
+
+## v35 — the board, properly rendered
+
+The town got its materials in v32 and the cast got its light in v34. The
+pieces are what the player actually stares at for a whole round, so they
+went last and they went furthest.
+
+**`shadeBody()` v2.** The shared pass now models a real terminator rather
+than a linear ramp — `[hi, mid, lo, darkHex(lo, .72)]` — and layers
+occlusion at the foot, the warm light the board throws back up, a sky sheen
+down the top, a lit rim offset toward the sun and a cool sky-lit edge offset
+away from it. `grain()` sprinkles deterministic speckle so a fill is never a
+dead flat surface, and `aoInside()` pools shade toward an interior point,
+which is what stops petals and wings reading as decals stuck on a body.
+
+Balance mattered more than depth here: the first attempt widened the light
+stop and washed every piece out to pastel. Match-3 pieces have to stay
+instantly separable by colour at thumbnail size, so the terminator was added
+at the dark end only and the sheen pulled back.
+
+**Materials, one per piece.**
+
+- **apple** — waxy streaks running down the fruit, fine lenticel freckles,
+  and a shaded well for the stem to sit in. The leaf got a lit midrib.
+- **lemon** — citrus peel is pits, not spots: 74 dimples, each a shaded cup
+  with a lit lower lip, plus a brighter band round the equator.
+- **leaf** — light coming *through* the blade near the lit edge, ribs with a
+  dark side and a lit side, and a fine net between them.
+- **drop** — actual glass: a bright thread of total internal reflection
+  hugging the rim, a refracted horizon band, and the caustic the drop
+  focuses onto whatever is beneath it.
+- **flower** — petals painted back-to-front so they tuck under each other,
+  each with veins and shade where it is rooted; the eye sits in a well and
+  throws a shadow out across them; pollen is individual grains with lit tops.
+- **butterfly** — wing scales, light passing through the thin outer wing,
+  shade where each wing tucks under the body, a furry thorax and antennae
+  with club tips.
+- **ice / ice2** — internal fracture planes, trapped air bubbles, cracks lit
+  on one side and shadowed on the other, frost creeping in from the edges.
+  Trapped air is what makes ice read as ice rather than as glass.
+- **jelly** — subsurface glow from the middle and suspended bubbles.
+- **chain** — forged bar stock: a hard sky/ground split with a bright
+  horizon, and each link dropping a shadow on the one behind it.
+- **bomb** — sky reflected in the top of the sphere, warm bounce off the
+  board along the bottom edge, and cast-iron pitting.
+- **rainbow** — a glass dome over the colour wheel, with seams between the
+  segments so it reads as an object and not as a pie chart.
+- **firecracker / dynamite / TNT** — paper tooth on the wrappers, shade
+  where one stick sits behind another, sawn grain and batten shadows on the
+  crate.
+- **vine** — round runners with a lit top and a shadow beneath, and leaves
+  with ribs, veins and their own drop shadows.
+
+Baking all eighteen painters costs 56ms at boot, so none of this is felt.

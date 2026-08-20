@@ -1531,27 +1531,58 @@ function darkHex(hex, f){
   const r = Math.round(((n>>16)&255)*f), g = Math.round(((n>>8)&255)*f), b = Math.round((n&255)*f);
   return `rgb(${r},${g},${b})`;
 }
-/* base shading pass: volume gradient, bottom AO, top sheen, rim light, outline */
+/* deterministic speckle, so a fill is never a dead flat surface */
+function grain(x, seed, n, a){
+  let sd = (seed | 0) || 3;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  for(let i = 0; i < (n || 90); i++){
+    const gx = r() * 100, gy = r() * 100;
+    x.fillStyle = r() < .5 ? `rgba(255,255,255,${(a || .1) * (.5 + r())})`
+                           : `rgba(20,10,0,${(a || .1) * (.5 + r())})`;
+    x.fillRect(gx, gy, .8, .8);
+  }
+}
+/* shade pooling toward an inner point — where a petal meets the eye of a
+   flower, or a wing meets a body. It is what stops parts reading as decals. */
+function aoInside(x, path, px, py, r0, r1, a){
+  x.save(); x.clip(path);
+  x.fillStyle = rgrad(x, px, py, r0, r1, [[0,`rgba(24,8,24,${a ?? .4})`],[1,'rgba(24,8,24,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.restore();
+}
+/* base shading pass: volume with a real terminator, occlusion at the foot,
+   warm bounce off the board, sky sheen, a lit rim and a cool sky-lit edge
+   opposite it — the same model the town is painted with, on a small round
+   object instead of a building. */
 function shadeBody(x, path, hue, o={}){
   const [hi, mid, lo] = hue;
   const cx = o.cx ?? 40, cy = o.cy ?? 34, R = o.r ?? 80;
   x.save();
-  x.fillStyle = rgrad(x, cx, cy, 2, R, [[0,hi],[.5,mid],[1,lo]]);
+  x.fillStyle = rgrad(x, cx, cy, 2, R,
+    [[0,hi],[.5,mid],[.88,lo],[1,darkHex(lo, .72)]]);
   x.fill(path);
   x.save();
   x.clip(path);
-  x.fillStyle = lgrad(x, 0, 98, 0, 52, [[0,'rgba(20,0,10,.4)'],[1,'rgba(20,0,10,0)']]);
+  // occlusion at the foot, then the warm light the board throws back up
+  x.fillStyle = lgrad(x, 0, 100, 0, 50, [[0,'rgba(16,2,14,.46)'],[1,'rgba(16,2,14,0)']]);
   x.fillRect(0, 0, 100, 100);
-  x.fillStyle = lgrad(x, 0, 6, 0, 48, [[0,'rgba(255,255,255,.3)'],[1,'rgba(255,255,255,0)']]);
+  x.fillStyle = lgrad(x, 0, 96, 0, 70, [[0,'rgba(255,206,140,.2)'],[1,'rgba(255,206,140,0)']]);
   x.fillRect(0, 0, 100, 100);
+  x.fillStyle = lgrad(x, 0, 6, 0, 48, [[0,'rgba(255,255,255,.28)'],[1,'rgba(255,255,255,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  if(o.grain !== false) grain(x, o.seed || 7, 90, .09);
   x.save();
-  x.translate(-2.5, -3.5);
-  x.strokeStyle = 'rgba(255,255,255,.28)'; x.lineWidth = 7; x.stroke(path);
-  x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = 3.5; x.stroke(path);
+  x.translate(-2.6, -3.6);
+  x.strokeStyle = 'rgba(255,255,255,.3)'; x.lineWidth = 7; x.stroke(path);
+  x.strokeStyle = 'rgba(255,255,255,.44)'; x.lineWidth = 3.2; x.stroke(path);
+  x.restore();
+  x.save();
+  x.translate(2.6, 3.2);
+  x.strokeStyle = 'rgba(150,196,255,.09)'; x.lineWidth = 2.6; x.stroke(path);
   x.restore();
   x.restore();
-  x.strokeStyle = darkHex(lo, .6);
-  x.lineWidth = 3.5; x.lineJoin = 'round';
+  x.strokeStyle = darkHex(lo, .5);
+  x.lineWidth = 3.4; x.lineJoin = 'round';
   x.stroke(path);
   x.restore();
 }
@@ -1573,98 +1604,225 @@ function sparkGlow(x, px, py){
 }
 function paintApple(x){
   const body = new Path2D('M50 30 C28 18 12 34 14 56 C16 78 34 92 50 90 C66 92 84 78 86 56 C88 34 72 18 50 30 Z');
-  shadeBody(x, body, KIND_HUE.apple, {cx:38, cy:42});
+  shadeBody(x, body, KIND_HUE.apple, {cx:38, cy:42, seed:11});
+  x.save(); x.clip(body);
+  // waxy skin: soft streaks running down the fruit, then lenticel freckles
+  let sd = 917;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  for(let i = 0; i < 11; i++){
+    const sx = 12 + r() * 76;
+    x.strokeStyle = r() < .5 ? 'rgba(255,190,170,.085)' : 'rgba(120,10,0,.07)';
+    x.lineWidth = 3 + r() * 7; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(sx, 26 + r() * 14);
+    x.quadraticCurveTo(sx + (r() * 8 - 4), 58, sx + (r() * 10 - 5), 84 + r() * 6); x.stroke();
+  }
+  for(let i = 0; i < 22; i++){
+    const px = 14 + r() * 72, py = 30 + r() * 58;
+    x.fillStyle = 'rgba(255,238,218,.3)';
+    x.beginPath(); x.arc(px, py, .4 + r() * .35, 0, 7); x.fill();
+  }
+  // the well the stem sits in
+  x.fillStyle = rgrad(x, 50, 32, 1, 15, [[0,'rgba(60,4,0,.5)'],[1,'rgba(60,4,0,0)']]);
+  x.fillRect(24, 18, 52, 30);
+  x.restore();
   x.fillStyle = lgrad(x, 46, 0, 55, 0, [[0,'#8a5a2e'],[.5,'#6d4520'],[1,'#4a2c12']]);
   const stem = new Path2D('M47 31 L47 17 Q47 13 50.5 13 Q54 13 54 17 L54 31 Z');
   x.fill(stem); x.strokeStyle = '#3d2008'; x.lineWidth = 2; x.stroke(stem);
   const leaf = new Path2D('M54 21 C63 7 78 9 80 14 C76 25 61 27 54 21 Z');
-  x.fillStyle = rgrad(x, 62, 14, 1, 22, [[0,'#9ade6e'],[.6,'#57b32a'],[1,'#2a6412']]);
-  x.fill(leaf); x.strokeStyle = '#1d5410'; x.lineWidth = 2.2; x.stroke(leaf);
+  x.fillStyle = rgrad(x, 62, 14, 1, 22, [[0,'#b4ea86'],[.45,'#6ec73a'],[1,'#2a6412']]);
+  x.fill(leaf);
+  x.save(); x.clip(leaf);
+  x.strokeStyle = 'rgba(24,72,10,.5)'; x.lineWidth = 1.1; x.lineCap = 'round';
+  x.beginPath(); x.moveTo(55, 21); x.quadraticCurveTo(68, 14, 79, 13); x.stroke();
+  x.strokeStyle = 'rgba(214,255,170,.45)'; x.lineWidth = .7;
+  x.beginPath(); x.moveTo(55, 20); x.quadraticCurveTo(68, 13, 79, 12); x.stroke();
+  x.restore();
+  x.strokeStyle = '#1d5410'; x.lineWidth = 2.2; x.stroke(leaf);
   specBlob(x, 33, 42, 11, 7.5, -25);
   specBlob(x, 46, 34, 3, 3, 0, .9);
+  specBlob(x, 30, 52, 4.5, 8, -18, .35);
 }
 function paintLemon(x){
   const body = new Path2D('M13 42 C9 36 13 30 20 33 C30 20 46 16 58 22 C74 28 84 42 83 56 C90 60 88 68 80 67 C70 80 52 84 40 78 C25 72 15 58 17 46 Z');
-  shadeBody(x, body, KIND_HUE.lemon, {cx:36, cy:36});
+  shadeBody(x, body, KIND_HUE.lemon, {cx:36, cy:36, seed:23});
   x.save(); x.clip(body);
-  x.fillStyle = 'rgba(255,255,255,.25)';
-  [[30,55],[42,64],[56,66],[66,54],[26,44]].forEach(([px,py])=>{ x.beginPath(); x.arc(px,py,1.2,0,7); x.fill(); });
-  x.fillStyle = 'rgba(140,90,0,.15)';
-  [[62,38],[48,30],[70,45],[36,68]].forEach(([px,py])=>{ x.beginPath(); x.arc(px,py,1.3,0,7); x.fill(); });
+  // citrus peel is pits, not spots: each dimple is a shaded cup with a lit lip
+  let sd = 4441;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  for(let i = 0; i < 74; i++){
+    const px = 10 + r() * 78, py = 18 + r() * 66, rr = .65 + r() * .75;
+    x.fillStyle = 'rgba(150,96,0,.15)';
+    x.beginPath(); x.ellipse(px, py, rr, rr * .85, 0, 0, 7); x.fill();
+    x.fillStyle = 'rgba(255,252,200,.34)';
+    x.beginPath(); x.ellipse(px + rr * .35, py + rr * .5, rr * .6, rr * .4, 0, 0, 7); x.fill();
+  }
+  // the brighter band around the fruit's equator
+  x.fillStyle = lgrad(x, 0, 40, 0, 66, [[0,'rgba(255,255,220,0)'],[.5,'rgba(255,255,215,.2)'],[1,'rgba(255,255,220,0)']]);
+  x.fillRect(0, 0, 100, 100);
   x.restore();
   specBlob(x, 33, 37, 12, 7, -22);
   specBlob(x, 48, 28, 3, 3, 0, .9);
 }
 function paintLeaf(x){
   const body = new Path2D('M50 8 C88 22 92 66 52 92 C14 68 14 24 50 8 Z');
-  shadeBody(x, body, KIND_HUE.leaf, {cx:40, cy:30});
+  shadeBody(x, body, KIND_HUE.leaf, {cx:40, cy:30, seed:31});
   x.save(); x.clip(body);
-  x.strokeStyle = 'rgba(29,84,16,.55)'; x.lineCap = 'round';
-  x.lineWidth = 3.2;
-  x.beginPath(); x.moveTo(50,18); x.lineTo(50,82); x.stroke();
-  x.lineWidth = 2.4;
-  [[34,[33,44]],[34,[67,44]],[54,[31,65]],[54,[69,65]],[70,[37,78]],[70,[63,78]]].forEach(([sy,[ex,ey]])=>{
-    x.beginPath(); x.moveTo(50,sy); x.lineTo(ex,ey); x.stroke();
-  });
+  // light coming through the blade: a leaf is thin, and it glows at the edge
+  x.fillStyle = rgrad(x, 34, 30, 4, 52, [[0,'rgba(226,255,150,.34)'],[.55,'rgba(190,246,110,.14)'],[1,'rgba(190,246,110,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  const vein = (x0, y0, x1, y1, w)=>{
+    x.strokeStyle = 'rgba(24,74,12,.5)'; x.lineWidth = w; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(x0, y0); x.lineTo(x1, y1); x.stroke();
+    x.strokeStyle = 'rgba(212,255,158,.4)'; x.lineWidth = w * .5;
+    x.beginPath(); x.moveTo(x0 - .7, y0 - .7); x.lineTo(x1 - .7, y1 - .7); x.stroke();
+  };
+  vein(50, 16, 50, 84, 3);
+  [[34,[33,44]],[34,[67,44]],[54,[31,65]],[54,[69,65]],[70,[37,78]],[70,[63,78]]].forEach(([sy,[ex,ey]])=>vein(50, sy, ex, ey, 2.1));
+  // the fine net between the ribs
+  let sd = 707;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  x.strokeStyle = 'rgba(30,86,16,.2)'; x.lineWidth = .7;
+  for(let i = 0; i < 26; i++){
+    const sy = 22 + r() * 58, side = r() < .5 ? -1 : 1;
+    x.beginPath(); x.moveTo(50, sy);
+    x.lineTo(50 + side * (5 + r() * 9), sy + 3 + r() * 6); x.stroke();
+  }
   x.restore();
   specBlob(x, 37, 28, 9, 5.5, -35);
   specBlob(x, 58, 24, 2.6, 2.6, 0, .9);
 }
 function paintDrop(x){
   const body = new Path2D('M50 6 C64 30 84 46 84 64 C84 82 68 94 50 94 C32 94 16 82 16 64 C16 46 36 30 50 6 Z');
-  shadeBody(x, body, KIND_HUE.drop, {cx:40, cy:46});
+  shadeBody(x, body, KIND_HUE.drop, {cx:40, cy:46, grain:false});
   x.save(); x.clip(body);
-  x.fillStyle = rgrad(x, 50, 82, 2, 26, [[0,'rgba(195,240,255,.5)'],[1,'rgba(195,240,255,0)']]);
+  // water is not a coloured ball: light bends through it and pools at the base
+  x.fillStyle = rgrad(x, 50, 80, 2, 30, [[0,'rgba(232,252,255,.85)'],[.5,'rgba(190,238,255,.35)'],[1,'rgba(190,238,255,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  // the refracted horizon — the world seen upside down through the lens
+  x.fillStyle = lgrad(x, 0, 58, 0, 74, [[0,'rgba(10,70,120,0)'],[.45,'rgba(10,70,120,.26)'],[1,'rgba(10,70,120,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  // total internal reflection: a bright thread hugging the inside of the rim
+  x.save(); x.translate(0, 0);
+  x.strokeStyle = 'rgba(240,252,255,.6)'; x.lineWidth = 2.6; x.stroke(body);
+  x.strokeStyle = 'rgba(10,58,104,.4)'; x.lineWidth = 6; x.globalAlpha = .5;
+  x.save(); x.translate(1.6, 2); x.stroke(body); x.restore();
+  x.globalAlpha = 1; x.restore();
+  x.restore();
+  specBlob(x, 35, 54, 7, 13, 16);
+  specBlob(x, 58, 38, 3.4, 3.4, 0, .95);
+  // the caustic the drop focuses onto whatever is under it
+  x.save(); x.clip(body);
+  x.fillStyle = rgrad(x, 52, 84, 1, 13, [[0,'rgba(255,255,255,.7)'],[1,'rgba(255,255,255,0)']]);
   x.fillRect(0, 0, 100, 100);
   x.restore();
-  specBlob(x, 35, 56, 7.5, 13, 16);
-  specBlob(x, 58, 40, 3, 3, 0, .9);
 }
 function paintFlower(x){
   const [hi, mid, lo] = KIND_HUE.flower;
-  for(const a of [0,60,120,180,240,300]){
+  let sd = 5501;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  for(const a of [180,240,120,0,60,300]){          // back petals first, so they tuck under
     x.save(); x.translate(50,50); x.rotate(a*Math.PI/180);
     const p = new Path2D(); p.ellipse(0, -26, 13.5, 21, 0, 0, 7);
-    x.fillStyle = rgrad(x, 0, -34, 1, 34, [[0,hi],[.55,mid],[1,lo]]);
+    // a petal is thin: it is brightest at the tip and darkest where it is rooted
+    x.fillStyle = rgrad(x, 0, -38, 1, 42, [[0,hi],[.28,mid],[.72,mid],[1,lo]]);
     x.fill(p);
-    x.strokeStyle = darkHex(lo, .65); x.lineWidth = 3; x.stroke(p);
-    x.fillStyle = 'rgba(255,255,255,.3)';
-    x.beginPath(); x.ellipse(0, -36, 6, 4, 0, 0, 7); x.fill();
+    x.save(); x.clip(p);
+    x.fillStyle = rgrad(x, 0, -8, 1, 26, [[0,'rgba(40,4,58,.5)'],[1,'rgba(40,4,58,0)']]);
+    x.fillRect(-30, -60, 60, 60);
+    x.strokeStyle = 'rgba(255,255,255,.14)'; x.lineWidth = .8; x.lineCap = 'round';
+    for(let v = -2; v <= 2; v++){
+      x.beginPath(); x.moveTo(v * 1.4, -10);
+      x.quadraticCurveTo(v * 4, -28, v * 6.4, -43); x.stroke();
+    }
+    x.restore();
+    x.strokeStyle = darkHex(lo, .6); x.lineWidth = 2.8; x.stroke(p);
+    x.fillStyle = 'rgba(255,255,255,.28)';
+    x.beginPath(); x.ellipse(-1.5, -37, 5.4, 3.6, 0, 0, 7); x.fill();
     x.restore();
   }
-  x.fillStyle = rgrad(x, 46, 46, 1, 20, [[0,'#ffe98a'],[.55,'#ffc21f'],[1,'#b8860b']]);
+  // the eye sits in a well and throws a shadow out across the petals
+  x.fillStyle = rgrad(x, 50, 50, 14, 26, [[0,'rgba(46,6,64,.42)'],[1,'rgba(46,6,64,0)']]);
+  x.beginPath(); x.arc(50, 50, 26, 0, 7); x.fill();
+  x.fillStyle = rgrad(x, 45, 45, 1, 22, [[0,'#fff2b0'],[.45,'#ffc21f'],[1,'#9c6f04']]);
   x.beginPath(); x.arc(50, 50, 16, 0, 7); x.fill();
-  x.strokeStyle = '#8a5f06'; x.lineWidth = 3; x.stroke();
-  x.fillStyle = '#a86f00';
-  for(let i=0;i<8;i++){
-    const t = i/8*Math.PI*2;
-    x.beginPath(); x.arc(50+Math.cos(t)*9, 50+Math.sin(t)*9, 1.6, 0, 7); x.fill();
+  x.save();
+  x.beginPath(); x.arc(50, 50, 16, 0, 7); x.clip();
+  for(let i = 0; i < 46; i++){                     // pollen, each grain with a lit top
+    const t = r() * 6.28, d = r() * 14;
+    const px = 50 + Math.cos(t) * d, py = 50 + Math.sin(t) * d, rr = .8 + r() * .9;
+    x.fillStyle = 'rgba(140,88,0,.55)';
+    x.beginPath(); x.arc(px, py, rr, 0, 7); x.fill();
+    x.fillStyle = 'rgba(255,244,180,.75)';
+    x.beginPath(); x.arc(px - rr * .3, py - rr * .35, rr * .5, 0, 7); x.fill();
   }
+  x.fillStyle = lgrad(x, 0, 52, 0, 66, [[0,'rgba(90,52,0,0)'],[1,'rgba(90,52,0,.4)']]);
+  x.fillRect(30, 30, 40, 40);
+  x.restore();
+  x.strokeStyle = '#7a5205'; x.lineWidth = 2.8; x.beginPath(); x.arc(50, 50, 16, 0, 7); x.stroke();
   specBlob(x, 44, 44, 5, 3.5, 0, .8);
 }
 function paintButterfly(x){
   const [hi, mid, lo] = KIND_HUE.butterfly;
-  const wing = (cx, cy, rx, ry, rot)=>{
+  let sd = 8123;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  const wing = (cx, cy, rx, ry, rot, side)=>{
     x.save(); x.translate(cx, cy); x.rotate(rot*Math.PI/180);
     const p = new Path2D(); p.ellipse(0, 0, rx, ry, 0, 0, 7);
-    x.fillStyle = rgrad(x, -rx*.25, -ry*.3, 1, rx*1.4, [[0,hi],[.55,mid],[1,lo]]);
+    x.fillStyle = rgrad(x, -rx*.25, -ry*.3, 1, rx*1.4, [[0,hi],[.46,mid],[.9,lo],[1,darkHex(lo,.76)]]);
     x.fill(p);
-    x.strokeStyle = darkHex(lo, .65); x.lineWidth = 3; x.stroke(p);
-    x.strokeStyle = 'rgba(255,255,255,.45)'; x.lineWidth = 2;
+    x.save(); x.clip(p);
+    // wing scales: fine rows following the curve of the wing
+    for(let i = 0; i < 54; i++){
+      const t = r() * 6.28, d = Math.sqrt(r());
+      const px = Math.cos(t) * rx * d, py = Math.sin(t) * ry * d;
+      x.fillStyle = r() < .5 ? 'rgba(255,238,204,.13)' : 'rgba(120,48,0,.1)';
+      x.beginPath(); x.ellipse(px, py, .8, .5, t, 0, 7); x.fill();
+    }
+    // the wing is thin — light passes through it near the outer edge
+    x.fillStyle = rgrad(x, -rx*.2, -ry*.25, rx*.4, rx*1.5,
+      [[0,'rgba(255,240,190,0)'],[1,'rgba(255,240,190,.22)']]);
+    x.fillRect(-rx, -ry, rx*2, ry*2);
+    // and it is shaded where it tucks under the body
+    x.fillStyle = rgrad(x, side * rx * .95, 0, 1, rx * .95, [[0,'rgba(60,16,0,.42)'],[1,'rgba(60,16,0,0)']]);
+    x.fillRect(-rx, -ry, rx*2, ry*2);
+    x.restore();
+    x.strokeStyle = darkHex(lo, .6); x.lineWidth = 2.8; x.stroke(p);
+    x.strokeStyle = 'rgba(255,255,255,.4)'; x.lineWidth = 1.8;
     x.beginPath(); x.ellipse(0, 0, rx*.55, ry*.55, 0, 0, 7); x.stroke();
-    x.fillStyle = 'rgba(255,255,255,.75)';
+    x.strokeStyle = 'rgba(90,30,0,.3)'; x.lineWidth = .9;
+    x.beginPath(); x.ellipse(0, 0, rx*.55, ry*.55, 0, 0, 7); x.stroke();
+    x.fillStyle = 'rgba(255,255,255,.8)';
     x.beginPath(); x.arc(-rx*.25, -ry*.25, 2.6, 0, 7); x.fill();
     x.restore();
   };
-  wing(29,33,21,17,-20); wing(71,33,21,17,20);
-  wing(31,65,16,13,15);  wing(69,65,16,13,-15);
+  wing(29,33,21,17,-20,1); wing(71,33,21,17,20,-1);
+  wing(31,65,16,13,15,1);  wing(69,65,16,13,-15,-1);
   const body = new Path2D('M44.5 30 Q44.5 24 50 24 Q55.5 24 55.5 30 L55.5 72 Q55.5 78 50 78 Q44.5 78 44.5 72 Z');
   x.fillStyle = lgrad(x, 44.5, 0, 55.5, 0, [[0,'#3d2008'],[.5,'#7a4a22'],[1,'#3d2008']]);
   x.fill(body);
   x.strokeStyle = '#2a1505'; x.lineWidth = 2; x.stroke(body);
+  // a furry thorax, and antennae with club tips
+  x.save(); x.clip(body);
+  for(let i = 0; i < 40; i++){
+    const py = 25 + r() * 52, px = 45 + r() * 10;
+    x.strokeStyle = r() < .5 ? 'rgba(255,214,160,.24)' : 'rgba(24,10,0,.3)';
+    x.lineWidth = .7; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + (r() * 2.6 - 1.3), py - 1.6 - r() * 1.6); x.stroke();
+  }
+  x.fillStyle = lgrad(x, 44.5, 0, 55.5, 0,
+    [[0,'rgba(0,0,0,.35)'],[.34,'rgba(255,220,170,.3)'],[1,'rgba(0,0,0,.4)']]);
+  x.fillRect(43, 22, 14, 58);
+  x.restore();
   x.strokeStyle = '#3d2008'; x.lineWidth = 3; x.lineCap = 'round';
   x.beginPath(); x.moveTo(47,25); x.bezierCurveTo(40,11,32,9,28,11); x.stroke();
   x.beginPath(); x.moveTo(53,25); x.bezierCurveTo(60,11,68,9,72,11); x.stroke();
+  x.fillStyle = '#4a2c12';
+  [[28,11],[72,11]].forEach(([ax, ay])=>{
+    x.beginPath(); x.ellipse(ax, ay, 2.6, 2, 0, 0, 7); x.fill();
+    x.fillStyle = 'rgba(255,220,170,.5)';
+    x.beginPath(); x.ellipse(ax - .7, ay - .7, 1.1, .8, 0, 0, 7); x.fill();
+    x.fillStyle = '#4a2c12';
+  });
 }
 function paintFire(x){
   const body = new Path2D('M34 40 Q34 30 44 30 L56 30 Q66 30 66 40 L66 72 Q66 82 56 82 L44 82 Q34 82 34 72 Z');
@@ -1675,6 +1833,7 @@ function paintFire(x){
   x.fillRect(34, 44, 32, 8); x.fillRect(34, 60, 32, 8);
   x.fillStyle = lgrad(x, 0, 76, 0, 84, [[0,'rgba(60,10,0,0)'],[1,'rgba(60,10,0,.4)']]);
   x.fillRect(34, 70, 32, 14);
+  grain(x, 61, 70, .12);                    // paper tooth
   x.restore();
   x.strokeStyle = '#7a1204'; x.lineWidth = 3; x.stroke(body);
   x.fillStyle = lgrad(x, 0, 26, 0, 34, [[0,'#c9573f'],[1,'#8f1607']]);
@@ -1685,25 +1844,48 @@ function paintFire(x){
   sparkGlow(x, 58, 9);
 }
 function paintBomb(x){
-  x.fillStyle = rgrad(x, 36, 44, 2, 62, [[0,'#7d8794'],[.35,'#3a3f47'],[1,'#101418']]);
-  x.beginPath(); x.arc(48, 58, 34, 0, 7); x.fill();
-  x.strokeStyle = '#0a0d10'; x.lineWidth = 3; x.stroke();
+  const ball = new Path2D(); ball.arc(48, 58, 34, 0, 7);
+  x.fillStyle = rgrad(x, 36, 44, 2, 62, [[0,'#7d8794'],[.35,'#3a3f47'],[1,'#0c1014']]);
+  x.fill(ball);
+  x.save(); x.clip(ball);
+  // the sky reflected in the top of a polished ball, the ground in the bottom
+  x.fillStyle = rgrad(x, 44, 34, 2, 40, [[0,'rgba(190,222,255,.34)'],[1,'rgba(190,222,255,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  // light bouncing back up off the board — the edge that stops it being a hole
+  x.fillStyle = rgrad(x, 54, 92, 2, 40, [[0,'rgba(255,206,150,.4)'],[.5,'rgba(255,206,150,.12)'],[1,'rgba(255,206,150,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.strokeStyle = 'rgba(226,240,255,.42)'; x.lineWidth = 3;
+  x.save(); x.translate(-1.6, -2); x.stroke(ball); x.restore();
+  let sd = 271;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  for(let i = 0; i < 40; i++){                       // cast-iron pitting
+    const px = 16 + r() * 64, py = 26 + r() * 64;
+    x.fillStyle = r() < .5 ? 'rgba(255,255,255,.09)' : 'rgba(0,0,0,.22)';
+    x.beginPath(); x.arc(px, py, .6 + r() * .9, 0, 7); x.fill();
+  }
+  x.restore();
+  x.strokeStyle = '#0a0d10'; x.lineWidth = 3; x.stroke(ball);
   const cap = new Path2D('M42 30 L42 20 Q42 16 46 16 L54 16 Q58 16 58 20 L58 30 Z');
   x.fillStyle = lgrad(x, 42, 0, 58, 0, [[0,'#39404a'],[.5,'#8b97a6'],[1,'#39404a']]);
   x.fill(cap); x.strokeStyle = '#1c2127'; x.lineWidth = 2.4; x.stroke(cap);
   x.strokeStyle = '#8a5a2e'; x.lineWidth = 4; x.lineCap = 'round';
   x.beginPath(); x.moveTo(50,17); x.bezierCurveTo(52,8,62,8,66,4); x.stroke();
   sparkGlow(x, 67, 3);
-  specBlob(x, 35, 45, 11, 8, -25, .5);
-  specBlob(x, 58, 42, 3.5, 3.5, 0, .5);
+  specBlob(x, 35, 45, 12, 8.5, -25, .6);
+  specBlob(x, 32, 41, 4, 3, -25, .95);
+  specBlob(x, 60, 44, 3, 3, 0, .45);
 }
 function paintDyna(x){
   const stick = (cx, top)=>{
     const p = new Path2D(`M${cx-8} ${top+6} Q${cx-8} ${top} ${cx-2} ${top} L${cx+2} ${top} Q${cx+8} ${top} ${cx+8} ${top+6} L${cx+8} 78 Q${cx+8} 84 ${cx+2} 84 L${cx-2} 84 Q${cx-8} 84 ${cx-8} 78 Z`);
     x.fillStyle = lgrad(x, cx-8, 0, cx+8, 0, [[0,'#8f1607'],[.25,'#e8402a'],[.5,'#ff8a6a'],[.75,'#e8402a'],[1,'#8f1607']]);
     x.fill(p); x.strokeStyle = '#7a1204'; x.lineWidth = 2.4; x.stroke(p);
+    x.save(); x.clip(p); grain(x, cx * 7 + 3, 44, .12); x.restore();
     x.fillStyle = 'rgba(120,15,0,.5)';
     x.beginPath(); x.ellipse(cx, top+3, 6.5, 2.4, 0, 0, 7); x.fill();
+    // the shade one stick throws on the next
+    x.fillStyle = lgrad(x, cx-9, 0, cx-3, 0, [[0,'rgba(50,4,0,.4)'],[1,'rgba(50,4,0,0)']]);
+    x.fill(p);
   };
   stick(30, 26); stick(70, 26); stick(50, 20);
   const strap = new Path2D('M16 48 Q14 48 14 51 L14 55 Q14 58 16 58 L84 58 Q86 58 86 55 L86 51 Q86 48 84 48 Z');
@@ -1722,6 +1904,20 @@ function paintTNT(x){
   x.fillRect(12, 24, 76, 13); x.fillRect(12, 75, 76, 13);
   x.strokeStyle = 'rgba(74,44,18,.35)'; x.lineWidth = 1.4;
   [29,33,80,84].forEach(y=>{ x.beginPath(); x.moveTo(14,y); x.bezierCurveTo(35,y-1.5,65,y+1.5,86,y); x.stroke(); });
+  // sawn grain running along the boards, and shade under each batten
+  let sd = 9091;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  for(let i = 0; i < 26; i++){
+    const gy = 24 + r() * 64;
+    x.strokeStyle = r() < .5 ? 'rgba(90,54,22,.16)' : 'rgba(255,226,180,.14)';
+    x.lineWidth = .6 + r() * .8;
+    x.beginPath(); x.moveTo(12, gy);
+    x.bezierCurveTo(34, gy - 1 - r() * 2, 62, gy + 1 + r() * 2, 88, gy); x.stroke();
+  }
+  x.fillStyle = lgrad(x, 0, 37, 0, 44, [[0,'rgba(50,26,6,.34)'],[1,'rgba(50,26,6,0)']]);
+  x.fillRect(12, 37, 76, 8);
+  x.fillStyle = lgrad(x, 0, 75, 0, 68, [[0,'rgba(50,26,6,.3)'],[1,'rgba(50,26,6,0)']]);
+  x.fillRect(12, 66, 76, 10);
   x.fillStyle = lgrad(x, 0, 46, 0, 66, [[0,'#efe0bf'],[.5,'#fff6dd'],[1,'#e2cfa4']]);
   x.fillRect(12, 46, 76, 20);
   x.strokeStyle = 'rgba(94,52,22,.5)'; x.lineWidth = 1.6;
@@ -1745,11 +1941,27 @@ function paintRainbow(x){
     x.arc(50, 50, 38, i*Math.PI/3 - Math.PI/2, (i+1)*Math.PI/3 - Math.PI/2);
     x.closePath(); x.fillStyle = cols[i]; x.fill();
   }
-  x.fillStyle = rgrad(x, 42, 38, 2, 46, [[0,'rgba(255,255,255,.7)'],[.35,'rgba(255,255,255,.2)'],[1,'rgba(255,255,255,0)']]);
-  x.beginPath(); x.arc(50, 50, 38, 0, 7); x.fill();
-  x.strokeStyle = 'rgba(90,40,110,.85)'; x.lineWidth = 3.5;
-  x.beginPath(); x.arc(50, 50, 38, 0, 7); x.stroke();
-  specBlob(x, 36, 35, 10, 7, -25, .9);
+  const dome = new Path2D(); dome.arc(50, 50, 38, 0, 7);
+  x.save(); x.clip(dome);
+  // the seams between the segments, so it reads as an object and not a pie chart
+  x.strokeStyle = 'rgba(255,255,255,.35)'; x.lineWidth = 1.4;
+  for(let i = 0; i < 6; i++){
+    const a = i * Math.PI / 3 - Math.PI / 2;
+    x.beginPath(); x.moveTo(50, 50); x.lineTo(50 + Math.cos(a) * 39, 50 + Math.sin(a) * 39); x.stroke();
+  }
+  // glass over the top: bright dome, shade at the foot, warm bounce under that
+  x.fillStyle = rgrad(x, 40, 34, 2, 48, [[0,'rgba(255,255,255,.75)'],[.32,'rgba(255,255,255,.24)'],[1,'rgba(255,255,255,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.fillStyle = lgrad(x, 0, 92, 0, 58, [[0,'rgba(30,4,44,.4)'],[1,'rgba(30,4,44,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.fillStyle = lgrad(x, 0, 88, 0, 66, [[0,'rgba(255,220,170,.3)'],[1,'rgba(255,220,170,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.strokeStyle = 'rgba(255,255,255,.6)'; x.lineWidth = 2.4;
+  x.save(); x.translate(-1.8, -2.2); x.stroke(dome); x.restore();
+  x.restore();
+  x.strokeStyle = 'rgba(90,40,110,.85)'; x.lineWidth = 3.5; x.stroke(dome);
+  specBlob(x, 36, 35, 11, 7.5, -25, .95);
+  specBlob(x, 33, 31, 3.4, 2.6, -25, 1);
   x.fillStyle = '#fff';
   [[68,30,2.6],[30,62,2],[62,66,1.8]].forEach(([px,py,r])=>{ x.beginPath(); x.arc(px,py,r,0,7); x.fill(); });
 }
@@ -1787,20 +1999,52 @@ function paintKeeper(x){
 }
 function paintIce(x){
   const body = new Path2D('M22 16 Q14 16 14 24 L14 76 Q14 84 22 84 L78 84 Q86 84 86 76 L86 24 Q86 16 78 16 Z');
-  x.fillStyle = lgrad(x, 0, 16, 0, 84, [[0,'rgba(216,244,255,.96)'],[.5,'rgba(150,212,246,.94)'],[1,'rgba(88,158,214,.96)']]);
+  x.fillStyle = lgrad(x, 18, 14, 84, 86,
+    [[0,'rgba(228,249,255,.97)'],[.42,'rgba(158,216,247,.95)'],[.8,'rgba(102,171,220,.96)'],[1,'rgba(74,140,196,.97)']]);
   x.fill(body);
   x.save(); x.clip(body);
-  x.fillStyle = 'rgba(255,255,255,.5)';
-  x.beginPath(); x.moveTo(14,16); x.lineTo(52,16); x.lineTo(14,58); x.closePath(); x.fill();
-  x.strokeStyle = 'rgba(255,255,255,.75)'; x.lineWidth = 2.5; x.lineCap = 'round';
-  x.beginPath(); x.moveTo(32,32); x.lineTo(46,46); x.lineTo(40,62); x.stroke();
-  x.beginPath(); x.moveTo(62,26); x.lineTo(58,44); x.lineTo(72,54); x.stroke();
-  x.strokeStyle = 'rgba(30,90,140,.35)'; x.lineWidth = 2;
-  x.beginPath(); x.moveTo(46,46); x.lineTo(60,58); x.stroke();
-  x.restore();
-  x.strokeStyle = '#3a7fae'; x.lineWidth = 3.5;
+  let sd = 6203;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  // internal fracture planes: each is a bright sheet with a shadow behind it
+  const plane = (pts, a)=>{
+    x.beginPath(); pts.forEach((q, i) => i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1])); x.closePath();
+    x.fillStyle = `rgba(255,255,255,${a})`; x.fill();
+    x.strokeStyle = 'rgba(120,182,224,.4)'; x.lineWidth = .8; x.stroke();
+  };
+  plane([[14,16],[54,16],[14,60]], .46);
+  plane([[86,30],[86,84],[46,84]], .1);
+  plane([[30,20],[62,40],[40,70],[20,48]], .16);
+  plane([[58,18],[84,44],[62,58]], .12);
+  // trapped air, which is what makes ice read as ice and not as glass
+  for(let i = 0; i < 26; i++){
+    const px = 18 + r() * 64, py = 20 + r() * 60, rr = .7 + r() * 2.2;
+    x.fillStyle = 'rgba(255,255,255,.42)';
+    x.beginPath(); x.ellipse(px, py, rr, rr * (.5 + r() * .5), r() * 3, 0, 7); x.fill();
+    x.fillStyle = 'rgba(96,160,206,.28)';
+    x.beginPath(); x.ellipse(px + rr * .5, py + rr * .5, rr * .7, rr * .4, 0, 0, 7); x.fill();
+  }
+  // crisp fracture lines, lit on one side and shadowed on the other
+  const crack = (pts)=>{
+    x.lineCap = 'round';
+    x.strokeStyle = 'rgba(28,88,142,.36)'; x.lineWidth = 2.2;
+    x.beginPath(); pts.forEach((q, i) => i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1])); x.stroke();
+    x.strokeStyle = 'rgba(255,255,255,.85)'; x.lineWidth = 1.2;
+    x.beginPath(); pts.forEach((q, i) => i ? x.lineTo(q[0] - 1, q[1] - 1) : x.moveTo(q[0] - 1, q[1] - 1)); x.stroke();
+  };
+  crack([[32,30],[46,46],[39,63]]);
+  crack([[63,25],[58,44],[73,55]]);
+  // frost creeping in from the edges
+  x.strokeStyle = 'rgba(255,255,255,.5)'; x.lineWidth = 5;
   x.stroke(body);
-  specBlob(x, 32, 30, 8, 5.5, -30, .8);
+  x.fillStyle = lgrad(x, 0, 60, 0, 86, [[0,'rgba(30,86,140,0)'],[1,'rgba(30,86,140,.3)']]);
+  x.fillRect(0, 0, 100, 100);
+  x.restore();
+  x.strokeStyle = '#3a7fae'; x.lineWidth = 3.4;
+  x.stroke(body);
+  x.strokeStyle = 'rgba(255,255,255,.55)'; x.lineWidth = 1.4;
+  x.save(); x.translate(-1.4, -1.6); x.stroke(body); x.restore();
+  specBlob(x, 32, 30, 9, 6, -30, .85);
+  specBlob(x, 58, 24, 3, 3, 0, .9);
 }
 function paintIce2(x){
   paintIce(x);
@@ -1847,14 +2091,22 @@ function paintGnome(x){
   specBlob(x, 44, 22, 5, 9, 12, .4);
 }
 function paintVine(x){
-  x.fillStyle = 'rgba(20,60,10,.28)';
-  x.beginPath(); x.arc(50, 52, 34, 0, 7); x.fill();
+  // the shade the tangle casts on the tile it has taken over
+  x.fillStyle = rgrad(x, 46, 46, 8, 40, [[0,'rgba(18,52,8,.34)'],[.7,'rgba(18,52,8,.22)'],[1,'rgba(18,52,8,0)']]);
+  x.beginPath(); x.arc(50, 52, 38, 0, 7); x.fill();
   x.lineCap = 'round';
-  x.strokeStyle = '#2a6412'; x.lineWidth = 7;
-  x.beginPath(); x.arc(40, 44, 20, .4, 4.2); x.stroke();
-  x.beginPath(); x.arc(60, 58, 17, 2.2, 5.8); x.stroke();
-  x.strokeStyle = '#3d7f2c'; x.lineWidth = 5;
-  x.beginPath(); x.arc(50, 50, 27, .8, 5.4); x.stroke();
+  // each runner is a round stem: dark core, lit top, shadow underneath
+  const runner = (cx, cy, rad, a0, a1, w)=>{
+    x.strokeStyle = 'rgba(12,42,4,.45)'; x.lineWidth = w + 2.5;
+    x.beginPath(); x.arc(cx + 1.4, cy + 1.8, rad, a0, a1); x.stroke();
+    x.strokeStyle = '#245a10'; x.lineWidth = w;
+    x.beginPath(); x.arc(cx, cy, rad, a0, a1); x.stroke();
+    x.strokeStyle = 'rgba(150,220,104,.55)'; x.lineWidth = w * .3;
+    x.beginPath(); x.arc(cx - .8, cy - 1, rad, a0, a1); x.stroke();
+  };
+  runner(40, 44, 20, .4, 4.2, 7);
+  runner(60, 58, 17, 2.2, 5.8, 7);
+  runner(50, 50, 27, .8, 5.4, 5);
   // thorns
   x.fillStyle = '#1d5410';
   [[24,38,-30],[70,32,40],[34,74,210],[76,64,130]].forEach(([px,py,a])=>{
@@ -1862,13 +2114,30 @@ function paintVine(x){
     x.beginPath(); x.moveTo(0,0); x.lineTo(8,-3); x.lineTo(3,6); x.closePath(); x.fill();
     x.restore();
   });
-  // leaf cluster
-  [[50,34,0],[38,56,-40],[62,54,40]].forEach(([px,py,a])=>{
+  // leaves, each with a rib, a lit face and its own little shadow
+  [[50,34,0],[38,56,-40],[62,54,40],[68,38,25],[32,40,-20]].forEach(([px,py,a], i)=>{
     x.save(); x.translate(px,py); x.rotate(a*Math.PI/180);
-    x.fillStyle = rgrad(x, 0, -3, 1, 10, [[0,'#8fd15e'],[1,'#3d7f2c']]);
-    x.beginPath(); x.ellipse(0, 0, 6, 9, 0, 0, 7); x.fill();
-    x.strokeStyle = '#1d5410'; x.lineWidth = 1.6; x.stroke();
+    x.fillStyle = 'rgba(12,42,4,.35)';
+    x.beginPath(); x.ellipse(1.4, 1.8, 6, 9, 0, 0, 7); x.fill();
+    const lf = new Path2D(); lf.ellipse(0, 0, 6, 9, 0, 0, 7);
+    x.fillStyle = rgrad(x, -1.5, -4, 1, 12, [[0,'#a8e078'],[.5,'#5fa832'],[1,'#2f6a18']]);
+    x.fill(lf);
+    x.save(); x.clip(lf);
+    x.strokeStyle = 'rgba(24,74,10,.5)'; x.lineWidth = 1; x.lineCap = 'round';
+    x.beginPath(); x.moveTo(0, -8); x.lineTo(0, 8); x.stroke();
+    x.strokeStyle = 'rgba(206,255,160,.4)'; x.lineWidth = .6;
+    x.beginPath(); x.moveTo(-.6, -8); x.lineTo(-.6, 8); x.stroke();
+    x.strokeStyle = 'rgba(24,74,10,.32)'; x.lineWidth = .7;
+    for(let v = -5; v <= 5; v += 3.4){
+      x.beginPath(); x.moveTo(0, v); x.lineTo(-3.4, v + 2.4); x.stroke();
+      x.beginPath(); x.moveTo(0, v); x.lineTo(3.4, v + 2.4); x.stroke();
+    }
     x.restore();
+    x.strokeStyle = '#1d5410'; x.lineWidth = 1.5; x.stroke(lf);
+    x.fillStyle = 'rgba(255,255,255,.3)';
+    x.beginPath(); x.ellipse(-1.8, -4.4, 2, 1.3, -.4, 0, 7); x.fill();
+    x.restore();
+    void i;
   });
 }
 /* ---------------- Pipoville character engine (ported from the original registry) ---------------- */
@@ -3711,10 +3980,22 @@ setTimeout(applyCosmetic, 0); // composite the equipped cosmetic onto Pipo once 
 /* cast art is embedded at 4x (Real-ESRGAN, quantized) — no runtime resample needed */
 function paintJelly(x){
   const body = new Path2D('M50 14 C74 14 88 32 88 54 C88 78 72 90 50 90 C28 90 12 78 12 54 C12 32 26 14 50 14 Z');
-  shadeBody(x, body, ['#ffc9dd','#ff5c9e','#a8195c'], {cx:38, cy:34});
+  shadeBody(x, body, ['#ffc9dd','#ff5c9e','#a8195c'], {cx:38, cy:34, grain:false});
   x.save(); x.clip(body);
-  x.fillStyle = 'rgba(255,255,255,.35)';
-  [[30,64],[52,70],[68,58]].forEach(([px,py])=>{ x.beginPath(); x.arc(px, py, 5, 0, 7); x.fill(); });
+  // jelly is translucent: light gets into it and glows back out of the middle
+  x.fillStyle = rgrad(x, 52, 62, 4, 40, [[0,'rgba(255,150,205,.55)'],[.55,'rgba(255,110,180,.2)'],[1,'rgba(255,110,180,0)']]);
+  x.fillRect(0, 0, 100, 100);
+  let sd = 3313;
+  const r = ()=> ((sd = (sd * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff);
+  for(let i = 0; i < 12; i++){                       // bubbles suspended in it
+    const px = 20 + r() * 60, py = 30 + r() * 52, rr = 2 + r() * 4;
+    x.fillStyle = 'rgba(255,255,255,.28)';
+    x.beginPath(); x.arc(px, py, rr, 0, 7); x.fill();
+    x.fillStyle = 'rgba(255,255,255,.6)';
+    x.beginPath(); x.arc(px - rr * .3, py - rr * .35, rr * .38, 0, 7); x.fill();
+    x.strokeStyle = 'rgba(168,25,92,.24)'; x.lineWidth = .7;
+    x.beginPath(); x.arc(px, py, rr, .6, 2.4); x.stroke();
+  }
   x.restore();
   specBlob(x, 34, 34, 13, 8, -25);
   specBlob(x, 56, 26, 4, 4, 0, .9);
@@ -3724,12 +4005,20 @@ function paintChain(x){
   x.lineCap = 'round';
   const link = (px, py, rot)=>{
     x.save(); x.translate(px, py); x.rotate(rot * Math.PI / 180);
-    x.strokeStyle = '#39424e'; x.lineWidth = 10;
+    // the shadow the link drops on whatever is behind it
+    x.strokeStyle = 'rgba(10,20,34,.34)'; x.lineWidth = 11;
+    x.beginPath(); x.ellipse(1.6, 2, 12.5, 8, 0, 0, Math.PI * 2); x.stroke();
+    x.strokeStyle = '#2b333d'; x.lineWidth = 10;
     x.beginPath(); x.ellipse(0, 0, 12.5, 8, 0, 0, Math.PI * 2); x.stroke();
-    x.strokeStyle = '#aebdcb'; x.lineWidth = 5;
+    // a round bar reads as a hard sky/ground split with a bright horizon
+    const g = lgrad(x, 0, -9, 0, 9,
+      [[0,'#8e9dad'],[.3,'#e6eef6'],[.46,'#ffffff'],[.62,'#93a3b3'],[1,'#596573']]);
+    x.strokeStyle = g; x.lineWidth = 5.6;
     x.beginPath(); x.ellipse(0, 0, 12.5, 8, 0, 0, Math.PI * 2); x.stroke();
-    x.strokeStyle = 'rgba(255,255,255,.8)'; x.lineWidth = 2;
-    x.beginPath(); x.ellipse(-2, -2.5, 10, 5.5, 0, Math.PI, Math.PI * 1.85); x.stroke();
+    x.strokeStyle = 'rgba(255,255,255,.9)'; x.lineWidth = 1.7;
+    x.beginPath(); x.ellipse(-2, -2.4, 10.4, 5.8, 0, Math.PI * 1.02, Math.PI * 1.9); x.stroke();
+    x.strokeStyle = 'rgba(18,28,42,.5)'; x.lineWidth = 1.4;
+    x.beginPath(); x.ellipse(1.4, 2.2, 11, 6.4, 0, .12, 1.5); x.stroke();
     x.restore();
   };
   link(16, 30, 40); link(38, 46, 40); link(60, 62, 40); link(82, 78, 40);
@@ -3917,7 +4206,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 34;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 35;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
