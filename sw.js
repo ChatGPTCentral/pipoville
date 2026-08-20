@@ -1,5 +1,5 @@
 /* Pipoville — offline cache */
-const CACHE = 'pipoville-v45';
+const CACHE = 'pipoville-v46';
 const ASSETS = ['./', './index.html', './manifest.webmanifest', './icon.svg', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
