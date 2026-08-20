@@ -595,28 +595,28 @@
   .btn:active, .btn.blue:active, .btn.orange:active { transform:translateY(4px); box-shadow:inset 0 3px 0 rgba(255,255,255,.4), 0 2px 0 rgba(0,0,0,.25), 0 4px 8px rgba(18,58,46,.25); border-image:none !important; }
   .btn.small { padding:10px 18px; font-size:16px; }
 
-  /* ---- meta shell: a real flex column, not stacked absolute layers ----
-     #meta-shell holds the top bar, the scrollable content area and the
-     bottom nav as three ordinary flex children. The browser computes
-     #meta-content's height from what's actually left over after the top
-     and bottom bars render — including their own safe-area padding — so
-     there is no hand-calculated offset anywhere in this chain to drift
-     out of sync with a notch or a home indicator ever again. */
-  /* same fix as body itself: inset:0 sets both top AND bottom, which
-     forces the box to whatever the fixed containing block resolves to
-     and silently overrides height:100dvh — exactly the bug this shell
-     was built to eliminate, just reintroduced one element down. */
-  #meta-shell { display:none; position:fixed; top:0; left:0; right:0; height:100%; height:100dvh;
-    z-index:1; flex-direction:column; }
-  body.in-meta #meta-shell { display:flex; }
-  #meta-content { position:relative; flex:1 1 auto; min-height:0; overflow:hidden; }
-  #meta-top { flex:0 0 auto; position:relative; z-index:2;
+  /* ---- meta chrome: top bar and bottom nav are position:fixed to the
+     real viewport edges — the same well-tested primitive every mobile
+     web app uses for a sticky footer, and it does not depend on any
+     ancestor's computed height being right (that dependency is exactly
+     what broke three times in a row: inset:0 vs dvh, on body, then on
+     the flex shell built to replace it). #meta-content sits between
+     them, positioned from --meta-top-h/--meta-nav-h — the bars' own
+     ACTUAL rendered height, measured in JS (syncMetaChromeHeights),
+     never guessed with a calc(). When the nav hides for the hunt
+     minigame its measured height collapses to 0 and the content area
+     expands to fill the true bottom edge automatically. */
+  #meta-shell { display:none; }
+  body.in-meta #meta-shell { display:contents; }
+  #meta-content { position:fixed; left:0; right:0; z-index:1; overflow:hidden;
+    top:var(--meta-top-h, 0px); bottom:var(--meta-nav-h, 0px); }
+  #meta-top { position:fixed; top:0; left:0; right:0; z-index:30;
     display:flex; align-items:center; gap:8px; padding:calc(12px + env(safe-area-inset-top)) 14px 10px;
-    /* a scrim of its own — without it, the strip behind the notch showed
-       whatever that screen's own background/decoration happened to be
-       (the City screen's sun-glow, a flat sky elsewhere), so the same HUD
-       read as a different colour depending which screen you were on */
-    background:linear-gradient(180deg, rgba(255,255,255,.6) 0%, rgba(255,255,255,.6) 60%, rgba(255,255,255,0) 100%); }
+    /* real glass: blurred and translucent, not a flat scrim — also
+       what keeps the strip behind the notch reading the same on every
+       screen, whatever that screen paints behind it */
+    background:rgba(255,255,255,.55);
+    backdrop-filter:blur(16px) saturate(1.5); -webkit-backdrop-filter:blur(16px) saturate(1.5); }
   .pill { display:flex; align-items:center; gap:6px; padding:7px 14px 7px 8px; border-radius:999px;
     background:var(--panel); box-shadow:var(--panel-sh); font-weight:800; font-size:19px; color:var(--ink); }
   .pill img { width:26px; height:26px; }
@@ -625,9 +625,10 @@
   .chap { text-align:right; line-height:1.05; flex:1 1 auto; min-width:0; }
   #chap-label { font-weight:700; font-size:10px; letter-spacing:.12em; color:rgba(18,58,46,.55); }
   #chap-name { font-weight:800; font-size:15px; color:var(--ink-art); text-shadow:0 1px 0 rgba(255,255,255,.6); }
-  #meta-nav { flex:0 0 auto; position:relative; z-index:2; display:flex; gap:6px; justify-content:space-evenly;
+  #meta-nav { position:fixed; bottom:0; left:0; right:0; z-index:30; display:flex; gap:6px; justify-content:space-evenly;
     padding:8px 10px calc(14px + env(safe-area-inset-bottom)); border-radius:26px 26px 0 0;
-    background:linear-gradient(180deg,#ffffff,#e0effc);
+    background:rgba(255,255,255,.82);
+    backdrop-filter:blur(18px) saturate(1.5); -webkit-backdrop-filter:blur(18px) saturate(1.5);
     box-shadow:inset 0 2px 0 rgba(255,255,255,.95), inset 0 -1px 0 rgba(43,127,212,.10),
                0 -3px 0 rgba(31,104,180,.16), 0 -10px 22px rgba(18,58,46,.22); }
   #meta-nav .tab { flex:1 1 0; max-width:104px; border:none; cursor:pointer; font-family:inherit; padding:7px 0 6px; border-radius:19px;
@@ -4404,7 +4405,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 42;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 43;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -5058,6 +5059,22 @@ const Music = {
 
 /* ---------------- screens ---------------- */
 const META_VIEWS = ['map','quests','album','shop','mailroom'];
+/* #meta-content sits exactly between the top bar and bottom nav by
+   reading their OWN rendered height — including whatever safe-area
+   padding they resolved to — rather than a calc() guess at it. Re-run
+   whenever that could have changed: entering/leaving the meta chrome,
+   the viewport resizing, or Safari's address bar collapsing/expanding
+   (visualViewport is the one API that fires for that specifically). */
+function syncMetaChromeHeights(){
+  const top = document.getElementById('meta-top');
+  const nav = document.getElementById('meta-nav');
+  const th = (top && getComputedStyle(top).display !== 'none') ? top.getBoundingClientRect().height : 0;
+  const nh = (nav && getComputedStyle(nav).display !== 'none') ? nav.getBoundingClientRect().height : 0;
+  document.documentElement.style.setProperty('--meta-top-h', th + 'px');
+  document.documentElement.style.setProperty('--meta-nav-h', nh + 'px');
+}
+window.addEventListener('resize', syncMetaChromeHeights);
+if(window.visualViewport) window.visualViewport.addEventListener('resize', syncMetaChromeHeights);
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   $('#'+id).classList.add('active');
@@ -5069,6 +5086,7 @@ function showScreen(id){
     document.querySelectorAll('#meta-nav .tab').forEach(b=>b.classList.toggle('active', b.dataset.view === id));
     renderMeta();
   }
+  requestAnimationFrame(syncMetaChromeHeights);
 }
 function showOverlay(id, show){ $('#'+id).classList.toggle('show', show); }
 
@@ -8058,6 +8076,7 @@ function openCritters(){
   document.querySelectorAll('#meta-nav .tab').forEach(t2=>t2.classList.toggle('active', t2.dataset.view === 'map'));
   renderMap();
   document.body.classList.add('hunting');
+  requestAnimationFrame(syncMetaChromeHeights);
   let seed = Math.floor(Date.now() / 864e5) * 69069 + 1;
   const frnd = ()=> (seed = (seed * 1103515245 + 12345) % 2147483647) / 2147483647;
   const hard = Math.min(10, st.streak || 0);
@@ -8114,6 +8133,7 @@ function openCritters(){
 function endHunt(){
   if(findState){ clearInterval(findState.timer); findState = null; }
   document.body.classList.remove('hunting');
+  requestAnimationFrame(syncMetaChromeHeights);
   $('#city-world').querySelectorAll('.find-critter').forEach(n => n.remove());
 }
 function finishCritters(){
