@@ -4416,7 +4416,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 45;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 46;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -6610,10 +6610,23 @@ boardEl.addEventListener('pointerdown', e=>{
   Snd.ensure();
   const cell = cellFromEvent(e);
   if(!cell) return;
-  touch = { start:cell, x:e.clientX, y:e.clientY, done:false };
+  const [r,c] = cell;
+  const p = pieceAt(r,c);
+  // A power-up's swipe target is wherever the finger actually ends up, not
+  // a guess from the first few px of motion — so it only ever swaps (and
+  // then detonates) with the piece you really dragged onto, and a rainbow
+  // orb only ever clears the colour you actually swiped it onto.
+  touch = { start:cell, x:e.clientX, y:e.clientY, done:false, power: !!(p && p.power), target:null };
 });
-boardEl.addEventListener('pointermove', async e=>{
+boardEl.addEventListener('pointermove', e=>{
   if(!touch || touch.done || G.busy || G.over) return;
+  if(touch.power){
+    const cell = cellFromEvent(e);
+    if(!cell) return;
+    const [r,c] = touch.start, [r2,c2] = cell;
+    touch.target = (Math.abs(r2-r) + Math.abs(c2-c) === 1) ? [r2,c2] : null;
+    return;
+  }
   const dx = e.clientX - touch.x, dy = e.clientY - touch.y;
   const th = Math.max(14, G.cellPx * .3);
   if(Math.abs(dx) < th && Math.abs(dy) < th) return;
@@ -6623,28 +6636,20 @@ boardEl.addEventListener('pointermove', async e=>{
   else r2 += dy > 0 ? 1 : -1;
   touch.done = true;
   deselect();
-  const src = pieceAt(r, c), dst = pieceAt(r2, c2);
-  // A power thrown in a direction goes off where it stands — you should not have
-  // to hunt for the tap. The one exception is throwing it at another power:
-  // that pairing is worth more than the swipe, so it still swaps.
-  if(src && src.power && !(dst && dst.power)){
-    // Let the throw actually land before it goes off — explode-on-release
-    // read as an instant fizzle with no swipe in it at all.
-    if(!REDUCED){
-      const nudge = Math.abs(dx) > Math.abs(dy) ? [dx > 0 ? 1 : -1, 0] : [0, dy > 0 ? 1 : -1];
-      src.el.style.setProperty('--tx', (nudge[0] * 9) + 'px');
-      src.el.style.setProperty('--ty', (nudge[1] * 9) + 'px');
-      src.el.classList.add('thrown');
-      await sleep(160);
-      if(src.el.isConnected) src.el.classList.remove('thrown');
-    }
-    activatePower(r, c);
-    return;
-  }
   trySwap(r,c,r2,c2);
 });
 boardEl.addEventListener('pointerup', e=>{
   if(!touch || touch.done){ touch = null; return; }
+  if(touch.power && touch.target){
+    // the drag actually reached a neighbour: swap now, then it detonates
+    // from its new cell — same as trySwap's tap-independent power branch
+    const [r,c] = touch.start, [r2,c2] = touch.target;
+    touch = null;
+    if(G.busy || G.over) return;
+    deselect();
+    trySwap(r,c,r2,c2);
+    return;
+  }
   const cell = cellFromEvent(e);
   touch = null;
   if(!cell || G.busy || G.over) return;
@@ -6670,7 +6675,7 @@ boardEl.addEventListener('pointerup', e=>{
     return;
   }
   if(p.block || p.gnome || p.vine) return;
-  if(p.power){ activatePower(r,c); return; } // tap to detonate; a swipe does it too
+  if(p.power){ activatePower(r,c); return; } // a plain tap still detonates in place
   G.sel = [r,c]; p.el.classList.add('sel'); if(!Snd.play('select', 1, .35)) Snd.swap();
 });
 window.addEventListener('resize', ()=>{ if(G.L) layoutBoard(); });
