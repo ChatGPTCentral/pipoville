@@ -44,13 +44,19 @@ screen (character names stay the same in both).
   chimneys smoke, cloud shadows drift, and it follows the real
   calendar — blossom, high summer, falling leaves, snow — with
   pinch-zoom and lantern light at dusk
-- Restoration meta: stamps are currency, spent on 24 projects that appear
-  on the map where they belong, with a daily post income from the town
+- Restoration meta: stamps are the one and only currency — stars are just a
+  per-level rating — spent on 24 projects that appear on the map where they
+  belong, with a daily post income from the town
 - A daily hide-and-seek round played in the town itself — five friends
   hide somewhere in Pipoville and you pan the world to find them
+- One shared wardrobe: any cosmetic fits any friend you've met, previewed
+  for real in the shop before you buy it
+- A round, always-current level button on the city screen — tap it and
+  play whatever delivery Pipo is walking to, Gardenscapes-style
 - Win streaks, soft pity, daily gifts, Bloom Burst endings, tutorial
   hand, hints, deadlock recovery, generative music, full juice stack
-  (particles, rainbow shockwaves, hit-stop, squash-and-stretch)
+  (particles, rainbow shockwaves, hit-stop, squash-and-stretch, an
+  escalating explosion ladder from firecracker pop to TNT detonation)
 - Installable PWA with offline service-worker cache
 
 ## Files

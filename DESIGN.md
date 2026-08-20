@@ -779,3 +779,68 @@ at the dark end only and the sheen pulled back.
   with ribs, veins and their own drop shadows.
 
 Baking all eighteen painters costs 56ms at boot, so none of this is felt.
+
+## v36 — polish pass: chrome, sound ladder, swipe, balance, wardrobe, nav
+
+**HD chrome.** UI icons and buttons moved to the same baked, contact-shadowed
+pipeline as the cast and the town. The gear icon in particular went from
+teeth parked around a disc to one continuous outline — teeth grow out of the
+rim, the bore is a real sunk hole with its own highlight, and the whole cog
+shades as a single milled plate.
+
+**Escalating blast ladder.** `BLAST_SND` gives every power tier — firecracker,
+bomb, dynamite, TNT, rainbow — its own crack/body/air/sparkle recipe, tuned
+so a firecracker pops and a TNT genuinely detonates: louder, longer, a heavier
+sub-thump, more sparkle taps, a bigger screen shake (`fxShake` tiers 1–3) and
+a longer hit-stop. `Snd.blast(tier)` and `Snd.noise/sweep` are the shared
+synthesis primitives everything else in the ladder is built from.
+
+**Swipe to detonate.** A power thrown in a direction now goes off where it
+stands, unless the swipe lands on another power — that pairing is worth
+more, so it still triggers the combo swap instead.
+
+**Chain-reaction balance.** `spawnKindAt()` replaces the refill spawner:
+a landing piece now avoids completing a line most of the time
+(`CASCADE_GIFT = .16` is the leash on that), so cascades are the board's
+doing again, not a free gift from the RNG. Measured with a scripted bot
+(`sim-chain.js`): score-per-move roughly halved across levels 3/12/25,
+confirming chains got harder to back into by accident. Star thresholds
+moved the other way — `base = moves*230 + i*700`, tiers at `×1`, `×1.42`,
+`×1.9` (was `×1.7`, `×2.5`) — a ~35–40% cut to the 3-star bar at matched
+move counts, so finishing well now reads as achievable rather than perfect.
+
+**World breathing room.** `renderMap()` now runs every piece of scenery
+through a shared `claim()`/`clearAt()` pool before it's placed — level
+nodes, task lots, district signs and Pipo's own marker all reserve their
+footprint first, and decorative props re-roll their position until they
+land clear of everything already claimed.
+
+**Fog covers the whole road, not just the next bend.** The next unlocked
+district used to be the only thing under cloud; now every stop beyond the
+frontier — and the district after that — sits under an unbroken weather
+front, so the unexplored half of the map reads as sky rather than as a gap
+mid-route.
+
+**Cast starts undiscovered.** Cannolio, Winnie and Sir Saltbread Cane used
+to ship pre-met. `metSet()` now starts with only Pipo; every other
+townsfolk — Cannolio included — has to be found on the road first, so the
+album and the "who's talking" guide in the route hint never spoil a friend
+before you've actually rescued them.
+
+**One shared wardrobe.** Cosmetics used to be nailed to one character each
+(Pipo's cap, Cannolio's bandana, ...), and the shop showed the same portrait
+thumbnail for every row regardless of what was for sale. `HEAD_ANCHOR` maps
+each character's head centre/brow-line/radius (measured off the sprites, not
+guessed), so `drawWorn()` can scale-and-translate any painted item onto any
+head. `save.wardrobe` is now one `{owned, equipped: {char: kind}}` bag
+instead of a map keyed by character, and the shop renders a real baked
+preview of each item (`itemIcon()`) instead of the wearer's portrait — so
+"Bandana da avventura" actually shows a bandana.
+
+**Nav: City + a Gardenscapes-style level launcher.** The bottom tab that
+used to read "Route" is now "City" (it always was the unified map); the old
+"Town" tab — which, confusingly, was Italian-labelled "Città" too — is gone
+from the tab bar. Its project-list content moved to a small icon button next
+to Settings, and in its place the city screen got a round, always-current
+level button pinned above the zoom controls: it shows whatever level Pipo is
+walking to and opens straight into that level's card on tap.
