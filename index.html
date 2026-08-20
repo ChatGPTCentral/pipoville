@@ -821,20 +821,6 @@
   .ev-tier .q-claim { padding:8px 13px; font-size:13px; }
   .ev-tier .q-claimed { padding:7px 10px; color:#8fd88f; }
   #btn-win-share { padding:10px 14px; }
-  #town-scene { position:relative; height:238px; border-radius:22px; overflow:hidden; flex:0 0 auto;
-    background:linear-gradient(180deg,#bdedff 0%,#8fdcf5 22%,#bfeea0 40%,#7fce62 58%,#4fae4b 82%,#2f8f3f 100%);
-    box-shadow:inset 0 3px 0 rgba(255,255,255,.5), inset 0 -6px 0 rgba(18,58,46,.18), 0 6px 0 #1f6b2c, 0 12px 18px rgba(18,58,46,.3); }
-  .town-sun { position:absolute; right:-24px; top:-24px; width:110px; height:110px; border-radius:50%; pointer-events:none;
-    background:radial-gradient(circle at 42% 38%, rgba(255,255,255,.95), rgba(255,236,150,.55) 45%, rgba(255,214,90,0) 72%); }
-  .town-el { position:absolute; transform:translate(-50%,-58%); line-height:1;
-    filter:drop-shadow(0 3px 3px rgba(0,0,0,.25)); pointer-events:none; }
-  .town-el.built { animation:bornPop .55s cubic-bezier(.2,1.7,.4,1) backwards; }
-  .town-el.ghost { opacity:.42; filter:grayscale(1); }
-  .town-el.ghost b { position:absolute; left:50%; bottom:-14px; transform:translateX(-50%); white-space:nowrap;
-    font-size:10px; font-weight:800; font-family:inherit; color:#8a5a00; padding:1px 7px; border-radius:999px;
-    background:var(--cream); box-shadow:0 2px 0 #f0d9a8; filter:none; opacity:1; }
-  .town-pipo { position:absolute; left:44%; top:86%; width:42px; height:42px; transform:translate(-50%,-70%); z-index:99;
-    filter:drop-shadow(0 3px 4px rgba(0,0,0,.3)); animation:pipopBob 1.4s ease-in-out infinite; }
   .income-row { background:var(--cream) !important; box-shadow:inset 0 3px 0 rgba(255,255,255,.95), 0 6px 0 #f0d9a8, 0 12px 18px rgba(18,58,46,.16) !important; }
   .income-row .r-title { color:#8a5a00; }
   .income-row .r-sub { color:#c19a4a; }
@@ -901,7 +887,6 @@
   .dress-item.worn .d-tag { color:#8a5a00; }
   .dress-item.cant { opacity:.55; }
   .dress-ico { width:44px; height:44px; display:flex; align-items:center; justify-content:center; }
-  #town-scene .town-pipo { pointer-events:auto; cursor:pointer; }
 
   /* ================= V24 GEOMETRY PASS ================= */
   /* full-bleed bottom nav: no see-through gap under the floating bar */
@@ -960,34 +945,35 @@
     box-shadow:inset 0 3px 0 rgba(255,255,255,.95), 0 6px 0 #f2c4d4, 0 12px 18px rgba(18,58,46,.16) !important; }
   .lotd-card .r-title { color:#b03a68; }
   .lotd-card .r-sub { color:#c9739a; }
-  /* ---- Chi si nasconde? (hidden critters) ---- */
-  #ov-find { padding:10px; }
-  #find-panel { width:min(96vw, 420px); border-radius:24px; padding:12px 12px 14px; position:relative;
-    background:linear-gradient(180deg,#fff9e8 0%, #f7e7c3 100%); border:5px solid #8a5a2e;
-    box-shadow:0 10px 0 #5e3416, 0 18px 30px rgba(0,0,0,.5), inset 0 2px 6px #fff; color:#5e3416;
-    animation:modalIn .3s cubic-bezier(.2,1.4,.4,1); }
-  #find-head { display:flex; align-items:center; justify-content:space-between; gap:10px; padding:2px 4px 8px; }
-  #find-title { font-family:var(--font-display); font-size:21px; }
-  #find-timer { display:flex; align-items:center; gap:5px; font-weight:800; font-size:17px; color:#8a5a00;
-    background:var(--cream); border-radius:999px; padding:4px 12px; box-shadow:0 3px 0 #f0d9a8; }
-  #find-timer img { width:18px; height:18px; }
-  #find-timer.cold { color:#8aa0b8; }
-  #find-slots { display:flex; gap:7px; justify-content:center; padding-bottom:9px; }
-  .find-slot { width:44px; height:44px; border-radius:12px; background:rgba(94,52,22,.12);
+  /* ---- Chi si nasconde? — the hunt happens in the real town ---- */
+  #find-bar { display:none; position:absolute; left:0; right:0; bottom:0; z-index:42;
+    flex-direction:column; gap:7px; padding:10px 12px calc(14px + env(safe-area-inset-bottom));
+    border-radius:24px 24px 0 0; color:#5e3416;
+    background:linear-gradient(180deg,#fff9e8 0%, #f5e5c0 100%);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.95), 0 -3px 0 rgba(138,90,46,.22), 0 -12px 26px rgba(18,58,46,.28);
+    animation:sheetUp .3s cubic-bezier(.2,1.4,.4,1); }
+  body.hunting #find-bar { display:flex; }
+  body.hunting #meta-nav, body.hunting #route-hint, body.hunting #world-zoom { display:none !important; }
+  /* while the hunt is on, the town is scenery: nothing else takes a tap */
+  body.hunting .lvl-node, body.hunting .city-el, body.hunting .city-friend, body.hunting .city-pipo { pointer-events:none; }
+  #find-row { display:flex; align-items:center; gap:8px; }
+  #find-slots { display:flex; gap:5px; flex:1 1 0; min-width:0; }
+  .find-slot { flex:0 1 auto; width:36px; height:36px; border-radius:11px; background:rgba(94,52,22,.12);
     display:flex; align-items:center; justify-content:center; box-shadow:inset 0 2px 4px rgba(94,52,22,.25); }
-  .find-slot img { width:34px; height:34px; filter:grayscale(1) opacity(.35); transition:filter .25s; }
+  .find-slot img { width:27px; height:27px; filter:grayscale(1) opacity(.35); transition:filter .25s; }
+  #btn-find-close { flex:0 0 auto; width:38px; height:38px; padding:0; border-radius:13px; font-size:19px;
+    display:flex; align-items:center; justify-content:center; }
   .find-slot.got img { filter:none; }
   .find-slot.got { background:#dff3d3; box-shadow:inset 0 2px 4px rgba(63,156,71,.3); }
-  #find-stage { border-radius:18px; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
-    box-shadow:inset 0 3px 8px rgba(0,0,0,.25); }
-  #find-scene-wrap { position:relative; width:170%; }
-  #find-scene-wrap #town-scene { height:300px; border-radius:0; box-shadow:none; }
-  .find-critter { position:absolute; cursor:pointer; filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));
-    transition:transform .15s; z-index:5; }
+  #find-timer { display:flex; align-items:center; gap:4px; font-weight:800; font-size:16px; color:#8a5a00;
+    background:var(--cream); border-radius:999px; padding:4px 10px; box-shadow:0 3px 0 #f0d9a8; flex:0 0 auto; }
+  #find-timer img { width:17px; height:17px; }
+  #find-timer.cold { color:#8aa0b8; }
+  #find-hint { font-size:12.5px; font-weight:700; color:#a5804a; }
+  .find-critter { position:absolute; cursor:pointer; margin-left:-21px; margin-top:-21px;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.35)); transition:transform .15s; }
   .find-critter:active { transform:scale(1.15); }
   .find-critter.found { pointer-events:none; }
-  #find-foot { display:flex; align-items:center; justify-content:space-between; gap:10px; padding-top:10px; }
-  #find-hint { font-size:12.5px; font-weight:700; color:#a5804a; flex:1; }
   /* screens contain their own z-index worlds so overlays always win */
   .screen { isolation:isolate; }
   .overlay { z-index:60; }
@@ -1135,6 +1121,14 @@
     <div id="city-frost"></div>
     <div id="city-tint"></div>
   </div></div></div>
+  <div id="find-bar">
+    <div id="find-row">
+      <div id="find-slots"></div>
+      <div id="find-timer"><img data-ico="clock" alt=""><b id="find-secs">90</b></div>
+      <button class="btn grey small" id="btn-find-close" aria-label="Close">✕</button>
+    </div>
+    <div id="find-hint">Look around town — 5 friends are hiding!</div>
+  </div>
   <div id="world-zoom">
     <button class="city-zoom" id="btn-city-out">−</button>
     <button class="city-zoom" id="btn-city-in">+</button>
@@ -1340,20 +1334,6 @@
   </div>
 </div>
 
-<div class="overlay" id="ov-find">
-  <div id="find-panel">
-    <div id="find-head">
-      <div id="find-title">Who's hiding?</div>
-      <div id="find-timer"><img data-ico="clock" alt=""><b id="find-secs">90</b></div>
-    </div>
-    <div id="find-slots"></div>
-    <div id="find-stage"><div id="find-scene-wrap"></div></div>
-    <div id="find-foot">
-      <div id="find-hint">Drag to look around — 5 friends are hiding!</div>
-      <button class="btn grey small" id="btn-find-close">Close</button>
-    </div>
-  </div>
-</div>
 
 <div class="overlay" id="ov-welcome">
   <div class="modal">
@@ -3792,7 +3772,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 32;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 33;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -4389,7 +4369,7 @@ function showScreen(id){
   $('#game').classList.remove('winning');
   const meta = META_VIEWS.includes(id);
   document.body.classList.toggle('in-meta', meta);
-  if(id !== 'map') stopCityAnim();          // the rides only turn while you are looking
+  if(id !== 'map'){ stopCityAnim(); endHunt(); }   // the rides only turn while you are looking
   if(meta){
     document.querySelectorAll('#meta-nav .tab').forEach(b=>b.classList.toggle('active', b.dataset.view === id));
     renderMeta();
@@ -4447,31 +4427,15 @@ const TASKS = [
   { id:'ferris',      wave:2, cost:8, emoji:'🎡', name:t('Build the ferris wheel'),      line:t('The whole town fits in one view!') },
 ];
 /* where each project stands in the town scene: [x%, y%, font px] */
-const TOWN_SPOTS = {
-  manor:[50,20,44], bakery:[13,26,30], grocery:[84,24,30], school_bell:[30,16,24], clock:[68,14,26],
-  house:[20,44,34], lights:[37,38,22], carousel:[67,42,32], oak:[89,44,38], postoffice:[50,44,30],
-  tent:[7,58,26], fountain:[46,60,32], stage:[79,60,28], statue:[59,68,24], bench:[13,72,24],
-  flowerbed:[31,78,24], path:[50,80,26], bridge:[68,76,30], pond:[87,76,28], sunflowers:[93,62,24],
-  pier:[10,90,28], market:[58,92,30], beacon:[3,16,32], ferris:[93,10,34]
+/* how big each project stands in the world, relative to the others */
+const TOWN_SIZE = {
+  manor:44, bakery:30, grocery:30, school_bell:24, clock:26, house:34, lights:22, carousel:32,
+  oak:38, postoffice:30, tent:26, fountain:32, stage:28, statue:24, bench:24, flowerbed:24,
+  path:26, bridge:30, pond:28, sunflowers:24, pier:28, market:30, beacon:32, ferris:34
 };
 function taskYield(x){ return x.cost; }
 function townIncome(){ return TASKS.filter(x=>save.done.includes(x.id)).reduce((sum, x)=>sum + taskYield(x), 0); }
 function wave1Done(){ return TASKS.filter(x=>!x.wave).every(x=>save.done.includes(x.id)); } // kept for old saves
-function renderTownScene(){
-  const nextT = nextTask();
-  const spots = TASKS.map(x=>{
-    const [px, py, sz] = TOWN_SPOTS[x.id] || [50, 50, 24];
-    const built = save.done.includes(x.id);
-    const isNext = !built && nextT && nextT.id === x.id;
-    if(!built && !isNext) return '';
-    return `<span class="town-el ${built ? 'built' : 'ghost'}" style="left:${px}%; top:${py}%; font-size:${sz}px; z-index:${Math.round(py)}">${x.emoji}${built ? '' : `<b>★${taskStamps(x)}</b>`}</span>`;
-  }).join('');
-  return `<div id="town-scene">
-    <div class="town-sun"></div>
-    ${spots}
-    <img class="town-pipo" src="${SPRITES.pipop}" alt="">
-  </div>`;
-}
 function starsEarnedTotal(){ let t = 0; for(const k in save.stars) t += save.stars[k]; return t; }
 function starsAvailable(){ return starsEarnedTotal() - (save.spent || 0); }
 function nextTask(){ return TASKS.find(x => !save.done.includes(x.id) && taskUnlocked(x.id)); }
@@ -4497,12 +4461,11 @@ function renderMailroom(){
       <div class="cream-pill" style="display:flex;align-items:center;gap:5px"><img src="${ICONS.stamp}" style="width:18px;height:18px" alt="">${save.stamps}</div></div>
     ${ensureCritters().done ? '' : `<div class="pv-row lotd-card" id="row-find"><span class="r-icon" style="font-size:30px;display:flex;align-items:center;justify-content:center">🔍</span>
       <div class="r-main"><div class="r-title">${tf("Who's hiding?", 'Chi si nasconde?')}</div>
-      <div class="r-sub">${tf('5 friends are hiding in town — find them!', '5 amici si nascondono in città — trovali!')}</div></div>
+      <div class="r-sub">${tf('5 friends are hiding out in Pipoville — go and find them!', '5 amici si nascondono in giro per Pipoville — vai a trovarli!')}</div></div>
       <button class="q-claim" id="btn-find-open">🔍</button></div>`}
-    ${renderTownScene()}
     <div class="pv-row lotd-card"><span class="r-icon" style="font-size:30px;display:flex;align-items:center;justify-content:center">🏙️</span>
-      <div class="r-main"><div class="r-title">${tf('Stroll through Pipoville', 'Passeggia per Pipoville')}</div>
-      <div class="r-sub">${tf('Visit the town you rebuilt — your friends live there now!', 'Visita la città che hai ricostruito — ora ci vivono i tuoi amici!')}</div></div>
+      <div class="r-main"><div class="r-title">${last ? tf('Go and see the ' + last.name, 'Vai a vedere: ' + (LANG === 'it' ? (IT[last.name] || last.name) : last.name)) : tf('Walk through Pipoville', 'Passeggia per Pipoville')}</div>
+      <div class="r-sub">${tf('Everything you rebuild stands on the map — your friends live there now!', 'Tutto quello che ricostruisci è sulla mappa — ora ci vivono i tuoi amici!')}</div></div>
       <button class="q-claim" id="btn-city-open">🏙️</button></div>
     <div class="pv-row income-row"><img class="r-icon" src="${ICONS.mailbox}" alt="">
       <div class="r-main"><div class="r-title">${tf('Town post income', 'Rendita postale della città')}</div>
@@ -4519,11 +4482,9 @@ function renderMailroom(){
     if(save.done.includes(id)) openCity(id);   // go and look at what you just built
   }));
   const cityBtn = $('#btn-city-open');
-  if(cityBtn) cityBtn.addEventListener('click', ()=>{ Snd.ensure(); openCity(); });
+  if(cityBtn) cityBtn.addEventListener('click', ()=>{ Snd.ensure(); openCity(last ? last.id : undefined); });
   const findBtn = $('#btn-find-open');
   if(findBtn) findBtn.addEventListener('click', ()=>{ Snd.ensure(); openCritters(); });
-  const townPipo = $('#mailroom-body .town-pipo');
-  if(townPipo) townPipo.addEventListener('click', ()=>{ Snd.ensure(); openDressRoom(); });
   const collect = $('#btn-town-collect');
   if(collect) collect.addEventListener('click', ()=>{
     if(save.townDay === new Date().toDateString()) return;
@@ -6852,6 +6813,7 @@ function renderMap(opts){
   cityTint();
   const world = $('#city-world');
   world.querySelectorAll('.city-el, .city-friend, .city-pipo, .city-deco, .lamp-glow, .lvl-holder, .district-sign, .fog-bank').forEach(n=>n.remove());
+  // .find-critter is deliberately spared: a hunt survives a re-render
   const pts = worldTrail();
   solveLots();
   const reached = districtReached();
@@ -6887,7 +6849,7 @@ function renderMap(opts){
     const isNext = !built && nextT && nextT.id === task.id;
     if(!built && !isNext) return;
     const [cx, cy] = lotXY(task.id);
-    const fs = (TOWN_SPOTS[task.id] || [0, 0, 26])[2];
+    const fs = TOWN_SIZE[task.id] || 26;
     const w = Math.round(fs * 5.4);
     const el = document.createElement('div');
     el.className = 'city-el' + (built ? ' built' : ' ghost');
@@ -7060,7 +7022,7 @@ function renderMap(opts){
   $('#route-hint-text').textContent = worldHint();
   startCityAnim();
   // you always arrive standing next to Pipo, wherever you last wandered
-  if(!(opts && opts.keepCamera)) focusWorld(cur);
+  if(!(opts && opts.keepCamera) && !document.body.classList.contains('hunting')) focusWorld(cur);
 }
 function worldHint(){
   const nextRescueLv = Object.keys(RESCUES).map(Number).filter(lv=>!isRescued(RESCUES[lv].id)).sort((a, b)=>a - b)[0];
@@ -7220,7 +7182,11 @@ function openCity(focusId){
   focusWorld(focusId || Math.min(save.unlocked, LEVELS.length), true);
 }
 
-/* ---- Chi si nasconde? — daily hidden-critters round in the town diorama ---- */
+/* ---- Chi si nasconde? — a daily hunt through the real Pipoville ----
+   The critters hide in the town the player actually built: tucked behind a
+   building, in the long grass off the lane, down by the water. Finding them
+   means panning and zooming the world, so the reward for knowing your own
+   town is that you can find things in it. */
 const CRITTERS = [
   { k:'butterfly', size:34 }, { k:'gnome', size:38 }, { k:'jelly', size:32 },
   { k:'c_cannolio', size:42 }, { k:'c_baggu', size:40 }
@@ -7234,46 +7200,84 @@ function ensureCritters(){
   }
   return save.critters;
 }
+/* five hiding places inside the part of town the player has actually walked */
+function critterSpots(frnd){
+  const pts = worldTrail(), lots = solveLots();
+  const reached = districtReached();
+  const open = [];
+  DISTRICTS.forEach((d, di)=>{
+    if(di > reached) return;
+    for(let lv = d.from; lv <= d.to && lv <= LEVELS.length; lv++) open.push(pts[lv - 1]);
+    d.projects.forEach(id => { if(save.done.includes(id) && lots[id]) open.push(lots[id]); });
+  });
+  if(!open.length) open.push([WORLD_W / 2, WORLD_H / 2]);
+  const spots = [];
+  for(let i = 0; i < CRITTERS.length; i++){
+    let best = null;
+    for(let tries = 0; tries < 40; tries++){        // spread them out across the town
+      const a = open[Math.floor(frnd() * open.length)];
+      const ang = frnd() * 6.28, rad = 90 + frnd() * 190;
+      const q = [Math.max(70, Math.min(WORLD_W - 70, a[0] + Math.cos(ang) * rad)),
+                 Math.max(120, Math.min(WORLD_H - 90, a[1] + Math.sin(ang) * rad * .8))];
+      let near = 1e9;
+      spots.forEach(w => { const dd = Math.hypot(q[0] - w[0], q[1] - w[1]); if(dd < near) near = dd; });
+      if(!best || near > best.near) best = { q, near };
+      if(near > 520) break;
+    }
+    spots.push(best.q);
+  }
+  return spots;
+}
 let findState = null;
 function openCritters(){
   const st = ensureCritters();
   if(st.done) return;
   Snd.ensure();
+  showOverlay('ov-win', false);
+  showScreen('map');
+  document.querySelectorAll('#meta-nav .tab').forEach(t2=>t2.classList.toggle('active', t2.dataset.view === 'map'));
+  renderMap();
+  document.body.classList.add('hunting');
   let seed = Math.floor(Date.now() / 864e5) * 69069 + 1;
   const frnd = ()=> (seed = (seed * 1103515245 + 12345) % 2147483647) / 2147483647;
   const hard = Math.min(10, st.streak || 0);
-  const wrap = $('#find-scene-wrap');
-  wrap.innerHTML = renderTownScene();
-  const pipo = wrap.querySelector('.town-pipo');
-  if(pipo) pipo.style.pointerEvents = 'none';
-  findState = { found: 0, secs: 90, timer: null };
-  $('#find-title').textContent = tf("Who's hiding?", 'Chi si nasconde?');
-  $('#find-hint').textContent = tf('Drag to look around — 5 friends are hiding!', 'Trascina per guardarti intorno — 5 amici sono nascosti!');
-  $('#btn-find-close').textContent = tf('Close', 'Chiudi');
+  const world = $('#city-world');
+  world.querySelectorAll('.find-critter').forEach(n => n.remove());
+  findState = { found: 0, secs: 90, timer: null, spots: critterSpots(frnd) };
+  $('#find-hint').textContent = tf('Look around town — 5 friends are hiding!',
+                                   'Guardati intorno per la città — 5 amici sono nascosti!');
   const tEl = $('#find-timer'); tEl.classList.remove('cold');
   $('#find-secs').textContent = 90;
   $('#find-slots').innerHTML = CRITTERS.map((c, i)=>
     `<div class="find-slot" data-slot="${i}"><img src="${SPRITES[c.k]}" alt=""></div>`).join('');
   CRITTERS.forEach((c, i)=>{
+    const [px, py] = findState.spots[i];
+    const size = Math.max(24, c.size - hard);
     const img = document.createElement('img');
     img.className = 'find-critter';
     img.src = SPRITES[c.k];
-    const size = Math.max(24, c.size - hard);
-    const px = 6 + frnd() * 86, py = 18 + frnd() * 68;
-    img.style.cssText = `left:${px.toFixed(1)}%; top:${py.toFixed(1)}%; width:${size}px; height:${size}px; z-index:${4 + Math.round(frnd() * (hard >= 3 ? 40 : 4))};`;
+    // a longer streak means they hide smaller, and behind more of the scenery
+    img.style.cssText = `left:${px.toFixed(0)}px; top:${py.toFixed(0)}px; width:${size}px; height:${size}px;` +
+      `margin-left:${(-size / 2).toFixed(0)}px; margin-top:${(-size / 2).toFixed(0)}px;` +
+      `z-index:${Math.round(py / 4) + (hard >= 3 ? -1 : 5)};`;
     img.addEventListener('pointerdown', ()=>{
       if(img.classList.contains('found')) return;
       img.classList.add('found');
-      if(window.gsap) gsap.to(img, { scale: 1.5, opacity: 0, duration: .4, ease: 'back.in(1.6)' });
+      if(window.gsap) gsap.to(img, { scale: 1.6, opacity: 0, duration: .4, ease: 'back.in(1.6)' });
       else img.style.opacity = 0;
       if(!Snd.play('pop', 1.2, .5)) Snd.special();
       const slot = document.querySelector(`.find-slot[data-slot="${i}"]`);
       if(slot) slot.classList.add('got');
       findState.found++;
+      const left = CRITTERS.length - findState.found;
+      if(left) $('#find-hint').textContent = tf(`${left} still hiding…`, `Ne mancano ${left}…`);
       if(findState.found >= CRITTERS.length) finishCritters();
     });
-    wrap.appendChild(img);
+    world.appendChild(img);
   });
+  // start the hunt looking at the first hiding place's district, zoomed out a little
+  setCityZoom(Math.max(.55, cityZoom * .72));
+  focusWorld(Math.min(save.unlocked, LEVELS.length), true);
   clearInterval(findState.timer);
   findState.timer = setInterval(()=>{
     if(!findState) return;
@@ -7286,12 +7290,16 @@ function openCritters(){
       }
     }
   }, 1000);
-  showOverlay('ov-find', true);
+}
+function endHunt(){
+  if(findState){ clearInterval(findState.timer); findState = null; }
+  document.body.classList.remove('hunting');
+  $('#city-world').querySelectorAll('.find-critter').forEach(n => n.remove());
 }
 function finishCritters(){
   const st = ensureCritters();
-  clearInterval(findState.timer);
   const fast = findState.secs > 45;
+  clearInterval(findState.timer);
   st.done = true;
   st.streak = (st.streak || 0) + 1;
   gainStamps(8);
@@ -7305,22 +7313,14 @@ function finishCritters(){
       : tf('All found! +8 stamps. Come back tomorrow — they love hide and seek.', 'Trovati tutti! +8 francobolli. Torna domani — adorano nascondino.'));
   }, 300);
   setTimeout(()=>{
-    showOverlay('ov-find', false);
-    findState = null;
+    endHunt();
     renderMeta();
-    if(document.body.classList.contains('in-meta')){
-      const v = document.querySelector('#meta-nav .tab.active')?.dataset.view;
-      if(v === 'quests') renderQuests();
-      if(v === 'mailroom') renderMailroom();
-    } else if(G.over){
-      showOverlay('ov-win', true);   // came from the win screen: hand it back
-    }
+    if(G.over) showOverlay('ov-win', true);   // came from the win screen: hand it back
   }, 2600);
 }
 $('#btn-find-close').addEventListener('click', ()=>{
-  if(findState){ clearInterval(findState.timer); findState = null; }
-  showOverlay('ov-find', false);
-  if(!document.body.classList.contains('in-meta') && G.over) showOverlay('ov-win', true);
+  endHunt();
+  if(G.over) showOverlay('ov-win', true);
 });
 function showHeartsGate(){
   $('#hearts-title').textContent = t('Out of rounds');

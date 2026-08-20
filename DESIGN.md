@@ -630,3 +630,47 @@ daisies, clover, pebbles with lit tops and their own contact shadows.
 
 Baking all 30 sprites costs ~210ms and the ground ~50ms on desktop, both
 lazy and one-off.
+
+## v33 — the diorama is gone; the hunt moved outdoors
+
+The Town tab still carried a small illustrated diorama from v28 — a second,
+lesser Pipoville drawn in emoji, kept alive only because the daily
+hidden-critters round used it as a playfield. With the map and the city
+merged, that diorama was the last place the game told its story twice. It
+is now deleted: `#town-scene`, `.town-el`, `.town-sun`, `.town-pipo` and
+`renderTownScene()` are all gone, and `TOWN_SPOTS` — whose x/y were only
+ever the diorama's layout — collapsed to `TOWN_SIZE`, the one value the
+world actually reads.
+
+**The hunt runs in the real town.** `openCritters()` no longer opens a
+modal over a mini-scene. It switches to the map, stamps `hunting` on
+`<body>`, and hides five critters in the world itself as `.find-critter`
+children of `#city-world`, positioned in world pixels. The player pans and
+zooms the actual Pipoville to find them, so knowing your own town is what
+makes you fast at it.
+
+`critterSpots()` picks the hiding places from the part of town the player
+has walked: every delivery stop in a discovered district plus every project
+already built there. It samples 40 candidates per critter and keeps the one
+furthest from those already placed, so the five spread across the map
+rather than clustering (the test asserts the minimum gap). Positions are
+seeded from the day, so everyone hunting today hunts the same town.
+
+**The chrome is a docked bar, not a modal.** `#find-bar` sits where the nav
+bar was — `body.hunting` hides `#meta-nav`, `#route-hint` and the zoom
+buttons, and makes level nodes, buildings, friends and Pipo `pointer-events:
+none`, so during the hunt the town is scenery and only the critters take a
+tap. The streak still tightens the game: each day they hide smaller, and
+past a streak of 3 they hide *behind* the scenery (`z-index` below the
+depth-sorted world instead of above it).
+
+**Cleanup is centralised.** `endHunt()` clears the timer, drops the class
+and removes the critters; it is called on finish, on close, and from
+`showScreen()` whenever the player leaves the map — so a hunt can never
+leak a running interval or a stray critter into another view. `renderMap()`
+deliberately spares `.find-critter` when it clears the world, and skips its
+usual camera re-centring while a hunt is on.
+
+**The Town tab is now the ledger.** No scene, just what it is for: the
+hunt, a "go and see the *thing you last built*" row that walks the camera
+there, the daily post income, and the project list.
