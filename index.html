@@ -636,44 +636,32 @@
   .chap { text-align:right; line-height:1.05; flex:1 1 auto; min-width:0; }
   #chap-label { font-weight:700; font-size:10px; letter-spacing:.12em; color:rgba(18,58,46,.55); }
   #chap-name { font-weight:800; font-size:15px; color:var(--ink-art); text-shadow:0 1px 0 rgba(255,255,255,.6); }
-  /* A full-width bar has to agree with the notch/home-indicator on its
-     exact edge-to-edge geometry — the one thing that kept breaking across
-     devices. A small floating ring sidesteps the whole problem: it never
-     touches an edge, so there is nothing left to misalign. Tap it to pop
-     a stack of glass buttons open above it. */
-  #meta-nav { position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom));
-    transform:translateX(-50%); z-index:30; }
-  #nav-ring-fab { position:relative; width:64px; height:64px; border-radius:50%; border:none; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; z-index:2;
+  /* five sections, one flat bar. Kept off the true edge (side + bottom
+     margins, explicit height) rather than edge-to-edge — that's what
+     actually caused the old bottom-gap bug across several attempts, not
+     the bar shape itself, so this is a plain bar without repeating it. */
+  #meta-nav { position:fixed; left:14px; right:14px; bottom:calc(14px + env(safe-area-inset-bottom));
+    z-index:30; display:flex; align-items:flex-end; justify-content:space-between; gap:2px;
+    padding:7px 6px; border-radius:24px;
+    background:rgba(255,255,255,.72); backdrop-filter:blur(16px) saturate(1.5); -webkit-backdrop-filter:blur(16px) saturate(1.5);
+    box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 6px 0 rgba(43,127,212,.16), 0 14px 22px rgba(18,58,46,.28); }
+  #meta-nav .tab { flex:1 1 0; min-width:0; border:none; cursor:pointer; font-family:inherit;
+    background:transparent; padding:6px 2px 4px; border-radius:16px;
+    display:flex; flex-direction:column; align-items:center; gap:2px; }
+  #meta-nav .tab img { width:25px; height:25px; }
+  #meta-nav .tab span { display:block; font-weight:800; font-size:9.5px; color:var(--ink2); white-space:nowrap; }
+  #meta-nav .tab:active { transform:scale(.94); }
+  #meta-nav .tab.active { background:rgba(43,127,212,.14); }
+  #meta-nav .tab.active span { color:#1f68b4; }
+  /* city is the button players tap the most — bigger, blue, and raised
+     above the row instead of just another icon in the line */
+  #meta-nav .tab-city { flex:0 0 auto; width:64px; height:64px; margin:-22px 4px 0; border-radius:50%;
+    justify-content:center; padding:0;
     background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%);
-    box-shadow:inset 0 3px 0 rgba(255,255,255,.55), 0 5px 0 #14477f, 0 12px 20px rgba(18,58,46,.32);
-    transition:transform .18s cubic-bezier(.34,1.4,.64,1); }
-  #nav-ring-fab img { width:30px; height:30px; }
-  #nav-ring-fab:active { transform:scale(.92); }
-  /* a nudge, not a flip — the icon still has to read as "you are here" */
-  #meta-nav.open #nav-ring-fab { transform:scale(.94); }
-  /* the menu's own box sits centered on the FAB (bottom:32px = half the
-     FAB's height) so every tab can fan out from that one shared origin
-     point instead of stacking in a column */
-  #nav-ring-menu { position:absolute; left:50%; bottom:32px; }
-  #meta-nav .tab { position:absolute; left:50%; top:50%; margin:-26px 0 0 -26px;
-    width:52px; height:52px; flex:0 0 auto; border:none; cursor:pointer; font-family:inherit; padding:0;
-    border-radius:50%; display:flex; align-items:center; justify-content:center;
-    background:rgba(255,255,255,.72); backdrop-filter:blur(14px) saturate(1.5); -webkit-backdrop-filter:blur(14px) saturate(1.5);
-    box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 4px 0 rgba(43,127,212,.22), 0 8px 14px rgba(18,58,46,.28);
-    opacity:0; transform:translate(0,0) scale(.4); pointer-events:none;
-    transition:opacity .16s ease, transform .18s cubic-bezier(.34,1.4,.64,1); }
-  #meta-nav .tab img { width:26px; height:26px; }
-  #meta-nav .tab span { display:none; } /* the ring reads by icon; the label is for screen readers via aria-label below */
-  /* radial fan, not a vertical stack: each tab pops out to its own point
-     on an arc above the FAB instead of sliding straight up */
-  #meta-nav.open .tab { opacity:1; pointer-events:auto; }
-  #meta-nav.open .tab:nth-child(1){ transform:translate(-94px,-34px) scale(1); transition-delay:.02s }
-  #meta-nav.open .tab:nth-child(2){ transform:translate(-42px,-91px) scale(1); transition-delay:.05s }
-  #meta-nav.open .tab:nth-child(3){ transform:translate(42px,-91px) scale(1); transition-delay:.08s }
-  #meta-nav.open .tab:nth-child(4){ transform:translate(94px,-34px) scale(1); transition-delay:.11s }
-  #meta-nav .tab.active { background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%);
-    box-shadow:inset 0 2px 0 rgba(255,255,255,.5), 0 4px 0 #14477f, 0 8px 14px rgba(18,58,46,.3); }
+    box-shadow:inset 0 3px 0 rgba(255,255,255,.55), 0 5px 0 #14477f, 0 10px 18px rgba(18,58,46,.32); }
+  #meta-nav .tab-city img { width:32px; height:32px; }
+  #meta-nav .tab-city span { display:none; }
+  #meta-nav .tab-city.active { background:linear-gradient(180deg,#8fd0ff 0%,#2b7fd4 55%,#1f68b4 100%); }
 
   /* ---- route (map) ---- */
   #route-hint { display:flex; align-items:center; gap:10px; margin:8px 14px 4px; padding:10px 14px; border-radius:20px; z-index:5; position:relative; }
@@ -1097,12 +1085,6 @@
     position:relative; z-index:0; isolation:isolate; }
   #city-sizer { position:relative; width:3600px; height:2560px; }
   #city-world { transform-origin:0 0; }
-  .city-zoom { width:38px; height:38px; border-radius:13px; border:none; cursor:pointer; flex:0 0 auto;
-    font-family:inherit; font-size:21px; font-weight:900; color:#8a5a00; background:var(--cream);
-    box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 3px 0 #f0d9a8; }
-  .city-zoom:active { transform:translateY(2px); box-shadow:inset 0 2px 0 rgba(255,255,255,.9), 0 1px 0 #f0d9a8; }
-  #btn-mailroom.city-zoom { display:flex; align-items:center; justify-content:center; }
-  #btn-mailroom.city-zoom img { width:22px; height:22px; }
   /* the Gardenscapes-style round launcher: always the level you're walking to */
   .level-launch { width:58px; height:58px; border-radius:20px; border:none; cursor:pointer; flex:0 0 auto;
     font-family:var(--font-display); color:#fff; margin-bottom:2px;
@@ -1323,7 +1305,6 @@
       <span class="ll-num" id="level-launch-num">1</span>
       <span class="ll-tag">LEVEL</span>
     </button>
-    <button class="city-zoom" id="btn-mailroom"><img data-ico="letter" alt=""></button>
   </div>
 </div>
 
@@ -1333,14 +1314,14 @@
 <div id="shop" class="screen meta-view"><div class="view-pad" id="shop-body"></div></div>
 <div id="mailroom" class="screen meta-view"><div class="view-pad" id="mailroom-body"></div></div>
 </div><!-- /meta-content -->
+<!-- five sections, inline — city is the one players tap most, so it
+     gets the bigger raised button in the middle -->
 <div id="meta-nav">
-  <div id="nav-ring-menu">
-    <button class="tab" data-view="shop"><img data-ico="gift" alt=""><span data-nav="shop">Shop</span></button>
-    <button class="tab" data-view="album"><img data-ico="stamp" alt=""><span data-nav="book">Book</span></button>
-    <button class="tab" data-view="quests"><img data-ico="quest" alt=""><span data-nav="round">Round</span></button>
-    <button class="tab" data-view="map"><img data-ico="mailbox" alt=""><span data-nav="route">City</span></button>
-  </div>
-  <button id="nav-ring-fab" aria-label="Menu"><img id="nav-ring-fab-ico" data-ico="mailbox" alt=""></button>
+  <button class="tab" data-view="album"><img data-ico="stamp" alt=""><span data-nav="book">Book</span></button>
+  <button class="tab" data-view="shop"><img data-ico="gift" alt=""><span data-nav="shop">Shop</span></button>
+  <button class="tab tab-city" data-view="map"><img data-ico="mailbox" alt=""><span data-nav="route">City</span></button>
+  <button class="tab" data-view="quests"><img data-ico="quest" alt=""><span data-nav="round">Round</span></button>
+  <button class="tab" data-view="mailroom"><img data-ico="letter" alt=""><span data-nav="projects">Projects</span></button>
 </div>
 </div><!-- /meta-shell -->
 
@@ -4441,7 +4422,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 49;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 50;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -5101,14 +5082,9 @@ const META_VIEWS = ['map','quests','album','shop','mailroom'];
    whenever that could have changed: entering/leaving the meta chrome,
    the viewport resizing, or Safari's address bar collapsing/expanding
    (visualViewport is the one API that fires for that specifically). */
-/* the ring keeps only one thing lit at a time and wears that section's
-   icon on its own face — and always folds shut once you've picked */
-function syncNavRing(id){
+/* five inline tabs, one lit at a time */
+function syncNav(id){
   document.querySelectorAll('#meta-nav .tab').forEach(b=>b.classList.toggle('active', b.dataset.view === id));
-  const activeImg = document.querySelector('#meta-nav .tab.active img');
-  const fabIco = $('#nav-ring-fab-ico');
-  if(activeImg && fabIco && activeImg.src) fabIco.src = activeImg.src;
-  $('#meta-nav').classList.remove('open');
 }
 function syncMetaChromeHeights(){
   const top = document.getElementById('meta-top');
@@ -5128,7 +5104,7 @@ function showScreen(id){
   document.body.classList.toggle('in-meta', meta);
   if(id !== 'map'){ stopCityAnim(); endHunt(); }   // the rides only turn while you are looking
   if(meta){
-    syncNavRing(id);
+    syncNav(id);
     renderMeta();
   }
   requestAnimationFrame(syncMetaChromeHeights);
@@ -7012,6 +6988,12 @@ document.querySelectorAll('.lang-btn').forEach(b=>{
     location.reload();
   });
 });
+/* nav labels — matched to each screen's own title, not just guessed */
+$('[data-nav="book"]').textContent = tf('Book', 'Album');
+$('[data-nav="shop"]').textContent = tf('Shop', 'Negozio');
+$('[data-nav="route"]').textContent = tf('City', 'Città');
+$('[data-nav="round"]').textContent = tf('Round', 'Giro');
+$('[data-nav="projects"]').textContent = tf('Projects', 'Progetti');
 $('#btn-play').addEventListener('click', ()=>{
   Snd.ensure(); showScreen('map'); renderMap();
   if(!save.storySeen){ save.storySeen = true; persist(); startIntro(); }
@@ -7147,10 +7129,6 @@ document.querySelectorAll('#meta-nav .tab').forEach(b=>{
     if(v === 'map'){ showScreen('map'); renderMap(); }
     else { showScreen(v); RENDER_VIEW[v](); }
   });
-});
-$('#nav-ring-fab').addEventListener('click', ()=>{
-  Snd.ensure();
-  $('#meta-nav').classList.toggle('open');
 });
 $('#btn-sheet-close').addEventListener('click', ()=>{ showOverlay('ov-intro', false); showScreen('map'); renderMap(); });
 $('#btn-start').addEventListener('click', ()=>{
@@ -8076,14 +8054,11 @@ $('#btn-level-launch').addEventListener('click', ()=>{
   Snd.ensure();
   openLevel(Math.min(save.unlocked, LEVELS.length));
 });
-$('#btn-mailroom').addEventListener('click', ()=>{
-  Snd.ensure(); showScreen('mailroom'); renderMailroom();
-});
 
 /* the town list still opens places — it just walks you there now */
 function openCity(focusId){
   showScreen('map');
-  syncNavRing('map');
+  syncNav('map');
   renderMap();
   focusWorld(focusId || Math.min(save.unlocked, LEVELS.length), true);
 }
@@ -8141,7 +8116,7 @@ function openCritters(){
   Snd.ensure();
   showOverlay('ov-win', false);
   showScreen('map');
-  syncNavRing('map');
+  syncNav('map');
   renderMap();
   document.body.classList.add('hunting');
   requestAnimationFrame(syncMetaChromeHeights);
