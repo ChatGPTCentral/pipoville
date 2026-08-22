@@ -1682,6 +1682,7 @@ const BLAST_SND = {
              shake:1, flash:1, parts:28, hit:120, buzz:48 },
 };
 let CHARGE_MAX = 60; // pieces destroyed to fill the rainbow wheel (50 once Ms Toni is rescued)
+const STAMP_FLOOR = 8; // stamps never decay below this even on the very last move
 /* =====================================================================
    BAKED BITMAP SPRITES
    Each piece and power-up is painted once at boot onto a 256px canvas
@@ -4422,7 +4423,7 @@ LEVELS.forEach((L,i)=>{
 
 /* ---------------- save/progress ---------------- */
 const SAVE_KEY = 'candy_garden_save_v1';
-const GAME_VERSION = 50;   // release number: bump on every ship (mirrors sw.js CACHE)
+const GAME_VERSION = 51;   // release number: bump on every ship (mirrors sw.js CACHE)
 const SAVE_VERSION = 2;    // save schema: bump ONLY when the save shape changes, with a migration below
 function migrateSave(s){
   const from = s.v || 1;
@@ -6085,7 +6086,6 @@ function destroyCells(keys, creations, mult){
   if(pts && anchor){ G.score += pts; floatScore(anchor[0], anchor[1], pts); }
   else G.score += pts;
   G.charge = Math.min(CHARGE_MAX, (G.charge || 0) + destroyed); // rainbow wheel charges
-  G.runStamps = Math.min(24, (G.runStamps || 0) + Math.round(destroyed / 3)); // mail stamps banked on win
   G.destroyedTotal = (G.destroyedTotal || 0) + destroyed;
   return destroyed + dirtCleared;
 }
@@ -6324,6 +6324,11 @@ function updateHUD(){
     sh.style.opacity = G.shovels > 0 ? '' : '.45';
   }
   $('#score-val').textContent = G.score.toLocaleString();
+  // stamps start full and count down as moves burn — reward finishing fast, not dragging it out
+  if(G.movesTotal){
+    const frac = Math.max(0, Math.min(1, G.movesLeft / G.movesTotal));
+    G.runStamps = Math.round(STAMP_FLOOR + (G.stampBase - STAMP_FLOOR) * frac);
+  }
   const rs = $('#run-stamps-num'); if(rs) rs.textContent = G.runStamps || 0;
   const ring = $('#wheel-ring');
   if(ring){
@@ -6839,6 +6844,7 @@ $('#btn-more-moves').addEventListener('click', ()=>{
   }
   G.destroyedTotal = 0; G.craftCount = 0; // already flushed into quest progress
   G.movesLeft += 5;
+  G.movesTotal += 5;
   G.over = false;
   G.busy = false;
   showOverlay('ov-lose', false);
@@ -6915,6 +6921,7 @@ function prepareLevel(){
   endTutorial();
   const fails = save.fails[G.level] || 0;
   G.movesLeft = G.L.moves + Math.min(4, Math.floor(fails/3)*2) + (G.L.hard && isRescued('nunu') ? 2 : 0); // soft pity + Nunu's perk
+  G.movesTotal = G.movesLeft;
   G.score = 0;
   G.over = false;
   G.busy = false;
@@ -6922,7 +6929,10 @@ function prepareLevel(){
   G.goals = G.L.goals.map(g=>({ ...g, remaining: g.count }));
   CHARGE_MAX = isRescued('ms_toni') ? 50 : 60;
   G.charge = 0;
-  G.runStamps = 0; G.craftCount = 0; G.destroyedTotal = 0;
+  // stamps start at the top and count down as moves burn — finish fast, keep more
+  G.stampBase = 24;
+  G.runStamps = G.stampBase;
+  G.craftCount = 0; G.destroyedTotal = 0;
   Music.setMood(chapterFor(G.level));
   G.shovels = 3 + (isRescued('cannolio') ? 1 : 0); // Cannolio digs too
   G.shovelMode = false;
